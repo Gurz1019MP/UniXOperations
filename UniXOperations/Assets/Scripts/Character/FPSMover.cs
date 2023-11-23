@@ -22,6 +22,7 @@ public class FPSMover : MonoBehaviour
     private Animator _characterAnimator;
     private CharacterState _characterState;
     private CharacterInputterContainer _characterInputterContainer;
+    private float _animatorFactor = 0.0f;
 
     public bool IsGround { get; set; }
 
@@ -97,30 +98,41 @@ public class FPSMover : MonoBehaviour
 
                 _characterAnimator.SetBool(_animatorParamIsWalk, true);
                 _characterAnimator.SetBool(_animatorParamIsRun, false);
+                _animatorFactor = 1.0f;
             }
             else
             {
                 var inputDelta = new Vector3(Inputter.Horizontal, 0, Inputter.Vertical).normalized * _walkSpeed;
-                if (inputDelta.z > 0)
+
+                if (inputDelta.z == 0)
+                {
+                    _characterAnimator.SetBool(_animatorParamIsWalk, false);
+                    _characterAnimator.SetBool(_animatorParamIsRun, false);
+                    _animatorFactor = 0;
+                }
+                else if (inputDelta.z > 0)
                 {
                     inputDelta.z *= _runMultiplier;
+
+                    _characterAnimator.SetBool(_animatorParamIsWalk, false);
+                    _characterAnimator.SetBool(_animatorParamIsRun, true);
+                    _animatorFactor = 1.0f;
                 }
+                else
+                {
+                    _characterAnimator.SetBool(_animatorParamIsWalk, true);
+                    _characterAnimator.SetBool(_animatorParamIsRun, false);
+                    _animatorFactor = -1.0f;
+                }
+
+
                 inputDelta = transform.TransformDirection(inputDelta);
 
                 _moveDelta.x += inputDelta.x;
                 _moveDelta.z += inputDelta.z;
-
-                if (inputDelta.magnitude > 0)
-                {
-                    _characterAnimator.SetBool(_animatorParamIsWalk, false);
-                    _characterAnimator.SetBool(_animatorParamIsRun, true);
-                }
-                else
-                {
-                    _characterAnimator.SetBool(_animatorParamIsWalk, false);
-                    _characterAnimator.SetBool(_animatorParamIsRun, false);
-                }
             }
+
+            _characterAnimator.SetFloat(_animatorParamFactor, _animatorFactor);
         }
 
         // 斜面のスライド
@@ -166,4 +178,5 @@ public class FPSMover : MonoBehaviour
 
     private static readonly string _animatorParamIsWalk = "IsWalk";
     private static readonly string _animatorParamIsRun = "IsRun";
+    private static readonly string _animatorParamFactor = "Factor";
 }
