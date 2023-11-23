@@ -12,8 +12,9 @@ public class GameCameraController : MonoBehaviour
     public LayerMask FPSCullingMask;
     public LayerMask FPSWithArmCullingMask;
     public LayerMask TPSCullingMask;
-    public float DefalutFoV;
-    public float ZoomFoV;
+    public float DefaultFoV;
+    public float DetailFoV;
+    public float LowFoV;
 
     [ReadOnly]
     public Camera Camera;
@@ -125,9 +126,25 @@ public class GameCameraController : MonoBehaviour
 
     private void CharacterState_OnChangeZoom(bool isZoom, WeaponSpec.ZoomModeEnum zoomMode)
     {
-        if (zoomMode != WeaponSpec.ZoomModeEnum.Detail) return;
-
-        Camera.fieldOfView = isZoom ? ZoomFoV : DefalutFoV;
+        if (isZoom)
+        {
+            if (zoomMode == WeaponSpec.ZoomModeEnum.Detail)
+            {
+                Camera.fieldOfView = DetailFoV;
+            }
+            else if (zoomMode == WeaponSpec.ZoomModeEnum.Low)
+            {
+                Camera.fieldOfView = LowFoV;
+            }
+            else
+            {
+                Camera.fieldOfView = DefaultFoV;
+            }
+        }
+        else
+        {
+            Camera.fieldOfView = DefaultFoV;
+        }
     }
 
     private static int _bodyLayer = 11;

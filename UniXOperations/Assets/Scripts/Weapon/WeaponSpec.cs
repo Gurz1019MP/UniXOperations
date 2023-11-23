@@ -55,6 +55,7 @@ public class WeaponSpec
     {
         None,
         Equal,
+        Low,
         Detail
     }
 
