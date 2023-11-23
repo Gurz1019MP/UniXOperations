@@ -100,7 +100,11 @@ public class FPSMover : MonoBehaviour
             }
             else
             {
-                var inputDelta = new Vector3(Inputter.Horizontal, 0, Inputter.Vertical).normalized * _walkSpeed * _runMultiplier;
+                var inputDelta = new Vector3(Inputter.Horizontal, 0, Inputter.Vertical).normalized * _walkSpeed;
+                if (inputDelta.z > 0)
+                {
+                    inputDelta.z *= _runMultiplier;
+                }
                 inputDelta = transform.TransformDirection(inputDelta);
 
                 _moveDelta.x += inputDelta.x;
