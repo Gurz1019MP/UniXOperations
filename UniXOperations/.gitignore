@@ -11,7 +11,9 @@
 /[Uu]ser[Ss]ettings/
 
 /AssetBundle
+/ProjectSettings
 
+/Assets/AssetGraph
 /Assets/Audio
 /Assets/Effect
 /Assets/Font
@@ -83,3 +85,5 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+
