@@ -34,7 +34,7 @@ public class PathAI : AbstractAIBehavior
     private Transform _headTransform;
     private GameObject _trackingTarget;
     private bool _wasAlert;
-    private System.IDisposable _lookAroundSubscriver;
+    private System.IDisposable _lookSubscriver;
     private System.IDisposable _waitPathSubscriver;
 
     #endregion
@@ -55,7 +55,7 @@ public class PathAI : AbstractAIBehavior
                 }
                 else if (path.Kind == SinglePath.PathKind.Waiting)
                 {
-                    WalkAndWait(false);
+                    WalkAndWait(false, false);
                 }
                 else if (path.Kind == SinglePath.PathKind.Tracking)
                 {
@@ -63,11 +63,11 @@ public class PathAI : AbstractAIBehavior
                 }
                 else if (path.Kind == SinglePath.PathKind.AlertWaiting)
                 {
-                    WalkAndWait(true);
+                    WalkAndWait(true, false);
                 }
                 else if (path.Kind == SinglePath.PathKind.TimeWaiting)
                 {
-                    Moving(CurrentPath.transform.position, false, false, BeginChangeNextPathContainerWaitTime);
+                    WalkAndWait(false, true);
                 }
                 else if (path.Kind == SinglePath.PathKind.ThrowingGrenade)
                 {
@@ -87,7 +87,7 @@ public class PathAI : AbstractAIBehavior
 
     public override void EnterState()
     {
-        EndWaitLookAround();
+        EndWaitLook();
     }
 
     public void SetWasAlert()
@@ -133,11 +133,18 @@ public class PathAI : AbstractAIBehavior
         //Debug.Log($"angle : {angle}, distance : {pathDirPlane.magnitude}");
     }
 
-    private void WalkAndWait(bool isAlertWaiting)
+    private void WalkAndWait(bool isAlertWaiting, bool isTimeWaiting)
     {
-        if (_lookAroundSubscriver == null)
+        if (_lookSubscriver == null)
         {
-            Moving(CurrentPath.transform.position, false, false, () => BeginWaitLookAround(isAlertWaiting));
+            if (isTimeWaiting)
+            {
+                Moving(CurrentPath.transform.position, false, false, () => BeginChangeNextPathContainerWaitTimeAndLookDirection());
+            }
+            else
+            {
+                Moving(CurrentPath.transform.position, false, false, () => BeginWaitLookAround(isAlertWaiting));
+            }
         }
         else
         {
@@ -203,7 +210,7 @@ public class PathAI : AbstractAIBehavior
 
     private void ChangeNextPathContainer()
     {
-        EndWaitLookAround();
+        EndWaitLook();
         _wasAlert = false;
 
         var nextPath = CurrentPath.Path.GetNextPathContainer();
@@ -211,6 +218,12 @@ public class PathAI : AbstractAIBehavior
         //Debug.Log($"ChangePath : {CurrentPath.Path.Id}, NextPath : {nextPath.Path.Id}");
 
         CurrentPath = nextPath;
+    }
+
+    private void BeginChangeNextPathContainerWaitTimeAndLookDirection()
+    {
+        BeginChangeNextPathContainerWaitTime();
+        BeginLookDirection();
     }
 
     private void BeginChangeNextPathContainerWaitTime()
@@ -230,17 +243,17 @@ public class PathAI : AbstractAIBehavior
 
     private void BeginWaitLookAround(bool isAlertWaiting)
     {
-        if (_lookAroundSubscriver != null) return;
+        if (_lookSubscriver != null) return;
 
-        _lookAroundSubscriver = Observable.FromCoroutine(_ => WaitLookAround(isAlertWaiting)).Subscribe().AddTo(CharacterState);
+        _lookSubscriver = Observable.FromCoroutine(_ => WaitLookAround(isAlertWaiting)).Subscribe().AddTo(CharacterState);
     }
 
-    private void EndWaitLookAround()
+    private void EndWaitLook()
     {
-        if (_lookAroundSubscriver == null) return;
+        if (_lookSubscriver == null) return;
 
-        _lookAroundSubscriver.Dispose();
-        _lookAroundSubscriver = null;
+        _lookSubscriver.Dispose();
+        _lookSubscriver = null;
     }
 
     private IEnumerator WaitLookAround(bool isAlertWaiting)
@@ -254,6 +267,23 @@ public class PathAI : AbstractAIBehavior
         }
 
         ChangeNextPathContainer();
+    }
+
+    private void BeginLookDirection()
+    {
+        if (_lookSubscriver != null) return;
+
+        _lookSubscriver = Observable.FromCoroutine(_ => LookDirection()).Subscribe().AddTo(CharacterState);
+    }
+
+    private IEnumerator LookDirection()
+    {
+        while (true)
+        {
+            var angleXZ = Vector3.SignedAngle(_characterTransform.forward, CurrentPath.transform.forward, _characterTransform.up);
+            Controller.MouseX = angleXZ * AIParameter.PropControlConstant;
+            yield return null;
+        }
     }
 
     private IEnumerator FireSemi()
