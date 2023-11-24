@@ -93,7 +93,7 @@ public static class ConstantsManager
 
     public static string GetResoucePathCharacterModel(string name) => $"Assets/Models/Character/Built-in/{name}.fbx";
 
-    public static string GetResoucePathCharacterMaterial => $"Assets/Materials/Material.mat";
+    public static string GetResoucePathCharacterMaterial() => $"Assets/Models/Character/Built-in/Material.mat";
 
     public static string GetResoucePathCharacterTexture(string name) => $"Assets/Models/Character/{name}.bmp";
 
