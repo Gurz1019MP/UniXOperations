@@ -5,7 +5,6 @@ using UniRx;
 /// FPS的な移動を表現する
 /// </summary>
 [RequireComponent(typeof(CharacterController))]
-[RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(CharacterState))]
 [RequireComponent(typeof(CharacterInputterContainer))]
 public class FPSMover : MonoBehaviour
