@@ -69,6 +69,8 @@ public class GameCoreManager : MonoBehaviour
         }
 
         _startTime = DateTime.Now;
+
+        //JsonContainer.Save();
     }
 
     public void TransitionToResult(bool result)

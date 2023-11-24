@@ -185,6 +185,8 @@ public class WeaponSystem : MonoBehaviour
             MuzzleJumpAction(Weapon.Spec.FirePower * 0.1f);
         }
 
+        CharacterState.ArmController.MuzzleJump(Weapon.Spec.MuzzleJump);
+
         if (!Weapon.Spec.IsGrenade)
         {
             //var mfInstance = Instantiate(MuzzleFlash, Hand.position + Hand.forward * 0.1f, Hand.rotation * Quaternion.Euler(0, 180, 0));
