@@ -185,7 +185,7 @@ public class CharacterState : MonoBehaviour
             VisualChanger.ChangeMesh(up, upMesh);
 
             // マテリアルの読み込み
-            material = AssetLoader.LoadAsset<Material>(ConstantsManager.GetResoucePathCharacterModel(info.Spec.UpperModel));
+            material = AssetLoader.LoadAsset<Material>(ConstantsManager.GetResoucePathCharacterMaterial);
             texture = AssetLoader.LoadAsset<Texture2D>(ConstantsManager.GetResoucePathCharacterTexture(info.Spec.Texture));
             foreach (var target in arms.Concat(new GameObject[] { up, leg }))
             {
