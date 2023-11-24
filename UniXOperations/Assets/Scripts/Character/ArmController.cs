@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UniRx;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 public class ArmController : MonoBehaviour
 {
@@ -6,6 +9,7 @@ public class ArmController : MonoBehaviour
     public GameObject Target;
     public float RotateSpeed;
     public float TargetAngle;
+    public float LookAtSpeed;
 
     [ReadOnly]
     public bool _isLookAtMode;
@@ -16,7 +20,10 @@ public class ArmController : MonoBehaviour
     {
         if (_isLookAtMode)
         {
-            Arm.transform.LookAt(Target.transform);
+            Vector3 direction = Target.transform.position - Arm.transform.position;
+            float YZAngle = Vector3.SignedAngle(Arm.transform.forward, direction, Arm.transform.right);
+            _currentArmAngle += YZAngle * LookAtSpeed * Time.deltaTime;
+            Arm.transform.localEulerAngles = new Vector3(_currentArmAngle, 0, 0);
         }
         else
         {
@@ -28,7 +35,7 @@ public class ArmController : MonoBehaviour
                 {
                     rotateSpeed = TargetAngle - _currentArmAngle;
                 }
-                _currentArmAngle = _currentArmAngle + rotateSpeed;
+                _currentArmAngle += rotateSpeed;
                 Arm.transform.localEulerAngles = new Vector3(_currentArmAngle, 0, 0);
             }
         }
@@ -47,5 +54,11 @@ public class ArmController : MonoBehaviour
         {
             _currentArmAngle -= 360;
         }
+    }
+
+    public void MuzzleJump(float jumpMagnitude)
+    {
+        Arm.transform.localEulerAngles = new Vector3(_currentArmAngle - jumpMagnitude, 0, 0);
+        _currentArmAngle = Arm.transform.localEulerAngles.x;
     }
 }
