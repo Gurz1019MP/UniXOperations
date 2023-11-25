@@ -23,6 +23,13 @@ public class AIStateManager
 
         CurrentStateAI = _stateAIMapper[StateKind.Safe];
         CurrentStateAI.EnterState();
+        if (CurrentStateAI is PathAI pathAI)
+        {
+            pathAI.CurrentPath.Subscribe(p =>
+            {
+                _commonAI.IsPriorityRunning = p != null && (p.Path is SinglePath singlePath) && singlePath.Kind == SinglePath.PathKind.PriorityRunning;
+            }).AddTo(_characterState);
+        }
 
         _commonAI.StateMode.Pairwise((v1, v2) =>
         {
@@ -43,6 +50,7 @@ public class AIStateManager
         _commonAI.TargetEnemy.Subscribe(e =>
         {
             (_stateAIMapper[StateKind.Combat] as ICombatAI).SetTargetEnemy(_commonAI.TargetEnemy.Value);
+            (_stateAIMapper[StateKind.Safe] as PathAI).SetTargetEnemy(_commonAI.TargetEnemy.Value);
         }).AddTo(_characterState);
 
         _commonAI.AlertDirection.Subscribe(e =>
