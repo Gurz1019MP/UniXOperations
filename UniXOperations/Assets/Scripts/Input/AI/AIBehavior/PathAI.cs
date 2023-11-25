@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UniRx;
+using UnityEngine.UIElements;
 
 public class PathAI : AbstractAIBehavior
 {
@@ -12,7 +13,7 @@ public class PathAI : AbstractAIBehavior
         _characterTransform = CharacterState.transform;
         _headTransform = CharacterState.FpsCameraAnchor;
 
-        CurrentPath = aIComponentData.FirstPath;
+        CurrentPath.Value = aIComponentData.FirstPath;
     }
 
     #region Public Property
@@ -23,7 +24,7 @@ public class PathAI : AbstractAIBehavior
     public float RunningMovingAngleConstant => 2f;
     public float WaitPathTimer => 5f;
 
-    public PathContainer CurrentPath { get; private set; }
+    public ReactiveProperty<PathContainer> CurrentPath { get; private set; } = new ReactiveProperty<PathContainer>();
 
 
     #endregion
@@ -36,22 +37,24 @@ public class PathAI : AbstractAIBehavior
     private bool _wasAlert;
     private System.IDisposable _lookSubscriver;
     private System.IDisposable _waitPathSubscriver;
+    private CharacterState _targetEnemy;
+    private System.IDisposable _fireSubscriver;
 
     #endregion
 
     public override void Update()
     {
-        if (CurrentPath != null)
+        if (CurrentPath.Value != null)
         {
-            if (CurrentPath.Path is SinglePath path)
+            if (CurrentPath.Value.Path is SinglePath path)
             {
                 if (path.Kind == SinglePath.PathKind.Walking)
                 {
-                    Moving(CurrentPath.transform.position, false, false, ChangeNextPathContainer);
+                    Moving(CurrentPath.Value.transform.position, false, false, ChangeNextPathContainer);
                 }
                 else if (path.Kind == SinglePath.PathKind.Running)
                 {
-                    Moving(CurrentPath.transform.position, true, false, ChangeNextPathContainer);
+                    Moving(CurrentPath.Value.transform.position, true, false, ChangeNextPathContainer);
                 }
                 else if (path.Kind == SinglePath.PathKind.Waiting)
                 {
@@ -71,14 +74,21 @@ public class PathAI : AbstractAIBehavior
                 }
                 else if (path.Kind == SinglePath.PathKind.ThrowingGrenade)
                 {
-                    ThrowingGrenade(CurrentPath.transform.position);
+                    ThrowingGrenade(CurrentPath.Value.transform.position);
                 }
                 else if (path.Kind == SinglePath.PathKind.PriorityRunning)
                 {
-                    Moving(CurrentPath.transform.position, true, false, ChangeNextPathContainer); // 未実装に付き一時
+                    if (_targetEnemy == null)
+                    {
+                        Moving(CurrentPath.Value.transform.position, true, false, ChangeNextPathContainer);
+                    }
+                    else
+                    {
+                        CombatAndMoving(CurrentPath.Value.transform.position, ChangeNextPathContainer);
+                    }
                 }
             }
-            else if (CurrentPath.Path is RandomPath)
+            else if (CurrentPath.Value.Path is RandomPath)
             {
                 ChangeNextPathContainer();
             }
@@ -139,11 +149,11 @@ public class PathAI : AbstractAIBehavior
         {
             if (isTimeWaiting)
             {
-                Moving(CurrentPath.transform.position, false, false, () => BeginChangeNextPathContainerWaitTimeAndLookDirection());
+                Moving(CurrentPath.Value.transform.position, false, false, () => BeginChangeNextPathContainerWaitTimeAndLookDirection());
             }
             else
             {
-                Moving(CurrentPath.transform.position, false, false, () => BeginWaitLookAround(isAlertWaiting));
+                Moving(CurrentPath.Value.transform.position, false, false, () => BeginWaitLookAround(isAlertWaiting));
             }
         }
         else
@@ -213,11 +223,11 @@ public class PathAI : AbstractAIBehavior
         EndWaitLook();
         _wasAlert = false;
 
-        var nextPath = CurrentPath.Path.GetNextPathContainer();
+        var nextPath = CurrentPath.Value.Path.GetNextPathContainer();
 
         //Debug.Log($"ChangePath : {CurrentPath.Path.Id}, NextPath : {nextPath.Path.Id}");
 
-        CurrentPath = nextPath;
+        CurrentPath.Value = nextPath;
     }
 
     private void BeginChangeNextPathContainerWaitTimeAndLookDirection()
@@ -280,17 +290,114 @@ public class PathAI : AbstractAIBehavior
     {
         while (true)
         {
-            var angleXZ = Vector3.SignedAngle(_characterTransform.forward, CurrentPath.transform.forward, _characterTransform.up);
+            var angleXZ = Vector3.SignedAngle(_characterTransform.forward, CurrentPath.Value.transform.forward, _characterTransform.up);
             Controller.MouseX = angleXZ * AIParameter.PropControlConstant;
             yield return null;
         }
     }
 
+    private IEnumerator FireFull()
+    {
+        Controller.Fire = true;
+        yield return new WaitForSeconds(Random.Range(0.2f, 1.0f));
+        Controller.Fire = false;
+        yield return new WaitForSeconds(Random.Range(0.5f, 1.0f));
+        _fireSubscriver = null;
+    }
+
     private IEnumerator FireSemi()
     {
         Controller.Fire = true;
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(Random.Range(0.2f, 1.0f));
         Controller.Fire = false;
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(Random.Range(0.5f, 1.0f));
+        _fireSubscriver = null;
+    }
+
+    public void SetTargetEnemy(CharacterState enemy)
+    {
+        _targetEnemy = enemy;
+    }
+
+    private void CombatAndMoving(Vector3 targetPoint, UnityAction actionWhenReaching)
+    {
+        if (_targetEnemy != null && _targetEnemy.gameObject != null)
+        {
+            var enemyDir = _targetEnemy.transform.position + _targetEnemy.transform.up * AIParameter.AimHeightOffset - _headTransform.position;         // 現在地から敵へのベクトル
+            var enemyDirXZPlane = Vector3.ProjectOnPlane(enemyDir, _headTransform.up);              // 上記ベクトルをXY平面に射影
+            var enemyAngleXZ = Vector3.SignedAngle(_headTransform.forward, enemyDirXZPlane, _headTransform.up); // 今向いている方向との差を計算
+            var enemyDirYZPlane = Vector3.ProjectOnPlane(enemyDir, _headTransform.right);
+            var enemyAngleYZ = Vector3.SignedAngle(_headTransform.forward, enemyDirYZPlane, _headTransform.right);
+
+            Controller.MouseX = enemyAngleXZ * AIParameter.PropControlConstant;
+            Controller.MouseY = enemyAngleYZ * AIParameter.PropControlConstant;
+
+            Controller.MouseX += Random.Range(-AIParameter.ShootError, AIParameter.ShootError);
+            Controller.MouseY += Random.Range(-AIParameter.ShootError, AIParameter.ShootError);
+
+            if (CharacterState.CurrentWeaponState.Kind != 0 &&
+                CharacterState.CurrentWeaponState.Magazine == 0)
+            {
+                if (CharacterState.CurrentWeaponState.Ammo != 0 &&
+                    !CharacterState.IsReloading)
+                {
+                    Observable.FromCoroutine(_ => PushOne(v => Controller.Reload = v)).Subscribe().AddTo(CharacterState);
+                }
+            }
+
+            if (CharacterState.CurrentWeaponState.Kind == 0 &&
+                CharacterState.DisableWeaponState.Kind != 0 &&
+                !CharacterState.IsSwitching)
+            {
+                Observable.FromCoroutine(_ => PushOne(v => Controller.SwitchWeapon = v)).Subscribe().AddTo(CharacterState);
+            }
+
+            if (CharacterState.CurrentWeaponState.Kind == 0 &&
+                CharacterState.DisableWeaponState.Kind == 0)
+            {
+                CharacterState.ArmController.TargetAngle = -90;
+                if (CharacterState.ArmController._isLookAtMode)
+                {
+                    CharacterState.ArmController.TargetAngleMode();
+                }
+            }
+
+            if (Mathf.Abs(enemyAngleXZ) < AIParameter.ShootThreshold && Mathf.Abs(enemyAngleYZ) < AIParameter.ShootThreshold &&
+                !Physics.Raycast(_headTransform.position, enemyDir, enemyDir.magnitude, LayerMask.GetMask("Stage")))
+            {
+                if (_fireSubscriver == null)
+                {
+                    if (CharacterState.CurrentWeaponState.Spec.FullAuto)
+                    {
+                        _fireSubscriver = Observable.FromCoroutine(FireFull).Subscribe().AddTo(CharacterState);
+                    }
+                    else
+                    {
+                        _fireSubscriver = Observable.FromCoroutine(FireSemi).Subscribe().AddTo(CharacterState);
+                    }
+                }
+            }
+
+            var pathDir = targetPoint - _characterTransform.position;              // 現在地からポイントへのベクトル
+            var pathDirPlane = Vector3.ProjectOnPlane(pathDir, Vector3.up);                 // 上記ベクトルをXY平面に射影
+            var vertical = Vector3.Dot(_characterTransform.forward, pathDirPlane);
+
+            if (pathDirPlane.magnitude > MovingDistance)
+            {
+                Controller.Vertical = Vector3.Dot(_characterTransform.forward, pathDirPlane);
+                Controller.Horizontal = Vector3.Dot(_characterTransform.right, pathDirPlane);
+            }
+            else
+            {
+                Controller.Vertical = 0;
+                Controller.Walk = false;
+
+                actionWhenReaching();
+            }
+        }
+        else
+        {
+            Controller.MouseY = 0;
+        }
     }
 }
