@@ -338,8 +338,12 @@ public class PathAI : AbstractAIBehavior
             if (CharacterState.CurrentWeaponState.Kind != 0 &&
                 CharacterState.CurrentWeaponState.Magazine == 0)
             {
-                if (CharacterState.CurrentWeaponState.Ammo != 0 &&
-                    !CharacterState.IsReloading)
+                if (CharacterState.CurrentWeaponState.Ammo == 0)
+                {
+                    Observable.FromCoroutine(_ => PushOne(v => Controller.DropWeapon = v)).Subscribe().AddTo(CharacterState);
+                }
+                else if (CharacterState.CurrentWeaponState.Ammo != 0 &&
+                         !CharacterState.IsReloading)
                 {
                     Observable.FromCoroutine(_ => PushOne(v => Controller.Reload = v)).Subscribe().AddTo(CharacterState);
                 }
