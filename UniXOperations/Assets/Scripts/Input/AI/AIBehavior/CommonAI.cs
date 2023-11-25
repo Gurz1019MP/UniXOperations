@@ -35,6 +35,7 @@ public class CommonAI : AbstractAIBehavior
     public ReactiveProperty<AIStateManager.StateKind> StateMode { get; private set; } = new ReactiveProperty<AIStateManager.StateKind>();
     public ReactiveProperty<CharacterState> TargetEnemy { get; private set; } = new ReactiveProperty<CharacterState>(null);
     public ReactiveProperty<Vector3> AlertDirection { get; private set; } = new ReactiveProperty<Vector3>();
+    public bool IsPriorityRunning { get; set; }
 
     #endregion
 
@@ -125,11 +126,18 @@ public class CommonAI : AbstractAIBehavior
                             _stateModeSubscriver = null;
                         }
 
-                        StateMode.Value = AIStateManager.StateKind.Combat;
+                        if (!IsPriorityRunning)
+                        {
+                            StateMode.Value = AIStateManager.StateKind.Combat;
+                        }
                     }
-                    else if (runningEnemies.Any())
+                    else if (runningEnemies.Any() && !IsPriorityRunning)
                     {
                         BeginAlert(runningEnemies.First().transform.position - _characterTransform.position);
+                    }
+                    else
+                    {
+                        TargetEnemy.Value = null;
                     }
                 }
                 else if (StateMode.Value == AIStateManager.StateKind.Combat)
@@ -200,7 +208,7 @@ public class CommonAI : AbstractAIBehavior
 
     private void DangerDetected(Vector3 direction)
     {
-        if (StateMode.Value == AIStateManager.StateKind.Safe)
+        if (StateMode.Value == AIStateManager.StateKind.Safe && !IsPriorityRunning)
         {
             BeginAlert(direction);
         }
