@@ -90,4 +90,10 @@ public class MenuUIManager : MonoBehaviour
         BriefingManager briefingManager = scene.GetRootGameObjects().Single(g => g.name.Equals("SceneManager")).GetComponent<BriefingManager>();
         briefingManager.Initialize(_selectedMissionInformation);
     }
+
+    public void KeyConfig()
+    {
+        _playerInputter.Disable();
+        SceneManager.LoadScene("Scene/Settings");
+    }
 }

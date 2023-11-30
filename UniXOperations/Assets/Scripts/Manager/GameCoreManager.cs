@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 public class GameCoreManager : MonoBehaviour
@@ -22,6 +23,19 @@ public class GameCoreManager : MonoBehaviour
     public void Initialize(MissionInformation missionInformation)
     {
         _playerInputter = new PlayerInputter2();
+
+        if (PlayerPrefs.HasKey(_keyBindingKey))
+        {
+            try
+            {
+                _playerInputter.LoadBindingOverridesFromJson(PlayerPrefs.GetString(_keyBindingKey));
+            }
+            catch
+            {
+                Debug.Log("Settings Load Error (KeyBindings)");
+            }
+        }
+
         _playerInputter.Menu.Exit.performed += (_) => TransitionToMenu();
 
         _missionInformation = missionInformation;
@@ -37,7 +51,7 @@ public class GameCoreManager : MonoBehaviour
         var playerCharacter = GameDataContainer.Characters.SingleOrDefault(c => c.ID == 0);
         if (gameCameraController != null && playerCharacter != null)
         {
-            playerCharacter.InputterContainer.EnterPlayer();
+            playerCharacter.InputterContainer.EnterPlayer(_playerInputter);
             gameCameraController.ChangeCharacter(playerCharacter);
             gameCameraController.SetPlayerInputter(_playerInputter);
         }
@@ -85,4 +99,5 @@ public class GameCoreManager : MonoBehaviour
     private ResultInformation _result;
     private DateTime _startTime;
     private static readonly MissionInformation DebugMissionInformation = new MissionInformation() { Name = "Debug" };
+    private static readonly string _keyBindingKey = "KeyBinding";
 }

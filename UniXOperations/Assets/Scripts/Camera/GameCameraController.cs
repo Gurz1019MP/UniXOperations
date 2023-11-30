@@ -36,6 +36,18 @@ public class GameCameraController : MonoBehaviour
     {
         Camera = GetComponent<Camera>();
         _diedCamera = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabDiedCamera);
+
+        if (PlayerPrefs.HasKey(_fovKey))
+        {
+            try
+            {
+                Camera.fieldOfView = PlayerPrefs.GetFloat(_fovKey);
+            }
+            catch
+            {
+                Debug.Log("Settings Load Error (FoV)");
+            }
+        }
     }
 
     private void Update()
@@ -162,4 +174,5 @@ public class GameCameraController : MonoBehaviour
 
     private static int _bodyLayer = 11;
     private static int _armLayer = 12;
+    private static readonly string _fovKey = "FoV";
 }
