@@ -13,11 +13,11 @@ public class CharacterInputterContainer : MonoBehaviour
         ChangeInputter();
     }
 
-    public void EnterPlayer()
+    public void EnterPlayer(PlayerInputter2 inputter)
     {
         if (_playerInputter == null)
         {
-            _playerInputter = new PlayerInputter(gameObject);
+            _playerInputter = new PlayerInputter(gameObject, inputter);
         }
         ChangeInputter();
     }

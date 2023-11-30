@@ -3,11 +3,24 @@
 public class PlayerInputter : InputterBase
 {
     private PlayerInputter2 _playerInputter;
+    private float _mouseSensitivity;
 
-    public PlayerInputter(GameObject gameObject) : base(gameObject)
+    public PlayerInputter(GameObject gameObject, PlayerInputter2 inputter) : base(gameObject)
     {
-        _playerInputter = new PlayerInputter2();
+        _playerInputter = inputter;
         _playerInputter.Enable();
+
+        if (PlayerPrefs.HasKey(_mouseSensitivityKey))
+        {
+            try
+            {
+                _mouseSensitivity = PlayerPrefs.GetFloat(_mouseSensitivityKey);
+            }
+            catch
+            {
+                Debug.Log("Settings Load Error (MouseSensitivity)");
+            }
+        }
     }
 
     protected override void InputUpdate()
@@ -16,8 +29,8 @@ public class PlayerInputter : InputterBase
         Vertical = _playerInputter.Player.Vertical.ReadValue<float>();
         Fire = _playerInputter.Player.Fire.IsPressed();
         Jump = _playerInputter.Player.Jump.IsPressed();
-        MouseX = _playerInputter.Player.MouseX.ReadValue<float>();
-        MouseY = _playerInputter.Player.MouseY.ReadValue<float>();
+        MouseX = _playerInputter.Player.MouseX.ReadValue<float>() * _mouseSensitivity;
+        MouseY = _playerInputter.Player.MouseY.ReadValue<float>() * _mouseSensitivity;
         Walk = _playerInputter.Player.Walk.IsPressed();
         Reload = _playerInputter.Player.Reload.IsPressed();
         DropWeapon = _playerInputter.Player.DropWeapon.IsPressed();
@@ -42,4 +55,6 @@ public class PlayerInputter : InputterBase
         //Weapon1 = Input.GetAxis("Weapon1") > 0;
         //Weapon2 = Input.GetAxis("Weapon2") > 0;
     }
+
+    private static readonly string _mouseSensitivityKey = "MouseSensitivity";
 }
