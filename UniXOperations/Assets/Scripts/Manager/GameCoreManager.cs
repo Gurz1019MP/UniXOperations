@@ -5,10 +5,11 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[RequireComponent(typeof(InputTrigger))]
 public class GameCoreManager : MonoBehaviour
 {
     public GameDataContainer GameDataContainer { get; private set; }
+
+    private PlayerInputter2 _playerInputter;
 
     void Start()
     {
@@ -16,40 +17,12 @@ public class GameCoreManager : MonoBehaviour
         {
             Initialize(null);
         }
-
-        //_inputTrigger = GetComponent<InputTrigger>();
-        //_gameCamera = GameObject.Find("GameCamera").GetComponent<GameCameraController>();
-
-        //if (GameDataContainer == null)
-        //{
-        //    GameDataContainer = new MissionDataLoader(GameObject.Find("Stage")).Load();
-
-        //    MissionEventManager missionEventManager = GetComponent<MissionEventManager>();
-        //    missionEventManager.InitEvents(GameDataContainer.MissionEvents);
-
-        //    var playerCharacter = GameDataContainer.Characters.SingleOrDefault(c => c.ID == 0);
-        //    if (_gameCamera != null && playerCharacter != null)
-        //    {
-        //        _gameCamera.ChangeCharacter(playerCharacter.gameObject);
-        //    }
-        //}
-    }
-
-    void Update()
-    {
-        if (_inputTrigger != null)
-        {
-            if (_inputTrigger.InputEnter("Exit"))
-            {
-                Cursor.lockState = CursorLockMode.None;
-                SceneManager.LoadScene("Scene/Menu");
-            }
-        }
     }
 
     public void Initialize(MissionInformation missionInformation)
     {
-        _inputTrigger = GetComponent<InputTrigger>();
+        _playerInputter = new PlayerInputter2();
+        _playerInputter.Menu.Exit.performed += (_) => TransitionToMenu();
 
         _missionInformation = missionInformation;
         GameDataContainer = new MissionDataLoader(GameObject.Find("Stage")).Load(missionInformation);
@@ -66,15 +39,25 @@ public class GameCoreManager : MonoBehaviour
         {
             playerCharacter.InputterContainer.EnterPlayer();
             gameCameraController.ChangeCharacter(playerCharacter);
+            gameCameraController.SetPlayerInputter(_playerInputter);
         }
 
         _startTime = DateTime.Now;
 
+        _playerInputter.Enable();
         //JsonContainer.Save();
+    }
+
+    public void TransitionToMenu()
+    {
+        _playerInputter.Dispose();
+        Cursor.lockState = CursorLockMode.None;
+        SceneManager.LoadScene("Scene/Menu");
     }
 
     public void TransitionToResult(bool result)
     {
+        _playerInputter.Dispose();
         _result = new ResultInformation()
         {
             IsSuccess = result,
@@ -97,7 +80,6 @@ public class GameCoreManager : MonoBehaviour
         resultManager.Initialize(_missionInformation == null ? DebugMissionInformation : _missionInformation, _result);
     }
 
-    private InputTrigger _inputTrigger;
     private GameCameraController _gameCamera;
     private MissionInformation _missionInformation;
     private ResultInformation _result;

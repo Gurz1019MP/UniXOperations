@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using UniRx.Triggers;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(InputTrigger))]
 public class BriefingManager : MonoBehaviour
 {
     public Text missionName;
@@ -19,25 +14,15 @@ public class BriefingManager : MonoBehaviour
     public Image doublePic1;
     public Image doublePic2;
 
-    private InputTrigger _inputTrigger;
     private MissionInformation _selectedMissionInformation;
+    private PlayerInputter2 _playerInputter;
 
     private void Start()
     {
-        _inputTrigger = GetComponent<InputTrigger>();
-    }
-
-    void Update()
-    {
-        if (_inputTrigger.InputEnter("Fire"))
-        {
-            TransitionToGame();
-        }
-
-        if (_inputTrigger.InputEnter("Exit"))
-        {
-            TransitionToMenu();
-        }
+        _playerInputter = new PlayerInputter2();
+        _playerInputter.Menu.Enter.performed += (_) => TransitionToGame();
+        _playerInputter.Menu.Exit.performed += (_) => TransitionToMenu();
+        _playerInputter.Enable();
     }
 
     public void Initialize(MissionInformation missionInformation)
@@ -144,6 +129,7 @@ public class BriefingManager : MonoBehaviour
 
     private void TransitionToGame()
     {
+        _playerInputter.Dispose();
         SceneManager.sceneLoaded += GameLoaded;
         SceneManager.LoadScene("Scene/Game");
 
@@ -159,6 +145,7 @@ public class BriefingManager : MonoBehaviour
 
     private void TransitionToMenu()
     {
+        _playerInputter.Dispose();
         SceneManager.LoadScene("Scene/Menu");
     }
 }

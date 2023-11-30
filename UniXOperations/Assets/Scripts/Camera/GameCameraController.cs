@@ -28,6 +28,7 @@ public class GameCameraController : MonoBehaviour
     public bool isShowArm = false;
 
     public CharacterState Character { get; private set; }
+    public PlayerInputter2 PlayerInputter { get; set; }
 
     private GameObject _diedCamera;
 
@@ -39,19 +40,6 @@ public class GameCameraController : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetButtonDown("ToggleFPS/TPS"))
-        {
-            isTps = !isTps;
-            ChangeAnchor();
-            ChangeCameraCullingMask();
-        };
-
-        if (Input.GetButtonDown("ToggleShowArm"))
-        {
-            isShowArm = !isShowArm;
-            ChangeCameraCullingMask();
-        };
-
         gameObject.transform.LookAt(LookTarget);
     }
 
@@ -85,6 +73,31 @@ public class GameCameraController : MonoBehaviour
         {
             childTransforms.gameObject.layer = _armLayer;
         }
+    }
+
+    public void SetPlayerInputter(PlayerInputter2 inputter)
+    {
+        PlayerInputter = inputter;
+
+        if (PlayerInputter != null)
+        {
+            PlayerInputter.Disable();
+
+            PlayerInputter.Player.ToggleFPSTPS.performed += (_) =>
+            {
+                isTps = !isTps;
+                ChangeAnchor();
+                ChangeCameraCullingMask();
+            };
+            PlayerInputter.Player.ToggleShowArm.performed += (_) =>
+            {
+                isShowArm = !isShowArm;
+                ChangeCameraCullingMask();
+            };
+
+            PlayerInputter.Enable();
+        }
+
     }
 
     /// <summary>
