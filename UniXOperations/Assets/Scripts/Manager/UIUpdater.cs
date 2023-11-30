@@ -21,9 +21,11 @@ public class UIUpdater : MonoBehaviour
     public UnityEngine.UI.Image HitEffect;
     public Gradient HealthGradient;
     public UnityEngine.UI.Image StatePanel;
+    public GameObject WeaponPreviewContainer;
 
     private CharacterState CharacterState;
     private WeaponSystem WeaponSystem;
+    private GameObject WeaponPreviewModel;
 
     //void Start()
     //{
@@ -78,6 +80,7 @@ public class UIUpdater : MonoBehaviour
 
                 CharacterState.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom(sender.Item1, sender.Item2)).AddTo(CharacterState);
                 CharacterState.OnDamaged.Subscribe(CharacterState_OnDamage).AddTo(CharacterState.gameObject);
+                CharacterState.OnWeaponVisualUpdated.Subscribe(CharacterState_OnWeaponVisualUpdated).AddTo(CharacterState.gameObject);
             }
         }
 
@@ -104,5 +107,21 @@ public class UIUpdater : MonoBehaviour
             HitEffect.color.g,
             HitEffect.color.b,
             1);
+    }
+
+    private void CharacterState_OnWeaponVisualUpdated(Unit _)
+    {
+        Destroy(WeaponPreviewModel);
+
+        var model = AssetLoader.LoadAsset<GameObject>(ConstantsManager.GetResoucePathWeapon(CharacterState.CurrentWeaponState.Spec.ModelName));
+        if (model == null)
+        {
+            Debug.Log("ピックアップに使用する武器モデルが見つかりませんでした");
+        }
+        else
+        {
+            WeaponPreviewModel = Instantiate(model, WeaponPreviewContainer.transform);
+            WeaponPreviewModel.layer = WeaponPreviewContainer.layer;
+        }
     }
 }
