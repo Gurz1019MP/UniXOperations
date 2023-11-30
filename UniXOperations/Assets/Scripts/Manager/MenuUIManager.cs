@@ -4,7 +4,6 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UniRx;
 
-[RequireComponent(typeof(InputTrigger))]
 public class MenuUIManager : MonoBehaviour
 {
     public GameObject DefaultMissionContent;
@@ -15,10 +14,11 @@ public class MenuUIManager : MonoBehaviour
     public RawImage DemoImage;
 
     private MissionInformation _selectedMissionInformation;
+    private PlayerInputter2 _playerInputter;
 
     private void Start()
     {
-        _inputTrigger = GetComponent<InputTrigger>();
+        _playerInputter = new PlayerInputter2();
 
         if (StageButton != null)
         {
@@ -50,32 +50,33 @@ public class MenuUIManager : MonoBehaviour
                 presenter.Selected.Subscribe(MissionSelected).AddTo(gameObject);
             }
         }
+
+        _playerInputter.Player.Exit.performed += Exit_performed;
+        _playerInputter.Enable();
+    }
+
+    private void Exit_performed(UnityEngine.InputSystem.InputAction.CallbackContext obj)
+    {
+#if UNITY_EDITOR
+        Debug.Log("Exit");
+        UnityEditor.EditorApplication.isPlaying = false;
+#elif UNITY_STANDALONE
+            UnityEngine.Application.Quit();
+#endif
     }
 
     private void Update()
     {
-        if (_inputTrigger != null)
-        {
-            if (_inputTrigger.InputEnter("Exit"))
-            {
-#if UNITY_EDITOR
-                Debug.Log("Exit");
-                UnityEditor.EditorApplication.isPlaying = false;
-#elif UNITY_STANDALONE
-            UnityEngine.Application.Quit();
-#endif
-            }
-        }
-
         if (CursorV != null && CursorH != null)
         {
-            CursorV.position = new Vector3(Input.mousePosition.x, CursorV.position.y, 0);
-            CursorH.position = new Vector3(CursorH.position.x, Input.mousePosition.y, 0);
+            CursorV.position = new Vector3(_playerInputter.Menu.MouseX.ReadValue<float>(), CursorV.position.y, 0);
+            CursorH.position = new Vector3(CursorH.position.x, _playerInputter.Menu.MouseY.ReadValue<float>(), 0);
         }
     }
 
     private void MissionSelected(MissionInformation missionInformation)
     {
+        _playerInputter.Dispose();
         _selectedMissionInformation = missionInformation;
 
         SceneManager.sceneLoaded += BriefingLoaded;
@@ -89,11 +90,4 @@ public class MenuUIManager : MonoBehaviour
         BriefingManager briefingManager = scene.GetRootGameObjects().Single(g => g.name.Equals("SceneManager")).GetComponent<BriefingManager>();
         briefingManager.Initialize(_selectedMissionInformation);
     }
-
-    public void TransitionToGame()
-    {
-        SceneManager.LoadScene("Scene/Briefing");
-    }
-
-    private InputTrigger _inputTrigger;
 }

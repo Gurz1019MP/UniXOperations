@@ -2,7 +2,6 @@
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(InputTrigger))]
 public class ResultManager : MonoBehaviour
 {
     public Text MissionName;
@@ -14,18 +13,14 @@ public class ResultManager : MonoBehaviour
     public Text AccuracyRate;
     public Text KillHeadShot;
 
+    private PlayerInputter2 _playerInputter;
+
     private void Start()
     {
-        _inputTrigger = GetComponent<InputTrigger>();
-    }
-
-    void Update()
-    {
-        if (_inputTrigger.InputEnter("Fire") ||
-            _inputTrigger.InputEnter("Exit"))
-        {
-            TransitionToMenu();
-        }
+        _playerInputter = new PlayerInputter2();
+        _playerInputter.Menu.Enter.performed += (_) => TransitionToMenu();
+        _playerInputter.Menu.Exit.performed += (_) => TransitionToMenu();
+        _playerInputter.Enable();
     }
 
     public void Initialize(MissionInformation missionInformation, ResultInformation result)
@@ -61,8 +56,7 @@ public class ResultManager : MonoBehaviour
 
     private void TransitionToMenu()
     {
+        _playerInputter.Dispose();
         SceneManager.LoadScene("Scene/Menu");
     }
-
-    private InputTrigger _inputTrigger;
 }
