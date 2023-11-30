@@ -70,6 +70,8 @@ public class SettingsManager : MonoBehaviour
 
         PlayerInputter.Menu.Exit.performed += (_) => TransitionToMenu();
         PlayerInputter.Enable();
+
+        Cursor.visible = true;
     }
 
     public void LoadDefaultSettings()
@@ -98,6 +100,8 @@ public class SettingsManager : MonoBehaviour
 
     private void TransitionToMenu()
     {
+        Cursor.visible = false;
+
         PlayerInputter.Disable();
         SceneManager.LoadScene("Scene/Menu");
     }
