@@ -19,6 +19,7 @@ public class PlayerInputter : InputterBase
             catch
             {
                 Debug.Log("Settings Load Error (MouseSensitivity)");
+                _mouseSensitivity = 1.0f;
             }
         }
     }
