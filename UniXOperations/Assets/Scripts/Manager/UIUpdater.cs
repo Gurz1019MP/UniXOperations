@@ -81,6 +81,7 @@ public class UIUpdater : MonoBehaviour
                 CharacterState.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom(sender.Item1, sender.Item2)).AddTo(CharacterState);
                 CharacterState.OnDamaged.Subscribe(CharacterState_OnDamage).AddTo(CharacterState.gameObject);
                 CharacterState.OnWeaponVisualUpdated.Subscribe(CharacterState_OnWeaponVisualUpdated).AddTo(CharacterState.gameObject);
+                CharacterState_OnWeaponVisualUpdated(Unit.Default);
             }
         }
 
