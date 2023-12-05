@@ -179,6 +179,24 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": ""Press"",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""NextCharacter"",
+                    ""type"": ""Value"",
+                    ""id"": ""9e329a55-d7c3-459a-a3bf-31ccc9e2063b"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""PreCharacter"",
+                    ""type"": ""Button"",
+                    ""id"": ""1d2591f2-35d1-4742-88bf-713335369f25"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -412,6 +430,72 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""action"": ""Exit"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""Button With One Modifier"",
+                    ""id"": ""6afd3931-df62-4065-8c8b-342068fe589c"",
+                    ""path"": ""ButtonWithOneModifier"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""NextCharacter"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""Modifier"",
+                    ""id"": ""522da34b-8a45-47e5-b70e-30511696d83d"",
+                    ""path"": ""<Keyboard>/f8"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""NextCharacter"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Button"",
+                    ""id"": ""eb76a273-ff0a-4e5d-bf04-4d6b79d4e0c6"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""NextCharacter"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Button With One Modifier"",
+                    ""id"": ""8f043d59-0791-4838-8459-fd0ca4cd2d35"",
+                    ""path"": ""ButtonWithOneModifier"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PreCharacter"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""Modifier"",
+                    ""id"": ""3db09927-1c8f-4e12-9cb1-a63438c3f764"",
+                    ""path"": ""<Keyboard>/f8"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""PreCharacter"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Button"",
+                    ""id"": ""0bba8ea4-2b71-44c5-b4b1-d6679094e9ea"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""PreCharacter"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         },
@@ -586,6 +670,8 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
         m_Player_ToggleFPSTPS = m_Player.FindAction("ToggleFPS/TPS", throwIfNotFound: true);
         m_Player_ToggleShowArm = m_Player.FindAction("ToggleShowArm", throwIfNotFound: true);
         m_Player_Exit = m_Player.FindAction("Exit", throwIfNotFound: true);
+        m_Player_NextCharacter = m_Player.FindAction("NextCharacter", throwIfNotFound: true);
+        m_Player_PreCharacter = m_Player.FindAction("PreCharacter", throwIfNotFound: true);
         // Menu
         m_Menu = asset.FindActionMap("Menu", throwIfNotFound: true);
         m_Menu_MouseX = m_Menu.FindAction("Mouse X", throwIfNotFound: true);
@@ -670,6 +756,8 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_ToggleFPSTPS;
     private readonly InputAction m_Player_ToggleShowArm;
     private readonly InputAction m_Player_Exit;
+    private readonly InputAction m_Player_NextCharacter;
+    private readonly InputAction m_Player_PreCharacter;
     public struct PlayerActions
     {
         private @PlayerInputter2 m_Wrapper;
@@ -691,6 +779,8 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
         public InputAction @ToggleFPSTPS => m_Wrapper.m_Player_ToggleFPSTPS;
         public InputAction @ToggleShowArm => m_Wrapper.m_Player_ToggleShowArm;
         public InputAction @Exit => m_Wrapper.m_Player_Exit;
+        public InputAction @NextCharacter => m_Wrapper.m_Player_NextCharacter;
+        public InputAction @PreCharacter => m_Wrapper.m_Player_PreCharacter;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -751,6 +841,12 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
             @Exit.started += instance.OnExit;
             @Exit.performed += instance.OnExit;
             @Exit.canceled += instance.OnExit;
+            @NextCharacter.started += instance.OnNextCharacter;
+            @NextCharacter.performed += instance.OnNextCharacter;
+            @NextCharacter.canceled += instance.OnNextCharacter;
+            @PreCharacter.started += instance.OnPreCharacter;
+            @PreCharacter.performed += instance.OnPreCharacter;
+            @PreCharacter.canceled += instance.OnPreCharacter;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -806,6 +902,12 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
             @Exit.started -= instance.OnExit;
             @Exit.performed -= instance.OnExit;
             @Exit.canceled -= instance.OnExit;
+            @NextCharacter.started -= instance.OnNextCharacter;
+            @NextCharacter.performed -= instance.OnNextCharacter;
+            @NextCharacter.canceled -= instance.OnNextCharacter;
+            @PreCharacter.started -= instance.OnPreCharacter;
+            @PreCharacter.performed -= instance.OnPreCharacter;
+            @PreCharacter.canceled -= instance.OnPreCharacter;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -957,6 +1059,8 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
         void OnToggleFPSTPS(InputAction.CallbackContext context);
         void OnToggleShowArm(InputAction.CallbackContext context);
         void OnExit(InputAction.CallbackContext context);
+        void OnNextCharacter(InputAction.CallbackContext context);
+        void OnPreCharacter(InputAction.CallbackContext context);
     }
     public interface IMenuActions
     {

@@ -11,7 +11,7 @@ public class HandlingWeapon : MonoBehaviour
 
     public void Initialize(WeaponSpec weaponSpec)
     {
-        if (!string.IsNullOrEmpty(weaponSpec.ModelName))
+        if (!string.IsNullOrEmpty(weaponSpec.ModelName) && weaponSpec.ModelName != "null")
         {
             HandlingPosition.transform.localPosition = weaponSpec.HandlingPosition;
             MuzzlePosition.transform.localPosition = weaponSpec.MuzzlePosition;

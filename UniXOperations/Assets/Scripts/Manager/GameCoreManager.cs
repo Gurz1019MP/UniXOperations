@@ -11,6 +11,8 @@ public class GameCoreManager : MonoBehaviour
     public GameDataContainer GameDataContainer { get; private set; }
 
     private PlayerInputter2 _playerInputter;
+    private GameCameraController _gameCameraController;
+    private int _currentCharacterIndex;
 
     void Start()
     {
@@ -47,16 +49,20 @@ public class GameCoreManager : MonoBehaviour
         MissionEventManager missionEventManager = GetComponent<MissionEventManager>();
         missionEventManager.InitEvents(GameDataContainer.MissionEvents);
 
-        GameCameraController gameCameraController = GameObject.Find("GameCamera").GetComponent<GameCameraController>();
+        _gameCameraController = GameObject.Find("GameCamera").GetComponent<GameCameraController>();
         var playerCharacter = GameDataContainer.Characters.SingleOrDefault(c => c.ID == 0);
-        if (gameCameraController != null && playerCharacter != null)
+        _currentCharacterIndex = GameDataContainer.Characters.ToList().IndexOf(playerCharacter);
+        if (_gameCameraController != null && playerCharacter != null)
         {
             playerCharacter.InputterContainer.EnterPlayer(_playerInputter);
-            gameCameraController.ChangeCharacter(playerCharacter);
-            gameCameraController.SetPlayerInputter(_playerInputter);
+            _gameCameraController.ChangeCharacter(playerCharacter);
+            _gameCameraController.SetPlayerInputter(_playerInputter);
         }
 
         _startTime = DateTime.Now;
+
+        _playerInputter.Player.NextCharacter.performed += NextCharacter;
+        _playerInputter.Player.PreCharacter.performed += PreCharacter;
 
         _playerInputter.Enable();
         //JsonContainer.Save();
@@ -92,6 +98,42 @@ public class GameCoreManager : MonoBehaviour
 
         ResultManager resultManager = scene.GetRootGameObjects().Single(g => g.name.Equals("SceneManager")).GetComponent<ResultManager>();
         resultManager.Initialize(_missionInformation == null ? DebugMissionInformation : _missionInformation, _result);
+    }
+
+    private void NextCharacter(InputAction.CallbackContext obj)
+    {
+        if (GameDataContainer == null) return;
+        if (_gameCameraController == null) return;
+
+        CharacterState oldCharacter = GameDataContainer.Characters[_currentCharacterIndex];
+
+        oldCharacter.InputterContainer.LeavePlayer();
+
+        _currentCharacterIndex = _currentCharacterIndex == (GameDataContainer.Characters.Count - 1) ? 0 : _currentCharacterIndex + 1;
+
+        CharacterState newCharacter = GameDataContainer.Characters[_currentCharacterIndex];
+
+        newCharacter.InputterContainer.EnterPlayer(_playerInputter);
+        _gameCameraController.ChangeCharacter(newCharacter);
+        _gameCameraController.SetPlayerInputter(_playerInputter);
+    }
+
+    private void PreCharacter(InputAction.CallbackContext obj)
+    {
+        if (GameDataContainer == null) return;
+        if (_gameCameraController == null) return;
+
+        CharacterState oldCharacter = GameDataContainer.Characters[_currentCharacterIndex];
+
+        oldCharacter.InputterContainer.LeavePlayer();
+
+        _currentCharacterIndex = _currentCharacterIndex == 0 ? GameDataContainer.Characters.Count - 1 : _currentCharacterIndex - 1;
+
+        CharacterState newCharacter = GameDataContainer.Characters[_currentCharacterIndex];
+
+        newCharacter.InputterContainer.EnterPlayer(_playerInputter);
+        _gameCameraController.ChangeCharacter(newCharacter);
+        _gameCameraController.SetPlayerInputter(_playerInputter);
     }
 
     private GameCameraController _gameCamera;
