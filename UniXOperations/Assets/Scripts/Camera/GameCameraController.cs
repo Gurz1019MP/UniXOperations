@@ -5,6 +5,8 @@ using UnityEngine;
 using System.ComponentModel;
 using static TransformExtension;
 using UniRx;
+using System;
+using UnityEngine.TextCore.Text;
 
 [RequireComponent(typeof(Camera))]
 public class GameCameraController : MonoBehaviour
@@ -27,10 +29,12 @@ public class GameCameraController : MonoBehaviour
     [ReadOnly]
     public bool isShowArm = false;
 
-    public CharacterState Character { get; private set; }
+    public ReactiveProperty<CharacterState> Character { get; private set; } = new ReactiveProperty<CharacterState>();
     public PlayerInputter2 PlayerInputter { get; set; }
 
     private GameObject _diedCamera;
+    private IDisposable _onChangeZoomSubscriber;
+    private IDisposable _onDiedSubscriber;
 
     private void Start()
     {
@@ -61,18 +65,37 @@ public class GameCameraController : MonoBehaviour
     public void ChangeCharacter(CharacterState newCharacter)
     {
         if (newCharacter == null) return;
-        Character = newCharacter;
 
-        Character.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom(sender.Item1, sender.Item2)).AddTo(Character);
-        Character.OnDied.Subscribe(OnDiedHandler).AddTo(Character);
+        // 変更前のキャラクターの設定
+        if (Character.Value != null)
+        {
+            _onChangeZoomSubscriber.Dispose();
+            _onChangeZoomSubscriber = null;
+            _onDiedSubscriber.Dispose();
+            _onDiedSubscriber = null;
+
+            // 胴体と腕と武器のレイヤを変更
+            foreach (var bodyTransform in new Transform[] { Character.Value.UpBase, Character.Value.LegBase, Character.Value.ArmBase })
+            {
+                foreach (var childTransforms in bodyTransform.GetDescendantsWithParent())
+                {
+                    childTransforms.gameObject.layer = _characterLayer;
+                }
+            }
+        }
+
+        // 変更後のキャラクターの設定
+        Character.Value = newCharacter;
+
+        _onChangeZoomSubscriber = Character.Value.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom(sender.Item1, sender.Item2)).AddTo(Character.Value);
+        _onDiedSubscriber = Character.Value.OnDied.Subscribe(OnDiedHandler).AddTo(Character.Value);
 
         // 注視点とカメラアンカーを変更
-        LookTarget = Character.Target;
+        LookTarget = Character.Value.Target;
         ChangeAnchor();
 
         // 胴体のレイヤを変更
-        Transform[] bodyTransforms = new Transform[] { Character.UpBase, Character.LegBase };
-        foreach (var bodyTransform in bodyTransforms)
+        foreach (var bodyTransform in new Transform[] { Character.Value.UpBase, Character.Value.LegBase })
         {
             foreach (var childTransforms in bodyTransform.GetDescendantsWithParent())
             {
@@ -81,7 +104,7 @@ public class GameCameraController : MonoBehaviour
         }
 
         // 腕と武器のレイヤを変更
-        foreach (var childTransforms in Character.ArmBase.GetDescendantsWithParent())
+        foreach (var childTransforms in Character.Value.ArmBase.GetDescendantsWithParent())
         {
             childTransforms.gameObject.layer = _armLayer;
         }
@@ -119,7 +142,7 @@ public class GameCameraController : MonoBehaviour
     {
         if (Character == null) return;
 
-        Anchor = isTps ? Character.TpsCameraAnchor : Character.FpsCameraAnchor;
+        Anchor = isTps ? Character.Value.TpsCameraAnchor : Character.Value.FpsCameraAnchor;
         transform.SetParent(Anchor, false);
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -174,5 +197,6 @@ public class GameCameraController : MonoBehaviour
 
     private static int _bodyLayer = 11;
     private static int _armLayer = 12;
+    private static int _characterLayer = 8;
     private static readonly string _fovKey = "FoV";
 }

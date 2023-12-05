@@ -42,7 +42,7 @@ public class WeaponPickup : MonoBehaviour
     {
         Weapon.ChangeWeapon(weapon);
 
-        if (!string.IsNullOrEmpty(Weapon.Spec.ModelName))
+        if (!string.IsNullOrEmpty(Weapon.Spec.ModelName) && Weapon.Spec.ModelName != "null")
         {
             GameObject model = AssetLoader.LoadAsset<GameObject>(ConstantsManager.GetResoucePathWeapon(Weapon.Spec.ModelName));
             if (model == null)
