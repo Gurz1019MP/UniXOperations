@@ -279,14 +279,19 @@ public class CharacterState : MonoBehaviour
     {
         if (CurrentWeaponState.Kind == 0 && !IsZombie)
         {
-            CurrentWeaponState.ChangeWeapon(pickedWeapon);
-            UpdateWeaponVisual();
+            ChangeWeapon(pickedWeapon);
             return true;
         }
         else
         {
             return false;
         }
+    }
+
+    public void ChangeWeapon(WeaponState pickedWeapon)
+    {
+        CurrentWeaponState.ChangeWeapon(pickedWeapon);
+        UpdateWeaponVisual();
     }
 
     /// <summary>

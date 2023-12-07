@@ -197,6 +197,45 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+<<<<<<< Updated upstream
+=======
+                },
+                {
+                    ""name"": ""MoveUp"",
+                    ""type"": ""Button"",
+                    ""id"": ""770cd866-9c07-4b64-8a51-f8f32bda9bd4"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""NextWeapon"",
+                    ""type"": ""Button"",
+                    ""id"": ""cfc89ac3-c6aa-47f0-b922-5245c9029154"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""PreWeapon"",
+                    ""type"": ""Button"",
+                    ""id"": ""ad3aae1f-468a-453a-b98f-cbd852aa8ac0"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""AddAmmo"",
+                    ""type"": ""Button"",
+                    ""id"": ""201e61ee-a18a-4258-9720-b6049dfc53fb"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+>>>>>>> Stashed changes
                 }
             ],
             ""bindings"": [
@@ -496,6 +535,141 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""action"": ""PreCharacter"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+<<<<<<< Updated upstream
+=======
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""e5ec2974-4a1e-414f-9251-0c805c919018"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveUp"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""24dbf069-2823-4a05-baae-115e971e4624"",
+                    ""path"": ""<Keyboard>/f5"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""33b71285-b96b-4e09-a315-8f5cad201c42"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Button With One Modifier"",
+                    ""id"": ""9679f2bc-1790-475d-8c42-82f815aad6e8"",
+                    ""path"": ""ButtonWithOneModifier"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""NextWeapon"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""Modifier"",
+                    ""id"": ""107c832b-2ee1-4de1-b8ec-aff276be0ebf"",
+                    ""path"": ""<Keyboard>/f7"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""NextWeapon"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Button"",
+                    ""id"": ""e4f88b31-5103-4d7a-98ba-23e4701f848c"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""NextWeapon"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Button With One Modifier"",
+                    ""id"": ""6ed05e9d-ef0c-42f2-85a3-ad461f1b5460"",
+                    ""path"": ""ButtonWithOneModifier"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PreWeapon"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""Modifier"",
+                    ""id"": ""117f1488-94d1-4009-b1d6-9c634f626e7d"",
+                    ""path"": ""<Keyboard>/f7"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PreWeapon"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Button"",
+                    ""id"": ""f1bca201-3db6-467d-804a-95857bf75c4e"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PreWeapon"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Button With One Modifier"",
+                    ""id"": ""fef9f83d-e9dc-47c7-8478-12a0071aeae7"",
+                    ""path"": ""ButtonWithOneModifier"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AddAmmo"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""Modifier"",
+                    ""id"": ""23187233-66cc-48a7-91a3-649b95f4878b"",
+                    ""path"": ""<Keyboard>/f6"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AddAmmo"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Button"",
+                    ""id"": ""2d44cfe1-b24b-4cf5-8d51-04c850b56ae7"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""AddAmmo"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+>>>>>>> Stashed changes
                 }
             ]
         },
@@ -672,6 +846,13 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
         m_Player_Exit = m_Player.FindAction("Exit", throwIfNotFound: true);
         m_Player_NextCharacter = m_Player.FindAction("NextCharacter", throwIfNotFound: true);
         m_Player_PreCharacter = m_Player.FindAction("PreCharacter", throwIfNotFound: true);
+<<<<<<< Updated upstream
+=======
+        m_Player_MoveUp = m_Player.FindAction("MoveUp", throwIfNotFound: true);
+        m_Player_NextWeapon = m_Player.FindAction("NextWeapon", throwIfNotFound: true);
+        m_Player_PreWeapon = m_Player.FindAction("PreWeapon", throwIfNotFound: true);
+        m_Player_AddAmmo = m_Player.FindAction("AddAmmo", throwIfNotFound: true);
+>>>>>>> Stashed changes
         // Menu
         m_Menu = asset.FindActionMap("Menu", throwIfNotFound: true);
         m_Menu_MouseX = m_Menu.FindAction("Mouse X", throwIfNotFound: true);
@@ -758,6 +939,13 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Exit;
     private readonly InputAction m_Player_NextCharacter;
     private readonly InputAction m_Player_PreCharacter;
+<<<<<<< Updated upstream
+=======
+    private readonly InputAction m_Player_MoveUp;
+    private readonly InputAction m_Player_NextWeapon;
+    private readonly InputAction m_Player_PreWeapon;
+    private readonly InputAction m_Player_AddAmmo;
+>>>>>>> Stashed changes
     public struct PlayerActions
     {
         private @PlayerInputter2 m_Wrapper;
@@ -781,6 +969,13 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
         public InputAction @Exit => m_Wrapper.m_Player_Exit;
         public InputAction @NextCharacter => m_Wrapper.m_Player_NextCharacter;
         public InputAction @PreCharacter => m_Wrapper.m_Player_PreCharacter;
+<<<<<<< Updated upstream
+=======
+        public InputAction @MoveUp => m_Wrapper.m_Player_MoveUp;
+        public InputAction @NextWeapon => m_Wrapper.m_Player_NextWeapon;
+        public InputAction @PreWeapon => m_Wrapper.m_Player_PreWeapon;
+        public InputAction @AddAmmo => m_Wrapper.m_Player_AddAmmo;
+>>>>>>> Stashed changes
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -847,6 +1042,21 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
             @PreCharacter.started += instance.OnPreCharacter;
             @PreCharacter.performed += instance.OnPreCharacter;
             @PreCharacter.canceled += instance.OnPreCharacter;
+<<<<<<< Updated upstream
+=======
+            @MoveUp.started += instance.OnMoveUp;
+            @MoveUp.performed += instance.OnMoveUp;
+            @MoveUp.canceled += instance.OnMoveUp;
+            @NextWeapon.started += instance.OnNextWeapon;
+            @NextWeapon.performed += instance.OnNextWeapon;
+            @NextWeapon.canceled += instance.OnNextWeapon;
+            @PreWeapon.started += instance.OnPreWeapon;
+            @PreWeapon.performed += instance.OnPreWeapon;
+            @PreWeapon.canceled += instance.OnPreWeapon;
+            @AddAmmo.started += instance.OnAddAmmo;
+            @AddAmmo.performed += instance.OnAddAmmo;
+            @AddAmmo.canceled += instance.OnAddAmmo;
+>>>>>>> Stashed changes
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -908,6 +1118,21 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
             @PreCharacter.started -= instance.OnPreCharacter;
             @PreCharacter.performed -= instance.OnPreCharacter;
             @PreCharacter.canceled -= instance.OnPreCharacter;
+<<<<<<< Updated upstream
+=======
+            @MoveUp.started -= instance.OnMoveUp;
+            @MoveUp.performed -= instance.OnMoveUp;
+            @MoveUp.canceled -= instance.OnMoveUp;
+            @NextWeapon.started -= instance.OnNextWeapon;
+            @NextWeapon.performed -= instance.OnNextWeapon;
+            @NextWeapon.canceled -= instance.OnNextWeapon;
+            @PreWeapon.started -= instance.OnPreWeapon;
+            @PreWeapon.performed -= instance.OnPreWeapon;
+            @PreWeapon.canceled -= instance.OnPreWeapon;
+            @AddAmmo.started -= instance.OnAddAmmo;
+            @AddAmmo.performed -= instance.OnAddAmmo;
+            @AddAmmo.canceled -= instance.OnAddAmmo;
+>>>>>>> Stashed changes
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1061,6 +1286,13 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
         void OnExit(InputAction.CallbackContext context);
         void OnNextCharacter(InputAction.CallbackContext context);
         void OnPreCharacter(InputAction.CallbackContext context);
+<<<<<<< Updated upstream
+=======
+        void OnMoveUp(InputAction.CallbackContext context);
+        void OnNextWeapon(InputAction.CallbackContext context);
+        void OnPreWeapon(InputAction.CallbackContext context);
+        void OnAddAmmo(InputAction.CallbackContext context);
+>>>>>>> Stashed changes
     }
     public interface IMenuActions
     {
