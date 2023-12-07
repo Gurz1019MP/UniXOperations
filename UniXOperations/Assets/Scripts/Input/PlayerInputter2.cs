@@ -197,6 +197,15 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""MoveUp"",
+                    ""type"": ""Button"",
+                    ""id"": ""770cd866-9c07-4b64-8a51-f8f32bda9bd4"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -496,6 +505,39 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""action"": ""PreCharacter"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""One Modifier"",
+                    ""id"": ""e5ec2974-4a1e-414f-9251-0c805c919018"",
+                    ""path"": ""OneModifier"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveUp"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""24dbf069-2823-4a05-baae-115e971e4624"",
+                    ""path"": ""<Keyboard>/f5"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""33b71285-b96b-4e09-a315-8f5cad201c42"",
+                    ""path"": ""<Keyboard>/enter"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MoveUp"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         },
@@ -672,6 +714,7 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
         m_Player_Exit = m_Player.FindAction("Exit", throwIfNotFound: true);
         m_Player_NextCharacter = m_Player.FindAction("NextCharacter", throwIfNotFound: true);
         m_Player_PreCharacter = m_Player.FindAction("PreCharacter", throwIfNotFound: true);
+        m_Player_MoveUp = m_Player.FindAction("MoveUp", throwIfNotFound: true);
         // Menu
         m_Menu = asset.FindActionMap("Menu", throwIfNotFound: true);
         m_Menu_MouseX = m_Menu.FindAction("Mouse X", throwIfNotFound: true);
@@ -758,6 +801,7 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Exit;
     private readonly InputAction m_Player_NextCharacter;
     private readonly InputAction m_Player_PreCharacter;
+    private readonly InputAction m_Player_MoveUp;
     public struct PlayerActions
     {
         private @PlayerInputter2 m_Wrapper;
@@ -781,6 +825,7 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
         public InputAction @Exit => m_Wrapper.m_Player_Exit;
         public InputAction @NextCharacter => m_Wrapper.m_Player_NextCharacter;
         public InputAction @PreCharacter => m_Wrapper.m_Player_PreCharacter;
+        public InputAction @MoveUp => m_Wrapper.m_Player_MoveUp;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -847,6 +892,9 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
             @PreCharacter.started += instance.OnPreCharacter;
             @PreCharacter.performed += instance.OnPreCharacter;
             @PreCharacter.canceled += instance.OnPreCharacter;
+            @MoveUp.started += instance.OnMoveUp;
+            @MoveUp.performed += instance.OnMoveUp;
+            @MoveUp.canceled += instance.OnMoveUp;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -908,6 +956,9 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
             @PreCharacter.started -= instance.OnPreCharacter;
             @PreCharacter.performed -= instance.OnPreCharacter;
             @PreCharacter.canceled -= instance.OnPreCharacter;
+            @MoveUp.started -= instance.OnMoveUp;
+            @MoveUp.performed -= instance.OnMoveUp;
+            @MoveUp.canceled -= instance.OnMoveUp;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1061,6 +1112,7 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
         void OnExit(InputAction.CallbackContext context);
         void OnNextCharacter(InputAction.CallbackContext context);
         void OnPreCharacter(InputAction.CallbackContext context);
+        void OnMoveUp(InputAction.CallbackContext context);
     }
     public interface IMenuActions
     {

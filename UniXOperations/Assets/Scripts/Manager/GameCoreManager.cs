@@ -68,6 +68,17 @@ public class GameCoreManager : MonoBehaviour
         //JsonContainer.Save();
     }
 
+    private void Update()
+    {
+        if (_playerInputter.Player.MoveUp.IsPressed())
+        {
+            Debug.Log("MoveUp");
+            CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
+            character.transform.position = new Vector3(character.transform.position.x, character.transform.position.y + 10 * Time.deltaTime, character.transform.position.z);
+            character.FPSMover.ResetMoveDeltaY();
+        }
+    }
+
     public void TransitionToMenu()
     {
         _playerInputter.Dispose();
