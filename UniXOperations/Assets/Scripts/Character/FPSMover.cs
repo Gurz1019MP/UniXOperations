@@ -147,6 +147,11 @@ public class FPSMover : MonoBehaviour
         _characterController.Move(_moveDelta * Time.deltaTime);
     }
 
+    public void ResetMoveDeltaY()
+    {
+        _moveDelta.y = 0.0f;
+    }
+
     private bool GetIsGround(Vector3 rayPoint)
     {
         if (_characterController.isGrounded)
