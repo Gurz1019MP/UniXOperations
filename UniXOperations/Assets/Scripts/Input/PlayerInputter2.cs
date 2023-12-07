@@ -197,8 +197,6 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
-<<<<<<< Updated upstream
-=======
                 },
                 {
                     ""name"": ""MoveUp"",
@@ -235,7 +233,6 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
->>>>>>> Stashed changes
                 }
             ],
             ""bindings"": [
@@ -535,8 +532,6 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""action"": ""PreCharacter"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
-<<<<<<< Updated upstream
-=======
                 },
                 {
                     ""name"": ""One Modifier"",
@@ -669,7 +664,6 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""action"": ""AddAmmo"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
->>>>>>> Stashed changes
                 }
             ]
         },
@@ -846,13 +840,10 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
         m_Player_Exit = m_Player.FindAction("Exit", throwIfNotFound: true);
         m_Player_NextCharacter = m_Player.FindAction("NextCharacter", throwIfNotFound: true);
         m_Player_PreCharacter = m_Player.FindAction("PreCharacter", throwIfNotFound: true);
-<<<<<<< Updated upstream
-=======
         m_Player_MoveUp = m_Player.FindAction("MoveUp", throwIfNotFound: true);
         m_Player_NextWeapon = m_Player.FindAction("NextWeapon", throwIfNotFound: true);
         m_Player_PreWeapon = m_Player.FindAction("PreWeapon", throwIfNotFound: true);
         m_Player_AddAmmo = m_Player.FindAction("AddAmmo", throwIfNotFound: true);
->>>>>>> Stashed changes
         // Menu
         m_Menu = asset.FindActionMap("Menu", throwIfNotFound: true);
         m_Menu_MouseX = m_Menu.FindAction("Mouse X", throwIfNotFound: true);
@@ -939,13 +930,10 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Exit;
     private readonly InputAction m_Player_NextCharacter;
     private readonly InputAction m_Player_PreCharacter;
-<<<<<<< Updated upstream
-=======
     private readonly InputAction m_Player_MoveUp;
     private readonly InputAction m_Player_NextWeapon;
     private readonly InputAction m_Player_PreWeapon;
     private readonly InputAction m_Player_AddAmmo;
->>>>>>> Stashed changes
     public struct PlayerActions
     {
         private @PlayerInputter2 m_Wrapper;
@@ -969,13 +957,10 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
         public InputAction @Exit => m_Wrapper.m_Player_Exit;
         public InputAction @NextCharacter => m_Wrapper.m_Player_NextCharacter;
         public InputAction @PreCharacter => m_Wrapper.m_Player_PreCharacter;
-<<<<<<< Updated upstream
-=======
         public InputAction @MoveUp => m_Wrapper.m_Player_MoveUp;
         public InputAction @NextWeapon => m_Wrapper.m_Player_NextWeapon;
         public InputAction @PreWeapon => m_Wrapper.m_Player_PreWeapon;
         public InputAction @AddAmmo => m_Wrapper.m_Player_AddAmmo;
->>>>>>> Stashed changes
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1042,8 +1027,6 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
             @PreCharacter.started += instance.OnPreCharacter;
             @PreCharacter.performed += instance.OnPreCharacter;
             @PreCharacter.canceled += instance.OnPreCharacter;
-<<<<<<< Updated upstream
-=======
             @MoveUp.started += instance.OnMoveUp;
             @MoveUp.performed += instance.OnMoveUp;
             @MoveUp.canceled += instance.OnMoveUp;
@@ -1056,7 +1039,6 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
             @AddAmmo.started += instance.OnAddAmmo;
             @AddAmmo.performed += instance.OnAddAmmo;
             @AddAmmo.canceled += instance.OnAddAmmo;
->>>>>>> Stashed changes
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -1118,8 +1100,6 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
             @PreCharacter.started -= instance.OnPreCharacter;
             @PreCharacter.performed -= instance.OnPreCharacter;
             @PreCharacter.canceled -= instance.OnPreCharacter;
-<<<<<<< Updated upstream
-=======
             @MoveUp.started -= instance.OnMoveUp;
             @MoveUp.performed -= instance.OnMoveUp;
             @MoveUp.canceled -= instance.OnMoveUp;
@@ -1132,7 +1112,6 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
             @AddAmmo.started -= instance.OnAddAmmo;
             @AddAmmo.performed -= instance.OnAddAmmo;
             @AddAmmo.canceled -= instance.OnAddAmmo;
->>>>>>> Stashed changes
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1286,13 +1265,10 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
         void OnExit(InputAction.CallbackContext context);
         void OnNextCharacter(InputAction.CallbackContext context);
         void OnPreCharacter(InputAction.CallbackContext context);
-<<<<<<< Updated upstream
-=======
         void OnMoveUp(InputAction.CallbackContext context);
         void OnNextWeapon(InputAction.CallbackContext context);
         void OnPreWeapon(InputAction.CallbackContext context);
         void OnAddAmmo(InputAction.CallbackContext context);
->>>>>>> Stashed changes
     }
     public interface IMenuActions
     {
