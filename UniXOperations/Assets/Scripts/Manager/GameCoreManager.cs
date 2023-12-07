@@ -63,6 +63,9 @@ public class GameCoreManager : MonoBehaviour
 
         _playerInputter.Player.NextCharacter.performed += NextCharacter;
         _playerInputter.Player.PreCharacter.performed += PreCharacter;
+        _playerInputter.Player.NextWeapon.performed += NextWeapon;
+        _playerInputter.Player.PreWeapon.performed += PreWeapon;
+        _playerInputter.Player.AddAmmo.performed += AddAmmo;
 
         _playerInputter.Enable();
         //JsonContainer.Save();
@@ -145,6 +148,26 @@ public class GameCoreManager : MonoBehaviour
         newCharacter.InputterContainer.EnterPlayer(_playerInputter);
         _gameCameraController.ChangeCharacter(newCharacter);
         _gameCameraController.SetPlayerInputter(_playerInputter);
+    }
+
+    private void NextWeapon(InputAction.CallbackContext obj)
+    {
+        CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
+        character.CurrentWeaponState.Kind = (short)(character.CurrentWeaponState.Kind == (JsonContainer.Instance.WeaponSpecArray.Length - 1) ? 0 : character.CurrentWeaponState.Kind + 1);
+        character.ChangeWeapon(character.CurrentWeaponState);
+    }
+
+    private void PreWeapon(InputAction.CallbackContext obj)
+    {
+        CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
+        character.CurrentWeaponState.Kind = (short)(character.CurrentWeaponState.Kind == 0 ? JsonContainer.Instance.WeaponSpecArray.Length - 1 : character.CurrentWeaponState.Kind - 1);
+        character.ChangeWeapon(character.CurrentWeaponState);
+    }
+
+    private void AddAmmo(InputAction.CallbackContext obj)
+    {
+        CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
+        character.CurrentWeaponState.Ammo += JsonContainer.Instance.WeaponSpecArray.First(w => w.Id == character.CurrentWeaponState.Kind).MagazineSize;
     }
 
     private GameCameraController _gameCamera;
