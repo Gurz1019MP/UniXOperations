@@ -175,8 +175,6 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
-<<<<<<< Updated upstream
-=======
                 },
                 {
                     "name": "MoveUp",
@@ -213,7 +211,6 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
->>>>>>> Stashed changes
                 }
             ],
             "bindings": [
@@ -513,8 +510,6 @@
                     "action": "PreCharacter",
                     "isComposite": false,
                     "isPartOfComposite": true
-<<<<<<< Updated upstream
-=======
                 },
                 {
                     "name": "One Modifier",
@@ -647,7 +642,6 @@
                     "action": "AddAmmo",
                     "isComposite": false,
                     "isPartOfComposite": true
->>>>>>> Stashed changes
                 }
             ]
         },
