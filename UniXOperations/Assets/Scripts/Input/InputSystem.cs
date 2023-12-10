@@ -15,10 +15,10 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 
-public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
+public partial class @InputSystem: IInputActionCollection2, IDisposable
 {
     public InputActionAsset asset { get; }
-    public @PlayerInputter2()
+    public @InputSystem()
     {
         asset = InputActionAsset.FromJson(@"{
     ""name"": ""UniXOperations"",
@@ -936,8 +936,8 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_AddAmmo;
     public struct PlayerActions
     {
-        private @PlayerInputter2 m_Wrapper;
-        public PlayerActions(@PlayerInputter2 wrapper) { m_Wrapper = wrapper; }
+        private @InputSystem m_Wrapper;
+        public PlayerActions(@InputSystem wrapper) { m_Wrapper = wrapper; }
         public InputAction @Horizontal => m_Wrapper.m_Player_Horizontal;
         public InputAction @Vertical => m_Wrapper.m_Player_Vertical;
         public InputAction @Fire => m_Wrapper.m_Player_Fire;
@@ -1139,8 +1139,8 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
     private readonly InputAction m_Menu_Enter;
     public struct MenuActions
     {
-        private @PlayerInputter2 m_Wrapper;
-        public MenuActions(@PlayerInputter2 wrapper) { m_Wrapper = wrapper; }
+        private @InputSystem m_Wrapper;
+        public MenuActions(@InputSystem wrapper) { m_Wrapper = wrapper; }
         public InputAction @MouseX => m_Wrapper.m_Menu_MouseX;
         public InputAction @MouseY => m_Wrapper.m_Menu_MouseY;
         public InputAction @Exit => m_Wrapper.m_Menu_Exit;

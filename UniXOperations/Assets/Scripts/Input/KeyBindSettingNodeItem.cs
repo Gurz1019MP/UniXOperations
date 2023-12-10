@@ -14,11 +14,11 @@ public class KeyBindSettingNodeItem : MonoBehaviour, IPointerEnterHandler, IPoin
     public Color MouseOnTextColor;
     public Color DefaultTextColor;
 
-    private PlayerInputter2 _playerInputter;
+    private InputSystem _playerInputter;
     private InputAction _action;
     private InputActionRebindingExtensions.RebindingOperation _operation;
 
-    public void SetPlayerInputter(PlayerInputter2 inputter)
+    public void SetPlayerInputter(InputSystem inputter)
     {
         _playerInputter = inputter;
 

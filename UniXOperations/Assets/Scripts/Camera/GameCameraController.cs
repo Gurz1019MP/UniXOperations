@@ -30,7 +30,7 @@ public class GameCameraController : MonoBehaviour
     public bool isShowArm = false;
 
     public ReactiveProperty<Character> Character { get; private set; } = new ReactiveProperty<Character>();
-    public PlayerInputter2 PlayerInputter { get; set; }
+    public InputSystem PlayerInputter { get; set; }
 
     private GameObject _diedCamera;
     private IDisposable _onChangeZoomSubscriber;
@@ -110,7 +110,7 @@ public class GameCameraController : MonoBehaviour
         }
     }
 
-    public void SetPlayerInputter(PlayerInputter2 inputter)
+    public void SetPlayerInputter(InputSystem inputter)
     {
         PlayerInputter = inputter;
 

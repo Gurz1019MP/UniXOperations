@@ -10,7 +10,7 @@ public class GameCoreManager : MonoBehaviour
 {
     public GameDataContainer GameDataContainer { get; private set; }
 
-    private PlayerInputter2 _playerInputter;
+    private InputSystem _playerInputter;
     private GameCameraController _gameCameraController;
     private int _currentCharacterIndex;
 
@@ -24,7 +24,7 @@ public class GameCoreManager : MonoBehaviour
 
     public void Initialize(MissionInformation missionInformation)
     {
-        _playerInputter = new PlayerInputter2();
+        _playerInputter = new InputSystem();
 
         if (PlayerPrefs.HasKey(ConstantsManager.KeyBindingKey))
         {

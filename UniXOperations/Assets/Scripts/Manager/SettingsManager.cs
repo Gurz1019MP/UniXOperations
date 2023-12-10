@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public class SettingsManager : MonoBehaviour
 {
-    public PlayerInputter2 PlayerInputter;
+    public InputSystem PlayerInputter;
     public Slider FoVSlider;
     public Slider MouseSensitivitySlider;
     public float DefaultFoV;
@@ -76,7 +76,7 @@ public class SettingsManager : MonoBehaviour
 
     public void LoadDefaultSettings()
     {
-        PlayerInputter = new PlayerInputter2();
+        PlayerInputter = new InputSystem();
         _foV = DefaultFoV;
 
         _mouseSensitivity = DefaultMouseSensitivity;

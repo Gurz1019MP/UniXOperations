@@ -5,7 +5,7 @@ public class CharacterInputterContainer : MonoBehaviour
     private PlayerInputter _playerInputter;
     private AIInputter _aIInputter;
 
-    public ICharacterInputter Inputter { get; private set; }
+    public InputterBase Inputter { get; private set; }
 
     public void Initialize(AIInputter aIInputter)
     {
@@ -13,7 +13,7 @@ public class CharacterInputterContainer : MonoBehaviour
         ChangeInputter();
     }
 
-    public void EnterPlayer(PlayerInputter2 inputter)
+    public void EnterPlayer(InputSystem inputter)
     {
         if (_playerInputter == null)
         {

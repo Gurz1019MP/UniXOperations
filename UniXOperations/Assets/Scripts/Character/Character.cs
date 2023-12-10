@@ -81,7 +81,7 @@ public class Character : MonoBehaviour
 
     public CharacterController CharacterController { get; private set; }
 
-    public ICharacterInputter Inputter => InputterContainer.Inputter;
+    public InputterBase Inputter => InputterContainer.Inputter;
 
     #endregion
 
