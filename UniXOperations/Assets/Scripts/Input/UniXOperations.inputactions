@@ -528,7 +528,7 @@
                     "path": "<Keyboard>/f5",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "MoveUp",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -539,7 +539,7 @@
                     "path": "<Keyboard>/enter",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "MoveUp",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -561,7 +561,7 @@
                     "path": "<Keyboard>/f7",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "NextWeapon",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -572,7 +572,7 @@
                     "path": "<Keyboard>/rightArrow",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "NextWeapon",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -594,7 +594,7 @@
                     "path": "<Keyboard>/f7",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "PreWeapon",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -605,7 +605,7 @@
                     "path": "<Keyboard>/leftArrow",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "PreWeapon",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -627,7 +627,7 @@
                     "path": "<Keyboard>/f6",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "AddAmmo",
                     "isComposite": false,
                     "isPartOfComposite": true
@@ -638,7 +638,7 @@
                     "path": "<Keyboard>/enter",
                     "interactions": "",
                     "processors": "",
-                    "groups": "",
+                    "groups": "Keyboard&Mouse",
                     "action": "AddAmmo",
                     "isComposite": false,
                     "isPartOfComposite": true

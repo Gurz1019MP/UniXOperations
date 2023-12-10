@@ -10,11 +10,11 @@ public class PlayerInputter : InputterBase
         _playerInputter = inputter;
         _playerInputter.Enable();
 
-        if (PlayerPrefs.HasKey(_mouseSensitivityKey))
+        if (PlayerPrefs.HasKey(ConstantsManager.MouseSensitivityKey))
         {
             try
             {
-                _mouseSensitivity = PlayerPrefs.GetFloat(_mouseSensitivityKey);
+                _mouseSensitivity = PlayerPrefs.GetFloat(ConstantsManager.MouseSensitivityKey);
             }
             catch
             {
@@ -56,6 +56,4 @@ public class PlayerInputter : InputterBase
         //Weapon1 = Input.GetAxis("Weapon1") > 0;
         //Weapon2 = Input.GetAxis("Weapon2") > 0;
     }
-
-    private static readonly string _mouseSensitivityKey = "MouseSensitivity";
 }

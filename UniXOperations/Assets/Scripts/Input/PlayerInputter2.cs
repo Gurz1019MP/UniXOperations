@@ -550,7 +550,7 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/f5"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""MoveUp"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -561,7 +561,7 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/enter"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""MoveUp"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -583,7 +583,7 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/f7"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""NextWeapon"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -594,7 +594,7 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/rightArrow"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""NextWeapon"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -616,7 +616,7 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/f7"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""PreWeapon"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -627,7 +627,7 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/leftArrow"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""PreWeapon"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -649,7 +649,7 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/f6"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""AddAmmo"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
@@ -660,7 +660,7 @@ public partial class @PlayerInputter2: IInputActionCollection2, IDisposable
                     ""path"": ""<Keyboard>/enter"",
                     ""interactions"": """",
                     ""processors"": """",
-                    ""groups"": """",
+                    ""groups"": ""Keyboard&Mouse"",
                     ""action"": ""AddAmmo"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
