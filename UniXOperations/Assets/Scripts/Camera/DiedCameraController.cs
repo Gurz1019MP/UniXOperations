@@ -11,7 +11,7 @@ public class DiedCameraController : MonoBehaviour
 
     void Start()
     {
-        if (Physics.Raycast(transform.position, Vector3.up * -1, out RaycastHit hitInfo, Mathf.Infinity, LayerMask.GetMask("Stage")))
+        if (Physics.Raycast(transform.position, Vector3.up * -1, out RaycastHit hitInfo, Mathf.Infinity, LayerMask.GetMask(ConstantsManager.LayerMask_Stage)))
         {
             TargetPoint = hitInfo.point;
         }

@@ -26,11 +26,11 @@ public class GameCoreManager : MonoBehaviour
     {
         _playerInputter = new PlayerInputter2();
 
-        if (PlayerPrefs.HasKey(_keyBindingKey))
+        if (PlayerPrefs.HasKey(ConstantsManager.KeyBindingKey))
         {
             try
             {
-                _playerInputter.LoadBindingOverridesFromJson(PlayerPrefs.GetString(_keyBindingKey));
+                _playerInputter.LoadBindingOverridesFromJson(PlayerPrefs.GetString(ConstantsManager.KeyBindingKey));
             }
             catch
             {
@@ -43,7 +43,7 @@ public class GameCoreManager : MonoBehaviour
         _missionInformation = missionInformation;
         GameDataContainer = new MissionDataLoader(GameObject.Find("Stage")).Load(missionInformation);
 
-        Material skybox = SkyboxLoader.GetSkybox(missionInformation?.Sky);
+        Material skybox = GetSkybox(missionInformation?.Sky);
         RenderSettings.skybox = skybox;
 
         MissionEventManager missionEventManager = GetComponent<MissionEventManager>();
@@ -114,6 +114,26 @@ public class GameCoreManager : MonoBehaviour
         resultManager.Initialize(_missionInformation == null ? DebugMissionInformation : _missionInformation, _result);
     }
 
+    public Material GetSkybox(string index)
+    {
+        if (!string.IsNullOrEmpty(index) && ConstantsManager.SkyboxMapper.ContainsKey(index))
+        {
+            string assetName = ConstantsManager.SkyboxMapper[index];
+            if (assetName == null)
+            {
+                return null;
+            }
+            else
+            {
+                return AssetLoader.LoadAsset<Material>(assetName);
+            }
+        }
+        else
+        {
+            return AssetLoader.LoadAsset<Material>(ConstantsManager.SkyboxMapper["1"]);
+        }
+    }
+
     private void NextCharacter(InputAction.CallbackContext obj)
     {
         if (GameDataContainer == null) return;
@@ -170,10 +190,8 @@ public class GameCoreManager : MonoBehaviour
         character.CurrentWeaponState.Ammo += JsonContainer.Instance.WeaponSpecArray.First(w => w.Id == character.CurrentWeaponState.Kind).MagazineSize;
     }
 
-    private GameCameraController _gameCamera;
     private MissionInformation _missionInformation;
     private ResultInformation _result;
     private DateTime _startTime;
     private static readonly MissionInformation DebugMissionInformation = new MissionInformation() { Name = "Debug" };
-    private static readonly string _keyBindingKey = "KeyBinding";
 }

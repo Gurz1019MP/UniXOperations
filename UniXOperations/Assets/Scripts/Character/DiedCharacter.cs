@@ -33,7 +33,7 @@ public class DiedCharacter : MonoBehaviour
         {
             transform.rotation *= Quaternion.Euler(fallSpeed * fallDirection * Time.deltaTime, 0, 0);
 
-            RaycastHit[] hits = Physics.RaycastAll(_raycastRoot.transform.position, _raycastRoot.transform.forward * fallDirection, 0.1f, LayerMask.GetMask("Stage"));
+            RaycastHit[] hits = Physics.RaycastAll(_raycastRoot.transform.position, _raycastRoot.transform.forward * fallDirection, 0.1f, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
             if (hits.Any())
             {
                 isFalled = true;

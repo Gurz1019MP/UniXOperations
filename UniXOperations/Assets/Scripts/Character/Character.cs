@@ -63,8 +63,6 @@ public class Character : MonoBehaviour
     #region privateフィールド
 
     private GameObject[] _arms;                         // 各持ち方用の腕オブジェクト
-    private GameObject _prefabWeaponPickup;
-    private GameObject _prefabDiedCharacter;
     private Mesh upMesh;
     private Material material;
     private Texture2D texture;
@@ -73,13 +71,7 @@ public class Character : MonoBehaviour
     private Animator _characterAnimator;
     private float _animatorFactor = 0.0f;
     private float _currentArmAngle;
-    private GameObject _prefabMuzzleFlash;
     private AnimationCurve Accuracy;
-    private GameObject _prefabBullet;
-    private GameObject _prefabGrenade;
-    private GameObject _prefabZombieAttack;
-    private GameObject _prefabCartridge;
-    private Dictionary<string, AudioClip> fireAudioClips;
 
     #endregion
 
@@ -172,15 +164,6 @@ public class Character : MonoBehaviour
 
         InitHierarchyObject();
 
-        // インスタンス化プレハブの取得
-        _prefabWeaponPickup = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabWeaponPickup);
-        _prefabDiedCharacter = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabDiedCharacter);
-        _prefabBullet = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabBullet);
-        _prefabGrenade = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabGrenade);
-        _prefabZombieAttack = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabZombieAttack);
-        _prefabCartridge = AssetLoader.LoadAsset<GameObject>(ConstantsManager.CartridgePrefab);
-        _prefabMuzzleFlash = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabMuzzleFlash);
-
         // パラメータの設定
         ID = pointData.Data4;
         HitPoint = info.Spec.Hitpoint;
@@ -224,7 +207,6 @@ public class Character : MonoBehaviour
         _currentXAngle = FpsCameraAnchor.transform.localEulerAngles.x;
 
         // 武器系統の初期化
-        fireAudioClips = ConstantsManager.FireAudios.ToDictionary(c => c, c => AssetLoader.LoadAsset<AudioClip>(c));
         CombatStatistics = new CombatStatistics();
         OnFire.Subscribe(CombatStatistics.OnFire).AddTo(gameObject);
         OnHit.Subscribe(CombatStatistics.OnHit).AddTo(gameObject);
@@ -481,7 +463,7 @@ public class Character : MonoBehaviour
         DropWeapon(Weapon1, true);
         DropWeapon(Weapon2, true);
 
-        var instance = Instantiate(_prefabDiedCharacter, transform.position + Vector3.up * -0.558f, transform.rotation);
+        var instance = Instantiate(CharacterPrefabProvider.Instance.PrefabDiedCharacter, transform.position + Vector3.up * -0.558f, transform.rotation);
         var diedCharacter = instance.GetComponent<DiedCharacter>();
         diedCharacter.Initialize(upMesh, material, texture, false);
 
@@ -555,7 +537,7 @@ public class Character : MonoBehaviour
         //Debug.Log($"InstantiateDistance : {InstantiateDistance}");
 
         // ピックアップを生成
-        var instance = Instantiate(_prefabWeaponPickup, InstantiatePosition, transform.rotation * Quaternion.Euler(0, 0, -90));
+        var instance = Instantiate(CharacterPrefabProvider.Instance.PrefabWeaponPickup, InstantiatePosition, transform.rotation * Quaternion.Euler(0, 0, -90));
 
         // ピックアップを初期化
         var pickup = instance.GetComponent<WeaponPickup>();
@@ -721,7 +703,7 @@ public class Character : MonoBehaviour
         }
         else
         {
-            RaycastHit[] hits = Physics.SphereCastAll(rayPoint, CharacterController.radius, Vector3.down, float.MaxValue, LayerMask.GetMask("Stage"));
+            RaycastHit[] hits = Physics.SphereCastAll(rayPoint, CharacterController.radius, Vector3.down, float.MaxValue, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
             if (hits.Length == 1)
             {
                 return Mathf.Abs(hits[0].distance - CharacterController.skinWidth) < GroundThreshold;
@@ -769,7 +751,7 @@ public class Character : MonoBehaviour
         if (CurrentWeaponState.Spec.IsGrenade)
         {
             var instance = Instantiate(
-                _prefabGrenade,
+                CharacterPrefabProvider.Instance.PrefabGrenade,
                 FpsCameraAnchor.position + FpsCameraAnchor.forward * CurrentWeaponState.Spec.BulletInstanceOffset,
                 FpsCameraAnchor.rotation * Quaternion.Euler(0, 0, Random.Range(0, 360)));
             var bullet = instance.GetComponent<IBullet>();
@@ -802,7 +784,7 @@ public class Character : MonoBehaviour
                 float shootingError = GetShootingError();
 
                 var instance = Instantiate(
-                    _prefabBullet,
+                    CharacterPrefabProvider.Instance.PrefabBullet,
                     FpsCameraAnchor.position + FpsCameraAnchor.forward * CurrentWeaponState.Spec.BulletInstanceOffset,
                     FpsCameraAnchor.rotation * Quaternion.Euler(0, 0, Random.Range(0, 360)) * Quaternion.Euler(shootingError, 0, 0));
                 var bullet = instance.GetComponent<IBullet>();
@@ -826,11 +808,11 @@ public class Character : MonoBehaviour
 
             ArmMuzzleJump(CurrentWeaponState.Spec.MuzzleJump);
 
-            var mfInstance = Instantiate(_prefabMuzzleFlash, CurrentHand.TransformPoint(-CurrentWeaponState.Spec.HandlingPosition + CurrentWeaponState.Spec.MuzzlePosition), CurrentHand.rotation * Quaternion.Euler(0, 180, 0));
+            var mfInstance = Instantiate(CharacterPrefabProvider.Instance.PrefabMuzzleFlash, CurrentHand.TransformPoint(-CurrentWeaponState.Spec.HandlingPosition + CurrentWeaponState.Spec.MuzzlePosition), CurrentHand.rotation * Quaternion.Euler(0, 180, 0));
             var muzzleFlash = mfInstance.GetComponent<MuzzleFlash>();
-            muzzleFlash.FireAudio = fireAudioClips[$"Assets/Audio/{CurrentWeaponState.Spec.FireAudio}.wav"];
+            muzzleFlash.FireAudio = CharacterPrefabProvider.Instance.FireAudioClips[$"Assets/Audio/{CurrentWeaponState.Spec.FireAudio}.wav"];
 
-            Instantiate(_prefabCartridge, CurrentHand.position, CurrentHand.rotation);
+            Instantiate(CharacterPrefabProvider.Instance.PrefabCartridge, CurrentHand.position, CurrentHand.rotation);
 
             // 射撃誤差を増加
             if (AccuracyRatio < 1)
@@ -881,7 +863,7 @@ public class Character : MonoBehaviour
     private void ZombieFire()
     {
         var instance = Instantiate(
-            _prefabZombieAttack,
+            CharacterPrefabProvider.Instance.PrefabZombieAttack,
             FpsCameraAnchor.position + FpsCameraAnchor.forward * CurrentWeaponState.Spec.BulletInstanceOffset,
             FpsCameraAnchor.rotation);
         var bullet = instance.GetComponent<IBullet>();

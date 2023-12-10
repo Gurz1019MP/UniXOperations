@@ -21,11 +21,11 @@ public class SettingsManager : MonoBehaviour
     {
         LoadDefaultSettings();
 
-        if (PlayerPrefs.HasKey(_keyBindingKey))
+        if (PlayerPrefs.HasKey(ConstantsManager.KeyBindingKey))
         {
             try
             {
-                PlayerInputter.LoadBindingOverridesFromJson(PlayerPrefs.GetString(_keyBindingKey));
+                PlayerInputter.LoadBindingOverridesFromJson(PlayerPrefs.GetString(ConstantsManager.KeyBindingKey));
             }
             catch
             {
@@ -33,11 +33,11 @@ public class SettingsManager : MonoBehaviour
             }
         }
 
-        if (PlayerPrefs.HasKey(_fovKey))
+        if (PlayerPrefs.HasKey(ConstantsManager.FovKey))
         {
             try
             {
-                _foV = PlayerPrefs.GetFloat(_fovKey);
+                _foV = PlayerPrefs.GetFloat(ConstantsManager.FovKey);
             }
             catch
             {
@@ -45,11 +45,11 @@ public class SettingsManager : MonoBehaviour
             }
         }
 
-        if (PlayerPrefs.HasKey(_mouseSensitivityKey))
+        if (PlayerPrefs.HasKey(ConstantsManager.MouseSensitivityKey))
         {
             try
             {
-                _mouseSensitivity = PlayerPrefs.GetFloat(_mouseSensitivityKey);
+                _mouseSensitivity = PlayerPrefs.GetFloat(ConstantsManager.MouseSensitivityKey);
             }
             catch
             {
@@ -91,9 +91,9 @@ public class SettingsManager : MonoBehaviour
 
     public void SaveSettings()
     {
-        PlayerPrefs.SetString(_keyBindingKey, PlayerInputter.SaveBindingOverridesAsJson());
-        PlayerPrefs.SetFloat(_fovKey, _foV);
-        PlayerPrefs.SetFloat(_mouseSensitivityKey, _mouseSensitivity);
+        PlayerPrefs.SetString(ConstantsManager.KeyBindingKey, PlayerInputter.SaveBindingOverridesAsJson());
+        PlayerPrefs.SetFloat(ConstantsManager.FovKey, _foV);
+        PlayerPrefs.SetFloat(ConstantsManager.MouseSensitivityKey, _mouseSensitivity);
 
         TransitionToMenu();
     }
@@ -105,8 +105,4 @@ public class SettingsManager : MonoBehaviour
         PlayerInputter.Disable();
         SceneManager.LoadScene("Scene/Menu");
     }
-
-    private static readonly string _keyBindingKey = "KeyBinding";
-    private static readonly string _fovKey = "FoV";
-    private static readonly string _mouseSensitivityKey = "MouseSensitivity";
 }

@@ -28,15 +28,15 @@ public class Bullet : MonoBehaviour, IBullet
     {
         Destroy(gameObject, _maxLifeTime);
 
-        _bulletMoveDelta = transform.forward * Speed * Time.deltaTime;
+        _bulletMoveDelta = Speed * Time.deltaTime * transform.forward;
         
-        RaycastHit[] sounds = Physics.SphereCastAll(transform.position, Sound, Vector3.up, 0f, LayerMask.GetMask("Character_Root"));
+        RaycastHit[] sounds = Physics.SphereCastAll(transform.position, Sound, Vector3.up, 0f, LayerMask.GetMask(ConstantsManager.LayerMask_Character_Root));
         if (sounds.Any())
         {
             foreach (Character characterState in sounds.Select(c => c.collider.gameObject.GetComponent<Character>()).Where(cs => cs != null).Where(cs => cs.Team != Team))
             {
                 characterState.RaiseOnGunSound(characterState.transform.position - transform.position);
-                Debug.Log("Sound");
+                //Debug.Log("Sound");
             }
         }
     }

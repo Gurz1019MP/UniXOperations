@@ -37,18 +37,4 @@ public static class VisualChanger
         component.material = material;
         component.material.mainTexture = texture;
     }
-
-    public static void ChangeMaterial(GameObject target, Material material)
-    {
-        if (target == null) return;
-
-        var component = target.GetComponent<Renderer>();
-        if (component == null)
-        {
-            Debug.Log("マテリアルの読み込みに失敗");
-            return;
-        }
-
-        component.material = material;
-    }
 }

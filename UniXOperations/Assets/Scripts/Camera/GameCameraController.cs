@@ -41,11 +41,11 @@ public class GameCameraController : MonoBehaviour
         Camera = GetComponent<Camera>();
         _diedCamera = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabDiedCamera);
 
-        if (PlayerPrefs.HasKey(_fovKey))
+        if (PlayerPrefs.HasKey(ConstantsManager.FovKey))
         {
             try
             {
-                Camera.fieldOfView = PlayerPrefs.GetFloat(_fovKey);
+                Camera.fieldOfView = PlayerPrefs.GetFloat(ConstantsManager.FovKey);
             }
             catch
             {
@@ -79,7 +79,7 @@ public class GameCameraController : MonoBehaviour
             {
                 foreach (var childTransforms in bodyTransform.GetDescendantsWithParent())
                 {
-                    childTransforms.gameObject.layer = _characterLayer;
+                    childTransforms.gameObject.layer = ConstantsManager.LayerCharacter;
                 }
             }
         }
@@ -99,14 +99,14 @@ public class GameCameraController : MonoBehaviour
         {
             foreach (var childTransforms in bodyTransform.GetDescendantsWithParent())
             {
-                childTransforms.gameObject.layer = _bodyLayer;
+                childTransforms.gameObject.layer = ConstantsManager.LayerBody;
             }
         }
 
         // 腕と武器のレイヤを変更
         foreach (var childTransforms in Character.Value.ArmBase.GetDescendantsWithParent())
         {
-            childTransforms.gameObject.layer = _armLayer;
+            childTransforms.gameObject.layer = ConstantsManager.LayerArm;
         }
     }
 
@@ -194,9 +194,4 @@ public class GameCameraController : MonoBehaviour
             Camera.fieldOfView = DefaultFoV;
         }
     }
-
-    private static int _bodyLayer = 11;
-    private static int _armLayer = 12;
-    private static int _characterLayer = 8;
-    private static readonly string _fovKey = "FoV";
 }

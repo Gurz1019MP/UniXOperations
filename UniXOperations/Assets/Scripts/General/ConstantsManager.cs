@@ -94,18 +94,37 @@ public static class ConstantsManager
         Fire1, Fire2, Fire3, Fire4
     };
 
-    //public static string Fire1 { get; } = "fire1";
+    #endregion
 
-    //public static string Fire2 { get; } = "fire2";
+    #region LayerMask
 
-    //public static string Fire3 { get; } = "fire3";
+    public static int LayerCharacter { get; } = 8;
+    public static int LayerBody { get; } = 11;
+    public static int LayerArm { get; } = 12;
 
-    //public static string Fire4 { get; } = "fire4";
+    public static string LayerMask_Character_Root { get; } = "Character_Root";
 
-    //public static IEnumerable<string> FireAudios = new string[]
-    //{
-    //    Fire1, Fire2, Fire3, Fire4
-    //};
+    public static string LayerMask_Stage { get; } = "Stage";
 
     #endregion
+
+    #region PlayerPerfsKey
+
+    public static string FovKey { get; } = "FoV";
+
+    public static string KeyBindingKey { get; } = "KeyBinding";
+
+    public static string MouseSensitivityKey { get; } = "MouseSensitivity";
+
+    #endregion
+
+    public static Dictionary<string, string> SkyboxMapper = new Dictionary<string, string>()
+    {
+        { "0", null },
+        { "1", "Assets/Skybox/CasualDay.mat" },
+        { "2", "Assets/Skybox/DarkStorm.mat" },
+        { "3", "Assets/Skybox/CoriolisNight4k.mat" },
+        { "4", "Assets/Skybox/CloudedSunGlow.mat" },
+        { "5", "Assets/Skybox/UnearthlyRed.mat" }
+    };
 }
