@@ -1,6 +1,6 @@
 ﻿public interface IAIBehaviorData
 {
-    CharacterState CharacterState { get; }
+    Character CharacterState { get; }
     GameDataContainer GameDataContainer { get; }
     AISkill AISkill { get; }
     AIController Controller { get; }
@@ -9,7 +9,7 @@
 
 public class AIBehaviorData : IAIBehaviorData
 {
-    public AIBehaviorData(AIController controller, CharacterState characterState, PathContainer firstPath, GameDataContainer gameDataContainer, AISkill aISkill)
+    public AIBehaviorData(AIController controller, Character characterState, PathContainer firstPath, GameDataContainer gameDataContainer, AISkill aISkill)
     {
         CharacterState = characterState;
         GameDataContainer = gameDataContainer;
@@ -18,7 +18,7 @@ public class AIBehaviorData : IAIBehaviorData
         FirstPath = firstPath;
     }
 
-    public CharacterState CharacterState { get; }
+    public Character CharacterState { get; }
     public GameDataContainer GameDataContainer { get; }
     public AISkill AISkill { get; }
     public AIController Controller { get; }

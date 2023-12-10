@@ -12,7 +12,7 @@ public class ZombieCombatAI : AbstractAIBehavior, ICombatAI
     #region PrivateField
 
     private Transform _headTransform;
-    private CharacterState _targetEnemy;
+    private Character _targetEnemy;
     private System.IDisposable _fireSubscriver;
 
     #endregion
@@ -53,7 +53,7 @@ public class ZombieCombatAI : AbstractAIBehavior, ICombatAI
         CharacterState.ArmTargetAngle = 90;
     }
 
-    public void SetTargetEnemy(CharacterState enemy)
+    public void SetTargetEnemy(Character enemy)
     {
         _targetEnemy = enemy;
     }

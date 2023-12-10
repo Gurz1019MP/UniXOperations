@@ -1,4 +1,4 @@
 ﻿public interface ICombatAI
 {
-    void SetTargetEnemy(CharacterState characterState);
+    void SetTargetEnemy(Character characterState);
 }

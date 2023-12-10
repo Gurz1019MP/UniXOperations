@@ -1,13 +1,11 @@
 ﻿using System.Collections;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.UIElements;
-using UniRx;
 using System.Collections.Generic;
+using System.Linq;
+using UniRx;
+using UnityEngine;
 
 [RequireComponent(typeof(CharacterInputterContainer))]
-public class CharacterState : MonoBehaviour
+public class Character : MonoBehaviour
 {
     public int ID = -1;
     public float HitPoint = 100;
@@ -146,7 +144,7 @@ public class CharacterState : MonoBehaviour
 
     #region イベント
 
-    public System.IObservable<CharacterState> OnDied => _onDiedSubject;
+    public System.IObservable<Character> OnDied => _onDiedSubject;
 
     public System.IObservable<Vector3> OnDamaged => _onDamagedSubject;
 
@@ -913,7 +911,7 @@ public class CharacterState : MonoBehaviour
     private static readonly string _animatorParamIsWalk = "IsWalk";
     private static readonly string _animatorParamIsRun = "IsRun";
     private static readonly string _animatorParamFactor = "Factor";
-    private Subject<CharacterState> _onDiedSubject = new Subject<CharacterState>();
+    private Subject<Character> _onDiedSubject = new Subject<Character>();
     private Subject<Vector3> _onDamagedSubject = new Subject<Vector3>();
     private Subject<Vector3> _onClosedSubject = new Subject<Vector3>();
     private Subject<Vector3> _onGunSoundSubject = new Subject<Vector3>();

@@ -24,7 +24,7 @@ public class UIUpdater : MonoBehaviour
     public UnityEngine.UI.Image StatePanel;
     public GameObject WeaponPreviewContainer;
 
-    private CharacterState CharacterState;
+    private Character CharacterState;
     private GameObject WeaponPreviewModel;
     private IDisposable _onChangeZoomSubscriber;
     private IDisposable _onDamagedSubscriber;
@@ -81,7 +81,7 @@ public class UIUpdater : MonoBehaviour
         }
     }
 
-    private void ChangeCharacter(CharacterState newCharacter)
+    private void ChangeCharacter(Character newCharacter)
     {
         _onChangeZoomSubscriber?.Dispose();
         _onChangeZoomSubscriber = null;

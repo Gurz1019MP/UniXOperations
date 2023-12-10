@@ -37,7 +37,7 @@ public class PathAI : AbstractAIBehavior
     private bool _wasAlert;
     private System.IDisposable _lookSubscriver;
     private System.IDisposable _waitPathSubscriver;
-    private CharacterState _targetEnemy;
+    private Character _targetEnemy;
     private System.IDisposable _fireSubscriver;
 
     #endregion
@@ -314,7 +314,7 @@ public class PathAI : AbstractAIBehavior
         _fireSubscriver = null;
     }
 
-    public void SetTargetEnemy(CharacterState enemy)
+    public void SetTargetEnemy(Character enemy)
     {
         _targetEnemy = enemy;
     }

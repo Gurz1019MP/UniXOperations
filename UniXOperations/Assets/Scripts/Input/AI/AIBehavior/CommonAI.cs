@@ -33,7 +33,7 @@ public class CommonAI : AbstractAIBehavior
     #region Property
 
     public ReactiveProperty<AIStateManager.StateKind> StateMode { get; private set; } = new ReactiveProperty<AIStateManager.StateKind>();
-    public ReactiveProperty<CharacterState> TargetEnemy { get; private set; } = new ReactiveProperty<CharacterState>(null);
+    public ReactiveProperty<Character> TargetEnemy { get; private set; } = new ReactiveProperty<Character>(null);
     public ReactiveProperty<Vector3> AlertDirection { get; private set; } = new ReactiveProperty<Vector3>();
     public bool IsPriorityRunning { get; set; }
 

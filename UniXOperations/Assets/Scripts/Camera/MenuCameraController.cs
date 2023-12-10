@@ -19,7 +19,7 @@ public class MenuCameraController : MonoBehaviour
         }
     }
 
-    public void Initialize(CharacterState characterState)
+    public void Initialize(Character characterState)
     {
         target = characterState.FpsCameraAnchor;
     }

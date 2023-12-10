@@ -48,7 +48,7 @@ public class Grenade : MonoBehaviour, IBullet
             {
                 //Debug.Log($"hit {hit.collider.gameObject.name}");
                 var distance = (hit.transform.position - transform.position).magnitude;
-                var characterState = hit.collider.gameObject.GetComponentInParent<CharacterState>();
+                var characterState = hit.collider.gameObject.GetComponentInParent<Character>();
                 var articleState = hit.collider.gameObject.GetComponentInParent<ArticleContainer>();
 
                 if (characterState != null)

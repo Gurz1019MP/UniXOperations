@@ -6,7 +6,7 @@ public class AIStateManager
 {
     public AbstractAIBehavior CurrentStateAI { get; protected set; }
 
-    private CharacterState _characterState;
+    private Character _characterState;
     private CommonAI _commonAI;
     private Dictionary<StateKind, AbstractAIBehavior> _stateAIMapper;
 

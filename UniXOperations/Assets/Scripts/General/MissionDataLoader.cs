@@ -139,9 +139,9 @@ public class MissionDataLoader
         return paths.ToArray();
     }
 
-    private CharacterState[] CreateCharacters(IEnumerable<PointData> pointDatas, CharacterInfomation[] characterInfomations, PathContainer[] paths, GameDataContainer gameDataContainer)
+    private Character[] CreateCharacters(IEnumerable<PointData> pointDatas, CharacterInfomation[] characterInfomations, PathContainer[] paths, GameDataContainer gameDataContainer)
     {
-        List<CharacterState> characters = new List<CharacterState>();
+        List<Character> characters = new List<Character>();
 
         foreach (PointData pointData in pointDatas)
         {
@@ -188,10 +188,10 @@ public class MissionDataLoader
         return articles.ToArray();
     }
 
-    private CharacterState PlaceCharacter(PointData pointData, CharacterInfomation[] characterInfomations, PathContainer[] paths, GameDataContainer gameDataContainer, bool equipWeapon2)
+    private Character PlaceCharacter(PointData pointData, CharacterInfomation[] characterInfomations, PathContainer[] paths, GameDataContainer gameDataContainer, bool equipWeapon2)
     {
         GameObject character = Object.Instantiate(_character, pointData.Position * _stage.transform.localScale.x + Vector3.up * 0.6f, pointData.Rotation);
-        CharacterState state = character.GetComponent<CharacterState>();
+        Character state = character.GetComponent<Character>();
         CharacterInfomation info = characterInfomations.SingleOrDefault(i => i.Id == pointData.Data2);
 
         if (info == null)

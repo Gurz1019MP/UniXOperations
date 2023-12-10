@@ -47,7 +47,7 @@ public abstract class AbstractMissionEvent
         _onShowMessageSubject.OnCompleted();
     }
 
-    protected IEnumerator WaitForPerson(CharacterState character, MissionEventContainer missionEventContainer, bool withCase)
+    protected IEnumerator WaitForPerson(Character character, MissionEventContainer missionEventContainer, bool withCase)
     {
         while (true)
         {

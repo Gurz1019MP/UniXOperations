@@ -76,7 +76,7 @@ public class GameCoreManager : MonoBehaviour
         if (_playerInputter.Player.MoveUp.IsPressed())
         {
             Debug.Log("MoveUp");
-            CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
+            Character character = GameDataContainer.Characters[_currentCharacterIndex];
             character.transform.position = new Vector3(character.transform.position.x, character.transform.position.y + 10 * Time.deltaTime, character.transform.position.z);
             character.ResetMoveDeltaY();
         }
@@ -119,13 +119,13 @@ public class GameCoreManager : MonoBehaviour
         if (GameDataContainer == null) return;
         if (_gameCameraController == null) return;
 
-        CharacterState oldCharacter = GameDataContainer.Characters[_currentCharacterIndex];
+        Character oldCharacter = GameDataContainer.Characters[_currentCharacterIndex];
 
         oldCharacter.InputterContainer.LeavePlayer();
 
         _currentCharacterIndex = _currentCharacterIndex == (GameDataContainer.Characters.Count - 1) ? 0 : _currentCharacterIndex + 1;
 
-        CharacterState newCharacter = GameDataContainer.Characters[_currentCharacterIndex];
+        Character newCharacter = GameDataContainer.Characters[_currentCharacterIndex];
 
         newCharacter.InputterContainer.EnterPlayer(_playerInputter);
         _gameCameraController.ChangeCharacter(newCharacter);
@@ -137,13 +137,13 @@ public class GameCoreManager : MonoBehaviour
         if (GameDataContainer == null) return;
         if (_gameCameraController == null) return;
 
-        CharacterState oldCharacter = GameDataContainer.Characters[_currentCharacterIndex];
+        Character oldCharacter = GameDataContainer.Characters[_currentCharacterIndex];
 
         oldCharacter.InputterContainer.LeavePlayer();
 
         _currentCharacterIndex = _currentCharacterIndex == 0 ? GameDataContainer.Characters.Count - 1 : _currentCharacterIndex - 1;
 
-        CharacterState newCharacter = GameDataContainer.Characters[_currentCharacterIndex];
+        Character newCharacter = GameDataContainer.Characters[_currentCharacterIndex];
 
         newCharacter.InputterContainer.EnterPlayer(_playerInputter);
         _gameCameraController.ChangeCharacter(newCharacter);
@@ -152,21 +152,21 @@ public class GameCoreManager : MonoBehaviour
 
     private void NextWeapon(InputAction.CallbackContext obj)
     {
-        CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
+        Character character = GameDataContainer.Characters[_currentCharacterIndex];
         character.CurrentWeaponState.Kind = (short)(character.CurrentWeaponState.Kind == (JsonContainer.Instance.WeaponSpecArray.Length - 1) ? 0 : character.CurrentWeaponState.Kind + 1);
         character.ChangeWeapon(character.CurrentWeaponState);
     }
 
     private void PreWeapon(InputAction.CallbackContext obj)
     {
-        CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
+        Character character = GameDataContainer.Characters[_currentCharacterIndex];
         character.CurrentWeaponState.Kind = (short)(character.CurrentWeaponState.Kind == 0 ? JsonContainer.Instance.WeaponSpecArray.Length - 1 : character.CurrentWeaponState.Kind - 1);
         character.ChangeWeapon(character.CurrentWeaponState);
     }
 
     private void AddAmmo(InputAction.CallbackContext obj)
     {
-        CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
+        Character character = GameDataContainer.Characters[_currentCharacterIndex];
         character.CurrentWeaponState.Ammo += JsonContainer.Instance.WeaponSpecArray.First(w => w.Id == character.CurrentWeaponState.Kind).MagazineSize;
     }
 

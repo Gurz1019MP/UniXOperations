@@ -30,7 +30,7 @@ public class ZombieAttack : MonoBehaviour, IBullet
             foreach (RaycastHit hit in hits.OrderBy(h => h.distance))
             {
                 //Debug.Log($"hit {hit.collider.gameObject.name}");
-                var characterState = hit.collider.gameObject.GetComponentInParent<CharacterState>();
+                var characterState = hit.collider.gameObject.GetComponentInParent<Character>();
                 var articleState = hit.collider.gameObject.GetComponentInParent<ArticleContainer>();
 
                 if (characterState != null && characterState.Team != Team)

@@ -23,7 +23,7 @@ public abstract class AbstractAIBehavior
 
     public AIController Controller { get; }
 
-    public CharacterState CharacterState { get; }
+    public Character CharacterState { get; }
 
     public AISkill AIParameter { get; }
 

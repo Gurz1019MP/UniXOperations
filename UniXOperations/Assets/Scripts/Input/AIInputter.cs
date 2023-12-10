@@ -1,6 +1,6 @@
 ﻿public class AIInputter : InputterBase
 {
-    public AIInputter(CharacterState characterState, PathContainer firstPath, GameDataContainer gameDataContainer, short aISkill) : base(characterState.gameObject)
+    public AIInputter(Character characterState, PathContainer firstPath, GameDataContainer gameDataContainer, short aISkill) : base(characterState.gameObject)
     {
         _aIBehaviorData = new AIBehaviorData(
             new AIController(),

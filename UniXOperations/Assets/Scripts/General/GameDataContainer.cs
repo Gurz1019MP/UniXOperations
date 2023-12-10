@@ -10,7 +10,7 @@ using UniRx;
 [Serializable]
 public class GameDataContainer
 {
-    public IReadOnlyList<CharacterState> Characters
+    public IReadOnlyList<Character> Characters
     {
         get { return _characters; }
     }
@@ -60,7 +60,7 @@ public class GameDataContainer
         _paths = IdentifiedPath.ToDictionary(ip => ip.Path.Id);
     }
 
-    public void InitCharacters(CharacterState[] characters)
+    public void InitCharacters(Character[] characters)
     {
         _characters = characters.ToList();
 
@@ -116,7 +116,7 @@ public class GameDataContainer
         return _paths[id];
     }
 
-    private List<CharacterState> _characters;
+    private List<Character> _characters;
     private Dictionary<short, PathContainer> _paths;
     private List<ArticleContainer> _articles;
     private CombatStatistics _diedPlayerCombatStatistics;

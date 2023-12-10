@@ -15,7 +15,7 @@ public class CombatAI : AbstractAIBehavior, ICombatAI
     #region PrivateField
 
     private Transform _headTransform;
-    private CharacterState _targetEnemy;
+    private Character _targetEnemy;
     private System.IDisposable _fireSubscriver;
     private System.IDisposable _evideSubscriver;
 
@@ -103,7 +103,7 @@ public class CombatAI : AbstractAIBehavior, ICombatAI
         CharacterState.ArmTargetAngle = 90;
     }
 
-    public void SetTargetEnemy(CharacterState enemy)
+    public void SetTargetEnemy(Character enemy)
     {
         _targetEnemy = enemy;
     }
