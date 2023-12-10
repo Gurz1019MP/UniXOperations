@@ -28,15 +28,15 @@ public class Bullet : MonoBehaviour, IBullet
     {
         Destroy(gameObject, _maxLifeTime);
 
-        _bulletMoveDelta = transform.forward * Speed * Time.deltaTime;
+        _bulletMoveDelta = Speed * Time.deltaTime * transform.forward;
         
-        RaycastHit[] sounds = Physics.SphereCastAll(transform.position, Sound, Vector3.up, 0f, LayerMask.GetMask("Character_Root"));
+        RaycastHit[] sounds = Physics.SphereCastAll(transform.position, Sound, Vector3.up, 0f, LayerMask.GetMask(ConstantsManager.LayerMask_Character_Root));
         if (sounds.Any())
         {
-            foreach (CharacterState characterState in sounds.Select(c => c.collider.gameObject.GetComponent<CharacterState>()).Where(cs => cs != null).Where(cs => cs.Team != Team))
+            foreach (Character characterState in sounds.Select(c => c.collider.gameObject.GetComponent<Character>()).Where(cs => cs != null).Where(cs => cs.Team != Team))
             {
                 characterState.RaiseOnGunSound(characterState.transform.position - transform.position);
-                Debug.Log("Sound");
+                //Debug.Log("Sound");
             }
         }
     }
@@ -52,7 +52,7 @@ public class Bullet : MonoBehaviour, IBullet
         RaycastHit[] closes = Physics.SphereCastAll(_lastPosition, 0.3f, displacementSinceLastFrame.normalized, displacementSinceLastFrame.magnitude, LayerMask.GetMask("Character_Root"));
         if (closes.Any())
         {
-            foreach (CharacterState characterState in closes.Select(c => c.collider.gameObject.GetComponent<CharacterState>()).Where(cs => cs != null))
+            foreach (Character characterState in closes.Select(c => c.collider.gameObject.GetComponent<Character>()).Where(cs => cs != null))
             {
                 characterState.RaiseOnClose(displacementSinceLastFrame.normalized);
             }
@@ -64,7 +64,7 @@ public class Bullet : MonoBehaviour, IBullet
             foreach (RaycastHit hit in hits.OrderBy(h => h.distance))
             {
                 //Debug.Log($"hit {hit.collider.gameObject.name}");
-                var characterState = hit.collider.gameObject.GetComponentInParent<CharacterState>();
+                var characterState = hit.collider.gameObject.GetComponentInParent<Character>();
                 var articleState = hit.collider.gameObject.GetComponentInParent<ArticleContainer>();
 
                 if (characterState == null && articleState == null)

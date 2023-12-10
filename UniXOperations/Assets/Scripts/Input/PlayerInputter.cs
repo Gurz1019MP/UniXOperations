@@ -2,19 +2,18 @@
 
 public class PlayerInputter : InputterBase
 {
-    private PlayerInputter2 _playerInputter;
+    private InputSystem _inputSystem;
     private float _mouseSensitivity;
 
-    public PlayerInputter(GameObject gameObject, PlayerInputter2 inputter) : base(gameObject)
+    public PlayerInputter(GameObject gameObject, InputSystem inputSystem) : base(gameObject)
     {
-        _playerInputter = inputter;
-        _playerInputter.Enable();
+        _inputSystem = inputSystem;
 
-        if (PlayerPrefs.HasKey(_mouseSensitivityKey))
+        if (PlayerPrefs.HasKey(ConstantsManager.MouseSensitivityKey))
         {
             try
             {
-                _mouseSensitivity = PlayerPrefs.GetFloat(_mouseSensitivityKey);
+                _mouseSensitivity = PlayerPrefs.GetFloat(ConstantsManager.MouseSensitivityKey);
             }
             catch
             {
@@ -22,40 +21,25 @@ public class PlayerInputter : InputterBase
                 _mouseSensitivity = 1.0f;
             }
         }
+
+        _inputSystem.Enable();
     }
 
     protected override void InputUpdate()
     {
-        Horizontal = _playerInputter.Player.Horizontal.ReadValue<float>();
-        Vertical = _playerInputter.Player.Vertical.ReadValue<float>();
-        Fire = _playerInputter.Player.Fire.IsPressed();
-        Jump = _playerInputter.Player.Jump.IsPressed();
-        MouseX = _playerInputter.Player.MouseX.ReadValue<float>() * _mouseSensitivity;
-        MouseY = _playerInputter.Player.MouseY.ReadValue<float>() * _mouseSensitivity;
-        Walk = _playerInputter.Player.Walk.IsPressed();
-        Reload = _playerInputter.Player.Reload.IsPressed();
-        DropWeapon = _playerInputter.Player.DropWeapon.IsPressed();
-        Zoom = _playerInputter.Player.Zoom.IsPressed();
-        FireMode = _playerInputter.Player.FireMode.IsPressed();
-        SwitchWeapon = _playerInputter.Player.SwitchWeapon.IsPressed();
-        Weapon1 = _playerInputter.Player.Weapon1.IsPressed();
-        Weapon2 = _playerInputter.Player.Weapon2.IsPressed();  
-
-        //Horizontal = Input.GetAxis("Horizontal");
-        //Vertical = Input.GetAxis("Vertical");
-        //Fire = Input.GetAxis("Fire") > 0;
-        //Jump = Input.GetAxis("Jump") > 0;
-        //MouseX = Input.GetAxis("Mouse X");
-        //MouseY = Input.GetAxis("Mouse Y");
-        //Walk = Input.GetAxis("Walk") > 0;
-        //Reload = Input.GetAxis("Reload") > 0;
-        //DropWeapon = Input.GetAxis("Drop Weapon") > 0;
-        //Zoom = Input.GetAxis("Zoom") > 0;
-        //FireMode = Input.GetAxis("Fire Mode") > 0;
-        //SwitchWeapon = Input.GetAxis("Switch Weapon") > 0;
-        //Weapon1 = Input.GetAxis("Weapon1") > 0;
-        //Weapon2 = Input.GetAxis("Weapon2") > 0;
+        Horizontal = _inputSystem.Player.Horizontal.ReadValue<float>();
+        Vertical = _inputSystem.Player.Vertical.ReadValue<float>();
+        Fire = _inputSystem.Player.Fire.IsPressed();
+        Jump = _inputSystem.Player.Jump.IsPressed();
+        MouseX = _inputSystem.Player.MouseX.ReadValue<float>() * _mouseSensitivity;
+        MouseY = _inputSystem.Player.MouseY.ReadValue<float>() * _mouseSensitivity;
+        Walk = _inputSystem.Player.Walk.IsPressed();
+        Reload = _inputSystem.Player.Reload.IsPressed();
+        DropWeapon = _inputSystem.Player.DropWeapon.IsPressed();
+        Zoom = _inputSystem.Player.Zoom.IsPressed();
+        FireMode = _inputSystem.Player.FireMode.IsPressed();
+        SwitchWeapon = _inputSystem.Player.SwitchWeapon.IsPressed();
+        Weapon1 = _inputSystem.Player.Weapon1.IsPressed();
+        Weapon2 = _inputSystem.Player.Weapon2.IsPressed();  
     }
-
-    private static readonly string _mouseSensitivityKey = "MouseSensitivity";
 }

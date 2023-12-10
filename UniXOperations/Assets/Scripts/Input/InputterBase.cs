@@ -1,7 +1,7 @@
 ﻿using UniRx;
 using UnityEngine;
 
-public class InputterBase : ICharacterInputter
+public class InputterBase
 {
     #region Property
 

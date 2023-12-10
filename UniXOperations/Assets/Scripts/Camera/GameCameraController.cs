@@ -29,8 +29,8 @@ public class GameCameraController : MonoBehaviour
     [ReadOnly]
     public bool isShowArm = false;
 
-    public ReactiveProperty<CharacterState> Character { get; private set; } = new ReactiveProperty<CharacterState>();
-    public PlayerInputter2 PlayerInputter { get; set; }
+    public ReactiveProperty<Character> Character { get; private set; } = new ReactiveProperty<Character>();
+    public InputSystem PlayerInputter { get; set; }
 
     private GameObject _diedCamera;
     private IDisposable _onChangeZoomSubscriber;
@@ -41,11 +41,11 @@ public class GameCameraController : MonoBehaviour
         Camera = GetComponent<Camera>();
         _diedCamera = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabDiedCamera);
 
-        if (PlayerPrefs.HasKey(_fovKey))
+        if (PlayerPrefs.HasKey(ConstantsManager.FovKey))
         {
             try
             {
-                Camera.fieldOfView = PlayerPrefs.GetFloat(_fovKey);
+                Camera.fieldOfView = PlayerPrefs.GetFloat(ConstantsManager.FovKey);
             }
             catch
             {
@@ -62,7 +62,7 @@ public class GameCameraController : MonoBehaviour
     /// <summary>
     /// キャラクターを切り替える
     /// </summary>
-    public void ChangeCharacter(CharacterState newCharacter)
+    public void ChangeCharacter(Character newCharacter)
     {
         if (newCharacter == null) return;
 
@@ -79,7 +79,7 @@ public class GameCameraController : MonoBehaviour
             {
                 foreach (var childTransforms in bodyTransform.GetDescendantsWithParent())
                 {
-                    childTransforms.gameObject.layer = _characterLayer;
+                    childTransforms.gameObject.layer = ConstantsManager.LayerCharacter;
                 }
             }
         }
@@ -99,18 +99,18 @@ public class GameCameraController : MonoBehaviour
         {
             foreach (var childTransforms in bodyTransform.GetDescendantsWithParent())
             {
-                childTransforms.gameObject.layer = _bodyLayer;
+                childTransforms.gameObject.layer = ConstantsManager.LayerBody;
             }
         }
 
         // 腕と武器のレイヤを変更
         foreach (var childTransforms in Character.Value.ArmBase.GetDescendantsWithParent())
         {
-            childTransforms.gameObject.layer = _armLayer;
+            childTransforms.gameObject.layer = ConstantsManager.LayerArm;
         }
     }
 
-    public void SetPlayerInputter(PlayerInputter2 inputter)
+    public void SetPlayerInputter(InputSystem inputter)
     {
         PlayerInputter = inputter;
 
@@ -167,7 +167,7 @@ public class GameCameraController : MonoBehaviour
         }
     }
 
-    private void OnDiedHandler(CharacterState sender)
+    private void OnDiedHandler(Character sender)
     {
         Instantiate(_diedCamera, transform.position, transform.rotation);
     }
@@ -194,9 +194,4 @@ public class GameCameraController : MonoBehaviour
             Camera.fieldOfView = DefaultFoV;
         }
     }
-
-    private static int _bodyLayer = 11;
-    private static int _armLayer = 12;
-    private static int _characterLayer = 8;
-    private static readonly string _fovKey = "FoV";
 }

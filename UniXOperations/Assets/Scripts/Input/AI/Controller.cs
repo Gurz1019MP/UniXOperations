@@ -1,4 +1,4 @@
-﻿public class AIController : ICharacterInputterAxis
+﻿public class Controller
 {
     public float Horizontal { get; set; }
 

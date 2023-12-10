@@ -3,20 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-[RequireComponent(typeof(ArmController))]
 public class DiedCharacter : MonoBehaviour
 {
     public GameObject _raycastRoot;
     public float fallSpeed;
+    public float ArmRotateSpeed;
+    public Transform ArmBase;
 
     private bool isFalled;
     private float fallDirection;
+    private float TargetAngle;
+    private float _currentArmAngle;
 
     public void Initialize(Mesh mesh, Material material, Texture2D texture, bool isFrontFall)
     {
         fallDirection = isFrontFall ? 1 : -1;
         SetCharacterVisual(mesh, material, texture);
-        GetComponent<ArmController>().TargetAngle = Random.Range(0, 3) == 0 ? -90 : 90;
+        TargetAngle = Random.Range(0, 3) == 0 ? -90 : 90;
+        _currentArmAngle = ArmBase.localEulerAngles.x;
+        if (_currentArmAngle > 180)
+        {
+            _currentArmAngle -= 360;
+        }
     }
 
     private void Update()
@@ -25,11 +33,23 @@ public class DiedCharacter : MonoBehaviour
         {
             transform.rotation *= Quaternion.Euler(fallSpeed * fallDirection * Time.deltaTime, 0, 0);
 
-            RaycastHit[] hits = Physics.RaycastAll(_raycastRoot.transform.position, _raycastRoot.transform.forward * fallDirection, 0.1f, LayerMask.GetMask("Stage"));
+            RaycastHit[] hits = Physics.RaycastAll(_raycastRoot.transform.position, _raycastRoot.transform.forward * fallDirection, 0.1f, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
             if (hits.Any())
             {
                 isFalled = true;
             }
+        }
+
+        if (Mathf.Abs(_currentArmAngle - TargetAngle) > 1f)
+        {
+            float direction = _currentArmAngle < TargetAngle ? 1 : -1;
+            float rotateSpeed = ArmRotateSpeed * direction * Time.deltaTime;
+            if (rotateSpeed > Mathf.Abs(TargetAngle - _currentArmAngle))
+            {
+                rotateSpeed = TargetAngle - _currentArmAngle;
+            }
+            _currentArmAngle += rotateSpeed;
+            ArmBase.localEulerAngles = new Vector3(_currentArmAngle, 0, 0);
         }
     }
 

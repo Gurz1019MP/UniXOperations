@@ -5,7 +5,7 @@ public class TitleManager : MonoBehaviour
 {
     private void Start()
     {
-        _playerInputter = new PlayerInputter2();
+        _playerInputter = new InputSystem();
 
         if (MissionDataLoader.ExistsXOps())
         {
@@ -29,5 +29,5 @@ public class TitleManager : MonoBehaviour
         SceneManager.LoadScene("Scene/Menu");
     }
 
-    private PlayerInputter2 _playerInputter;
+    private InputSystem _playerInputter;
 }

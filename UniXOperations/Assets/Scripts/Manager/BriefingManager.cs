@@ -15,11 +15,11 @@ public class BriefingManager : MonoBehaviour
     public Image doublePic2;
 
     private MissionInformation _selectedMissionInformation;
-    private PlayerInputter2 _playerInputter;
+    private InputSystem _playerInputter;
 
     private void Start()
     {
-        _playerInputter = new PlayerInputter2();
+        _playerInputter = new InputSystem();
         _playerInputter.Menu.Enter.performed += (_) => TransitionToGame();
         _playerInputter.Menu.Exit.performed += (_) => TransitionToMenu();
         _playerInputter.Enable();

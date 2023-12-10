@@ -1,50 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.Events;
 using UniRx;
 
 [Serializable]
 public class GameDataContainer
 {
-    public IReadOnlyList<CharacterState> Characters
-    {
-        get { return _characters; }
-    }
+    #region プロパティ
 
-    public IReadOnlyList<ArticleContainer> Articles
-    {
-        get { return _articles; }
-    }
+    public IReadOnlyList<Character> Characters => _characters;
+
+    public IReadOnlyList<ArticleContainer> Articles => _articles;
 
     public IReadOnlyList<MissionEventContainer> MissionEvents { get; private set; }
 
-    public CombatStatistics PlayerCombatStatistics
-    {
-        get
-        {
-            if (_diedPlayerCombatStatistics == null)
-            {
-                return Characters.Single(c => c.ID == 0).CombatStatistics;
-            }
-            else
-            {
-                return _diedPlayerCombatStatistics;
-            }
-        }
-    }
+    public CombatStatistics PlayerCombatStatistics => _diedPlayerCombatStatistics == null ?
+        Characters.Single(c => c.ID == 0).CombatStatistics : _diedPlayerCombatStatistics;
 
-    public IReadOnlyDictionary<short, string> EventMessasge
-    {
-        get { return _eventMessage; }
-    }
+    public IReadOnlyDictionary<short, string> EventMessasge => _eventMessage;
+
+    #endregion
+
+    #region イベント
 
     public IObservable<Unit> OnPlayerDied => _onPlayerDiedSubject;
 
     public IObservable<Unit> OnAllEnemyEliminated => _onAllEnemyEliminatedSubject;
+
+    #endregion
+
+    #region メソッド
 
     public void InitPaths(PathContainer[] paths)
     {
@@ -60,7 +45,7 @@ public class GameDataContainer
         _paths = IdentifiedPath.ToDictionary(ip => ip.Path.Id);
     }
 
-    public void InitCharacters(CharacterState[] characters)
+    public void InitCharacters(Character[] characters)
     {
         _characters = characters.ToList();
 
@@ -116,7 +101,9 @@ public class GameDataContainer
         return _paths[id];
     }
 
-    private List<CharacterState> _characters;
+    #endregion
+
+    private List<Character> _characters;
     private Dictionary<short, PathContainer> _paths;
     private List<ArticleContainer> _articles;
     private CombatStatistics _diedPlayerCombatStatistics;

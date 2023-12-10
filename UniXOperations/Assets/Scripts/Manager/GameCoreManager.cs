@@ -10,7 +10,7 @@ public class GameCoreManager : MonoBehaviour
 {
     public GameDataContainer GameDataContainer { get; private set; }
 
-    private PlayerInputter2 _playerInputter;
+    private InputSystem _playerInputter;
     private GameCameraController _gameCameraController;
     private int _currentCharacterIndex;
 
@@ -24,13 +24,13 @@ public class GameCoreManager : MonoBehaviour
 
     public void Initialize(MissionInformation missionInformation)
     {
-        _playerInputter = new PlayerInputter2();
+        _playerInputter = new InputSystem();
 
-        if (PlayerPrefs.HasKey(_keyBindingKey))
+        if (PlayerPrefs.HasKey(ConstantsManager.KeyBindingKey))
         {
             try
             {
-                _playerInputter.LoadBindingOverridesFromJson(PlayerPrefs.GetString(_keyBindingKey));
+                _playerInputter.LoadBindingOverridesFromJson(PlayerPrefs.GetString(ConstantsManager.KeyBindingKey));
             }
             catch
             {
@@ -43,7 +43,7 @@ public class GameCoreManager : MonoBehaviour
         _missionInformation = missionInformation;
         GameDataContainer = new MissionDataLoader(GameObject.Find("Stage")).Load(missionInformation);
 
-        Material skybox = SkyboxLoader.GetSkybox(missionInformation?.Sky);
+        Material skybox = GetSkybox(missionInformation?.Sky);
         RenderSettings.skybox = skybox;
 
         MissionEventManager missionEventManager = GetComponent<MissionEventManager>();
@@ -76,9 +76,9 @@ public class GameCoreManager : MonoBehaviour
         if (_playerInputter.Player.MoveUp.IsPressed())
         {
             Debug.Log("MoveUp");
-            CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
+            Character character = GameDataContainer.Characters[_currentCharacterIndex];
             character.transform.position = new Vector3(character.transform.position.x, character.transform.position.y + 10 * Time.deltaTime, character.transform.position.z);
-            character.FPSMover.ResetMoveDeltaY();
+            character.ResetMoveDeltaY();
         }
     }
 
@@ -114,18 +114,38 @@ public class GameCoreManager : MonoBehaviour
         resultManager.Initialize(_missionInformation == null ? DebugMissionInformation : _missionInformation, _result);
     }
 
+    public Material GetSkybox(string index)
+    {
+        if (!string.IsNullOrEmpty(index) && ConstantsManager.SkyboxMapper.ContainsKey(index))
+        {
+            string assetName = ConstantsManager.SkyboxMapper[index];
+            if (assetName == null)
+            {
+                return null;
+            }
+            else
+            {
+                return AssetLoader.LoadAsset<Material>(assetName);
+            }
+        }
+        else
+        {
+            return AssetLoader.LoadAsset<Material>(ConstantsManager.SkyboxMapper["1"]);
+        }
+    }
+
     private void NextCharacter(InputAction.CallbackContext obj)
     {
         if (GameDataContainer == null) return;
         if (_gameCameraController == null) return;
 
-        CharacterState oldCharacter = GameDataContainer.Characters[_currentCharacterIndex];
+        Character oldCharacter = GameDataContainer.Characters[_currentCharacterIndex];
 
         oldCharacter.InputterContainer.LeavePlayer();
 
         _currentCharacterIndex = _currentCharacterIndex == (GameDataContainer.Characters.Count - 1) ? 0 : _currentCharacterIndex + 1;
 
-        CharacterState newCharacter = GameDataContainer.Characters[_currentCharacterIndex];
+        Character newCharacter = GameDataContainer.Characters[_currentCharacterIndex];
 
         newCharacter.InputterContainer.EnterPlayer(_playerInputter);
         _gameCameraController.ChangeCharacter(newCharacter);
@@ -137,13 +157,13 @@ public class GameCoreManager : MonoBehaviour
         if (GameDataContainer == null) return;
         if (_gameCameraController == null) return;
 
-        CharacterState oldCharacter = GameDataContainer.Characters[_currentCharacterIndex];
+        Character oldCharacter = GameDataContainer.Characters[_currentCharacterIndex];
 
         oldCharacter.InputterContainer.LeavePlayer();
 
         _currentCharacterIndex = _currentCharacterIndex == 0 ? GameDataContainer.Characters.Count - 1 : _currentCharacterIndex - 1;
 
-        CharacterState newCharacter = GameDataContainer.Characters[_currentCharacterIndex];
+        Character newCharacter = GameDataContainer.Characters[_currentCharacterIndex];
 
         newCharacter.InputterContainer.EnterPlayer(_playerInputter);
         _gameCameraController.ChangeCharacter(newCharacter);
@@ -152,28 +172,26 @@ public class GameCoreManager : MonoBehaviour
 
     private void NextWeapon(InputAction.CallbackContext obj)
     {
-        CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
+        Character character = GameDataContainer.Characters[_currentCharacterIndex];
         character.CurrentWeaponState.Kind = (short)(character.CurrentWeaponState.Kind == (JsonContainer.Instance.WeaponSpecArray.Length - 1) ? 0 : character.CurrentWeaponState.Kind + 1);
         character.ChangeWeapon(character.CurrentWeaponState);
     }
 
     private void PreWeapon(InputAction.CallbackContext obj)
     {
-        CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
+        Character character = GameDataContainer.Characters[_currentCharacterIndex];
         character.CurrentWeaponState.Kind = (short)(character.CurrentWeaponState.Kind == 0 ? JsonContainer.Instance.WeaponSpecArray.Length - 1 : character.CurrentWeaponState.Kind - 1);
         character.ChangeWeapon(character.CurrentWeaponState);
     }
 
     private void AddAmmo(InputAction.CallbackContext obj)
     {
-        CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
+        Character character = GameDataContainer.Characters[_currentCharacterIndex];
         character.CurrentWeaponState.Ammo += JsonContainer.Instance.WeaponSpecArray.First(w => w.Id == character.CurrentWeaponState.Kind).MagazineSize;
     }
 
-    private GameCameraController _gameCamera;
     private MissionInformation _missionInformation;
     private ResultInformation _result;
     private DateTime _startTime;
     private static readonly MissionInformation DebugMissionInformation = new MissionInformation() { Name = "Debug" };
-    private static readonly string _keyBindingKey = "KeyBinding";
 }

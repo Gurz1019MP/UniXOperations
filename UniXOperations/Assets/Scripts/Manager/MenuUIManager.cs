@@ -14,11 +14,11 @@ public class MenuUIManager : MonoBehaviour
     public RawImage DemoImage;
 
     private MissionInformation _selectedMissionInformation;
-    private PlayerInputter2 _playerInputter;
+    private InputSystem _playerInputter;
 
     private void Start()
     {
-        _playerInputter = new PlayerInputter2();
+        _playerInputter = new InputSystem();
 
         if (StageButton != null)
         {

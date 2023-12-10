@@ -13,11 +13,11 @@ public class ResultManager : MonoBehaviour
     public Text AccuracyRate;
     public Text KillHeadShot;
 
-    private PlayerInputter2 _playerInputter;
+    private InputSystem _playerInputter;
 
     private void Start()
     {
-        _playerInputter = new PlayerInputter2();
+        _playerInputter = new InputSystem();
         _playerInputter.Menu.Enter.performed += (_) => TransitionToMenu();
         _playerInputter.Menu.Exit.performed += (_) => TransitionToMenu();
         _playerInputter.Enable();
