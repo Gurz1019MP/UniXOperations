@@ -205,10 +205,7 @@ public class MissionDataLoader
         var aiInputter = new AIInputter(state, paths.SingleOrDefault(p => p.Path.Id == pointData.Data3), gameDataContainer, info.Spec.AISkill);
 
         // 各種コンポーネントの初期化
-        state.WeaponSystem.Initialize(state);
         state.InputterContainer.Initialize(aiInputter);
-        state.FPSMover.Initialize(state);
-        state.FPSPointOfViewMover.Initialize(state);
 
         return state;
     }

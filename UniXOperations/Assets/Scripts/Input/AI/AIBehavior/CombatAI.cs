@@ -61,7 +61,7 @@ public class CombatAI : AbstractAIBehavior, ICombatAI
             }
 
             if (CharacterState.CurrentWeaponState.Spec.Scope != WeaponSpec.ZoomModeEnum.None &&
-                !CharacterState.WeaponSystem.isZoom)
+                !CharacterState.IsZoom)
             {
                 Observable.FromCoroutine(_ => PushOne(v => Controller.Zoom = v)).Subscribe().AddTo(CharacterState);
             }
@@ -69,10 +69,10 @@ public class CombatAI : AbstractAIBehavior, ICombatAI
             if (CharacterState.CurrentWeaponState.Kind == 0 &&
                 CharacterState.DisableWeaponState.Kind == 0)
             {
-                CharacterState.ArmController.TargetAngle = -90;
-                if (CharacterState.ArmController._isLookAtMode)
+                CharacterState.ArmTargetAngle = -90;
+                if (CharacterState.IsArmLookAtMode)
                 {
-                    CharacterState.ArmController.TargetAngleMode();
+                    CharacterState.ArmTargetAngleMode();
                 }
             }
 
@@ -100,7 +100,7 @@ public class CombatAI : AbstractAIBehavior, ICombatAI
 
     public override void LeaveState()
     {
-        CharacterState.ArmController.TargetAngle = 90;
+        CharacterState.ArmTargetAngle = 90;
     }
 
     public void SetTargetEnemy(CharacterState enemy)

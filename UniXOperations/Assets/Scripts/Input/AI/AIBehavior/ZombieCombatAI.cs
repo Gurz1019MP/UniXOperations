@@ -45,12 +45,12 @@ public class ZombieCombatAI : AbstractAIBehavior, ICombatAI
 
     public override void EnterState()
     {
-        CharacterState.ArmController.TargetAngle = 0;
+        CharacterState.ArmTargetAngle = 0;
     }
 
     public override void LeaveState()
     {
-        CharacterState.ArmController.TargetAngle = 90;
+        CharacterState.ArmTargetAngle = 90;
     }
 
     public void SetTargetEnemy(CharacterState enemy)

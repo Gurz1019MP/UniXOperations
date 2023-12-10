@@ -359,10 +359,10 @@ public class PathAI : AbstractAIBehavior
             if (CharacterState.CurrentWeaponState.Kind == 0 &&
                 CharacterState.DisableWeaponState.Kind == 0)
             {
-                CharacterState.ArmController.TargetAngle = -90;
-                if (CharacterState.ArmController._isLookAtMode)
+                CharacterState.ArmTargetAngle = -90;
+                if (CharacterState.IsArmLookAtMode)
                 {
-                    CharacterState.ArmController.TargetAngleMode();
+                    CharacterState.ArmTargetAngleMode();
                 }
             }
 

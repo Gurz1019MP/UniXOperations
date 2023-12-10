@@ -25,7 +25,6 @@ public class UIUpdater : MonoBehaviour
     public GameObject WeaponPreviewContainer;
 
     private CharacterState CharacterState;
-    private WeaponSystem WeaponSystem;
     private GameObject WeaponPreviewModel;
     private IDisposable _onChangeZoomSubscriber;
     private IDisposable _onDamagedSubscriber;
@@ -38,7 +37,7 @@ public class UIUpdater : MonoBehaviour
 
     void Update()
     {
-        if (CharacterState != null && WeaponSystem != null)
+        if (CharacterState != null)
         {
             CurrentWeaponName.text = WeaponSpec.GetSpec((CharacterState.IsWeapon1 ? CharacterState.Weapon1 : CharacterState.Weapon2).Kind).WeaponName;
             DisableWeaponName.text = WeaponSpec.GetSpec((CharacterState.IsWeapon1 ? CharacterState.Weapon2 : CharacterState.Weapon1).Kind).WeaponName;
@@ -54,7 +53,7 @@ public class UIUpdater : MonoBehaviour
             StatePanel.color = HealthGradient.Evaluate(1 - Mathf.Clamp(CharacterState.HitPoint / 100, 0, 1));
 
             if (CharacterState.IsSwitching) { Overlay.text = "Switching..."; }
-            else if (WeaponSystem.IsReloading) { Overlay.text = "Reloading..."; }
+            else if (CharacterState.IsReloading) { Overlay.text = "Reloading..."; }
             else { Overlay.text = string.Empty; }
 
             var fpsCameraTransform = CharacterState.FpsCameraAnchor;
@@ -63,7 +62,7 @@ public class UIUpdater : MonoBehaviour
                 fpsCameraTransform.position + fpsCameraTransform.forward);
             var errorPoint = RectTransformUtility.WorldToScreenPoint(
                 GameCameraController.Camera,
-                fpsCameraTransform.position + Quaternion.AngleAxis(WeaponSystem.MaxShootingError, fpsCameraTransform.up) * fpsCameraTransform.forward);
+                fpsCameraTransform.position + Quaternion.AngleAxis(CharacterState.MaxShootingError, fpsCameraTransform.up) * fpsCameraTransform.forward);
             var reticle = (errorPoint - frontPoint).x + 25;
 
             ReticleLeft.localPosition = new Vector3(-reticle, 0, 0);
@@ -95,8 +94,6 @@ public class UIUpdater : MonoBehaviour
         if (CharacterState != null)
         {
             Debug.Log($"ChangeCharacter ID:{CharacterState.ID}");
-
-            WeaponSystem = CharacterState.GetComponent<WeaponSystem>();
 
             _onChangeZoomSubscriber = CharacterState.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom(sender.Item1, sender.Item2)).AddTo(CharacterState);
             _onDamagedSubscriber = CharacterState.OnDamaged.Subscribe(CharacterState_OnDamage).AddTo(CharacterState.gameObject);

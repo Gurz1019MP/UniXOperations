@@ -38,33 +38,7 @@ public static class ConstantsManager
 
     public static string PrefabPointVisual { get; } = "Assets/Prefabs/PointVisual.prefab";
 
-    //public static string PrefabCharacter { get; } = "Character";
-
-    //public static string PrefabWeaponPickup { get; } = "WeaponPickup";
-
-    //public static string PrefabArticle { get; } = "Article";
-
-    //public static string PrefabPathContainer { get; } = "PathContainer";
-
-    //public static string PrefabEventContainer { get; } = "EventContainer";
-
-    //public static string PrefabBullet { get; } = "BulletPrefab";
-
-    //public static string PrefabGrenade { get; } = "GrenadePrefab";
-
-    //public static IEnumerable<string> BulletPrefabs = new string[]
-    //{
-    //    PrefabBullet,
-    //    PrefabGrenade,
-    //};
-
-    //public static string PrefabDiedCharacter { get; } = "DiedCharacter";
-
-    //public static string PrefabDiedCamera { get; } = "DiedCamera";
-
-    //public static string PrefabBrokenArticle { get; } = "BrokenArticle";
-
-    //public static string PrefabPointVisual { get; } = "PointVisual";
+    public static string PrefabMuzzleFlash { get; } = "Assets/Effect/MuzzleFlash.prefab";
 
     #endregion
 

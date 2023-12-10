@@ -78,7 +78,7 @@ public class GameCoreManager : MonoBehaviour
             Debug.Log("MoveUp");
             CharacterState character = GameDataContainer.Characters[_currentCharacterIndex];
             character.transform.position = new Vector3(character.transform.position.x, character.transform.position.y + 10 * Time.deltaTime, character.transform.position.z);
-            character.FPSMover.ResetMoveDeltaY();
+            character.ResetMoveDeltaY();
         }
     }
 
