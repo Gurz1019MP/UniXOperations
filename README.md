@@ -4,7 +4,7 @@
 
 ## 実行方法
 最新版のリリースは以下です。<br>
-https://github.com/Gurz1019MP/UniXOperations/releases/download/0.3/Win.zip
+https://github.com/Gurz1019MP/UniXOperations/releases/download/0.4/Win.zip
 
 このゲームは、XOperationsが内部的に使用していた、ミッションファイルを読み込んで動作します。<br>
 そのため、**動作にはXOperations本体が必要**です。
