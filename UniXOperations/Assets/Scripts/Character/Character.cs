@@ -752,7 +752,7 @@ public class Character : MonoBehaviour
         {
             var instance = Instantiate(
                 CharacterPrefabProvider.Instance.PrefabGrenade,
-                FpsCameraAnchor.position + FpsCameraAnchor.forward * CurrentWeaponState.Spec.BulletInstanceOffset,
+                FpsCameraAnchor.position + FpsCameraAnchor.forward * 0.5f,
                 FpsCameraAnchor.rotation * Quaternion.Euler(0, 0, Random.Range(0, 360)));
             var bullet = instance.GetComponent<IBullet>();
             bullet.Damage = CurrentWeaponState.Spec.FirePower;
@@ -785,7 +785,7 @@ public class Character : MonoBehaviour
 
                 var instance = Instantiate(
                     CharacterPrefabProvider.Instance.PrefabBullet,
-                    FpsCameraAnchor.position + FpsCameraAnchor.forward * CurrentWeaponState.Spec.BulletInstanceOffset,
+                    FpsCameraAnchor.position,
                     FpsCameraAnchor.rotation * Quaternion.Euler(0, 0, Random.Range(0, 360)) * Quaternion.Euler(shootingError, 0, 0));
                 var bullet = instance.GetComponent<IBullet>();
                 bullet.Damage = CurrentWeaponState.Spec.FirePower;
@@ -864,7 +864,7 @@ public class Character : MonoBehaviour
     {
         var instance = Instantiate(
             CharacterPrefabProvider.Instance.PrefabZombieAttack,
-            FpsCameraAnchor.position + FpsCameraAnchor.forward * CurrentWeaponState.Spec.BulletInstanceOffset,
+            FpsCameraAnchor.position,
             FpsCameraAnchor.rotation);
         var bullet = instance.GetComponent<IBullet>();
         bullet.Damage = 10;
