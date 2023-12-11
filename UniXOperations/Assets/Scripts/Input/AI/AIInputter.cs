@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Linq;
 using UnityEngine.Events;
 using System.Collections;
+using Newtonsoft.Json.Linq;
 
 public class AIInputter : InputterBase
 {
@@ -15,7 +16,7 @@ public class AIInputter : InputterBase
         _firstPath = firstPath;
         _gameDataContainer = gameDataContainer;
         _aISkill = AISkill.GetAISkill(aISkill);
-        _currentPath.Value = _firstPath;
+        _currentPath = _firstPath;
         _characterTransform = _character.transform;
         _headTransform = _character.FpsCameraAnchor;
         _isZombie = _aISkill.Id == -1;
@@ -24,57 +25,75 @@ public class AIInputter : InputterBase
         _character.OnClosed.Subscribe(DangerDetected).AddTo(_character.gameObject);
         _character.OnGunSound.Subscribe(DangerDetected).AddTo(_character.gameObject);
 
-        _stateMode.Pairwise((v1, v2) =>
-        {
-            LeaveState(v1);
-            EnterState(v2);
+        Observable.FromCoroutine(JumpChance).Subscribe().AddTo(_character);
+        Observable.FromCoroutine(DetectEnemy).Subscribe().AddTo(_character);
+        Observable.FromCoroutine(UpdateTargetPosition).Subscribe().AddTo(_character);
 
-            if (v2 == StateKind.Alert)
+        EnterState(StateMode);
+    }
+
+    #endregion
+
+    #region プロパティ
+
+    private StateKind _stateMode;
+    private StateKind StateMode
+    {
+        get { return _stateMode; }
+        set
+        {
+            if (_stateMode == value)
+                return;
+
+            LeaveState(_stateMode);
+            EnterState(value);
+
+            if (value == StateKind.Alert)
             {
                 _wasAlert = true;
             }
 
-            return v2;
-        }).Subscribe().AddTo(_character);
+            _stateMode = value;
+        }
+    }
 
-        _currentPath.Subscribe(p =>
+    private Character _targetEnemy;
+    private Character TargetEnemy
+    {
+        get { return _targetEnemy; }
+        set
         {
-            _isPriorityRunning = p != null && (p.Path is SinglePath singlePath) && singlePath.Kind == SinglePath.PathKind.PriorityRunning;
-        }).AddTo(_character);
+            if (_targetEnemy == value)
+                return;
 
-        _targetEnemy.Subscribe(e =>
-        {
             _targetDiedSubscriver?.Dispose();
             _targetDiedSubscriver = null;
 
-            if (e == null) return;
+            if (value == null) return;
 
-            _targetDiedSubscriver = e.OnDied.Subscribe(_ => BeginAlert(Vector3.zero)).AddTo(e);
-        });
+            _targetDiedSubscriver = value.OnDied.Subscribe(_ => BeginAlert(Vector3.zero)).AddTo(value);
 
-        Observable.FromCoroutine(JumpChance).Subscribe().AddTo(_character);
-        Observable.FromCoroutine(DetectEnemy).Subscribe().AddTo(_character);
-
-        EnterState(_stateMode.Value);
+            _targetEnemy = value;
+        }
     }
+
+    private bool IsPriorityRunning => _currentPath != null && (_currentPath.Path is SinglePath singlePath) && singlePath.Kind == SinglePath.PathKind.PriorityRunning;
 
     #endregion
 
     #region フィールド
 
-    public Character _character;
-    public PathContainer _firstPath;
-    public GameDataContainer _gameDataContainer;
-    public AISkill _aISkill;
-    public ReactiveProperty<StateKind> _stateMode = new ReactiveProperty<StateKind>(StateKind.Safe);
-    public ReactiveProperty<PathContainer> _currentPath = new ReactiveProperty<PathContainer>();
-    public ReactiveProperty<Character> _targetEnemy = new ReactiveProperty<Character>(null);
-    public bool _isPriorityRunning;
-    public float _movingAngle = 10f;
-    public float _movingDistance = 0.3f;
-    public float _trackingDistance = 1f;
-    public float _runningMovingAngleConstant = 2f;
-    public float _waitPathTimer = 5f;
+    private Character _character;
+    private PathContainer _firstPath;
+    private GameDataContainer _gameDataContainer;
+    private AISkill _aISkill;
+    private PathContainer _currentPath;
+    private Vector3 _targetPosition;
+    private float _movingAngle = 10f;
+    private float _movingDistance = 0.3f;
+    private float _trackingDistance = 1f;
+    private float _runningMovingAngleConstant = 2f;
+    private float _waitPathTimer = 5f;
     private Transform _characterTransform;
     private Transform _headTransform;
     private Vector3 _trackingPosition;
@@ -94,19 +113,19 @@ public class AIInputter : InputterBase
 
     protected override void InputUpdate()
     {
-        if (_stateMode.Value == StateKind.Safe)
+        if (StateMode == StateKind.Safe)
         {
-            if (_currentPath.Value != null)
+            if (_currentPath != null)
             {
-                if (_currentPath.Value.Path is SinglePath path)
+                if (_currentPath.Path is SinglePath path)
                 {
                     if (path.Kind == SinglePath.PathKind.Walking)
                     {
-                        Moving(_currentPath.Value.transform.position, false, false, ChangeNextPathContainer);
+                        Moving(_currentPath.transform.position, false, false, ChangeNextPathContainer);
                     }
                     else if (path.Kind == SinglePath.PathKind.Running)
                     {
-                        Moving(_currentPath.Value.transform.position, true, false, ChangeNextPathContainer);
+                        Moving(_currentPath.transform.position, true, false, ChangeNextPathContainer);
                     }
                     else if (path.Kind == SinglePath.PathKind.Waiting)
                     {
@@ -126,27 +145,27 @@ public class AIInputter : InputterBase
                     }
                     else if (path.Kind == SinglePath.PathKind.ThrowingGrenade)
                     {
-                        ThrowingGrenade(_currentPath.Value.transform.position);
+                        ThrowingGrenade(_currentPath.transform.position);
                     }
                     else if (path.Kind == SinglePath.PathKind.PriorityRunning)
                     {
-                        if (_targetEnemy.Value == null)
+                        if (TargetEnemy == null)
                         {
-                            Moving(_currentPath.Value.transform.position, true, false, ChangeNextPathContainer);
+                            Moving(_currentPath.transform.position, true, false, ChangeNextPathContainer);
                         }
                         else
                         {
-                            CombatAndMoving(_currentPath.Value.transform.position, ChangeNextPathContainer);
+                            CombatAndMoving(_currentPath.transform.position, ChangeNextPathContainer);
                         }
                     }
                 }
-                else if (_currentPath.Value.Path is RandomPath)
+                else if (_currentPath.Path is RandomPath)
                 {
                     ChangeNextPathContainer();
                 }
             }
         }
-        else if (_stateMode.Value == StateKind.Alert)
+        else if (StateMode == StateKind.Alert)
         {
             Stop();
             var angleYZ = Vector3.SignedAngle(_headTransform.forward, _characterTransform.forward, _headTransform.right);
@@ -161,9 +180,9 @@ public class AIInputter : InputterBase
                 Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_character);
             }
         }
-        else if (_stateMode.Value == StateKind.Combat)
+        else if (StateMode == StateKind.Combat)
         {
-            if (_targetEnemy.Value != null && _targetEnemy.Value.gameObject != null)
+            if (TargetEnemy != null && TargetEnemy.gameObject != null && _targetPosition != Vector3.zero)
             {
                 if (_isZombie)
                 {
@@ -342,14 +361,14 @@ public class AIInputter : InputterBase
                                (Mathf.Abs(c.Inputter.Horizontal) > 0 || Mathf.Abs(c.Inputter.Vertical) > 0);
                     });
 
-                if (_stateMode.Value == StateKind.Safe ||
-                    _stateMode.Value == StateKind.Alert)
+                if (StateMode == StateKind.Safe ||
+                    StateMode == StateKind.Alert)
                 {
                     // 安全時、または警戒時
                     // 敵を一人でも発見したら戦闘状態に移行
                     if (detectedEnemies.Any())
                     {
-                        _targetEnemy.Value = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
+                        TargetEnemy = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
 
                         // 警戒状態に移行するコルーチンを中止
                         if (_stateModeSubscriver != null)
@@ -358,23 +377,23 @@ public class AIInputter : InputterBase
                             _stateModeSubscriver = null;
                         }
 
-                        if (!_isPriorityRunning)
+                        if (!IsPriorityRunning)
                         {
-                            _stateMode.Value = StateKind.Combat;
+                            StateMode = StateKind.Combat;
                         }
                     }
-                    else if (runningEnemies.Any() && !_isPriorityRunning)
+                    else if (runningEnemies.Any() && !IsPriorityRunning)
                     {
                         BeginAlert(runningEnemies.First().transform.position - _characterTransform.position);
                     }
                     else
                     {
-                        _targetEnemy.Value = null;
+                        TargetEnemy = null;
                     }
                 }
-                else if (_stateMode.Value == StateKind.Combat)
+                else if (StateMode == StateKind.Combat)
                 {
-                    if (detectedEnemies.Contains(_targetEnemy.Value))
+                    if (detectedEnemies.Contains(TargetEnemy))
                     {
                         // 検出された敵にターゲットが含まれる
                         // 警戒状態に移行するコルーチンを中止
@@ -390,7 +409,7 @@ public class AIInputter : InputterBase
                         if (detectedEnemies.Any())
                         {
                             // 他の敵がいる場合はターゲットを直ちに変更
-                            _targetEnemy.Value = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
+                            TargetEnemy = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
                         }
                         else
                         {
@@ -405,6 +424,27 @@ public class AIInputter : InputterBase
         }
     }
 
+    private IEnumerator UpdateTargetPosition()
+    {
+        while(true)
+        {
+            if (TargetEnemy == null)
+            {
+                _targetPosition = Vector3.zero;
+            }
+            else
+            {
+                float errorScale = (TargetEnemy.transform.position - _characterTransform.position).magnitude / _aISkill.DetectionRange;
+                float error = _aISkill.ShootError * errorScale;
+                _targetPosition = TargetEnemy.transform.position +
+                                  TargetEnemy.transform.up * _aISkill.AimHeightOffset +
+                                  new Vector3(Random.Range(-error, error), Random.Range(-error, error), Random.Range(-error, error));
+            }
+
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
     private IEnumerator CombatToAlert()
     {
         yield return new WaitForSeconds(_aISkill.MissDelay * Random.Range(0.5f, 1.5f));
@@ -416,10 +456,10 @@ public class AIInputter : InputterBase
 
     private void BeginAlert(Vector3 direction)
     {
-        _targetEnemy.Value = null;
+        TargetEnemy = null;
         _attackedDirection = direction;
 
-        _stateMode.Value = StateKind.Alert;
+        StateMode = StateKind.Alert;
         _stateModeSubscriver = Observable.FromCoroutine(AlertToSafe).Subscribe().AddTo(_character);
     }
 
@@ -429,14 +469,14 @@ public class AIInputter : InputterBase
 
         if (_stateModeSubscriver == null) yield break;
 
-        _stateMode.Value = StateKind.Safe;
+        StateMode = StateKind.Safe;
         _stateModeSubscriver.Dispose();
         _stateModeSubscriver = null;
     }
 
     private void DangerDetected(Vector3 direction)
     {
-        if (_stateMode.Value == StateKind.Safe && !_isPriorityRunning)
+        if (StateMode == StateKind.Safe && !IsPriorityRunning)
         {
             BeginAlert(direction);
         }
@@ -483,11 +523,11 @@ public class AIInputter : InputterBase
         {
             if (isTimeWaiting)
             {
-                Moving(_currentPath.Value.transform.position, false, false, () => BeginChangeNextPathContainerWaitTimeAndLookDirection());
+                Moving(_currentPath.transform.position, false, false, () => BeginChangeNextPathContainerWaitTimeAndLookDirection());
             }
             else
             {
-                Moving(_currentPath.Value.transform.position, false, false, () => BeginWaitLookAround(isAlertWaiting));
+                Moving(_currentPath.transform.position, false, false, () => BeginWaitLookAround(isAlertWaiting));
             }
         }
         else
@@ -551,9 +591,9 @@ public class AIInputter : InputterBase
         EndWaitLook();
         _wasAlert = false;
 
-        var nextPath = _currentPath.Value.Path.GetNextPathContainer();
+        var nextPath = _currentPath.Path.GetNextPathContainer();
 
-        _currentPath.Value = nextPath;
+        _currentPath = nextPath;
     }
 
     private void BeginChangeNextPathContainerWaitTimeAndLookDirection()
@@ -617,7 +657,7 @@ public class AIInputter : InputterBase
     {
         while (true)
         {
-            var angleXZ = Vector3.SignedAngle(_characterTransform.forward, _currentPath.Value.transform.forward, _characterTransform.up);
+            var angleXZ = Vector3.SignedAngle(_characterTransform.forward, _currentPath.transform.forward, _characterTransform.up);
             MouseX = angleXZ * _aISkill.PropControlConstant;
             yield return null;
         }
@@ -625,10 +665,7 @@ public class AIInputter : InputterBase
 
     private void Shooting()
     {
-        var enemyDir = _targetEnemy.Value.transform.position + 
-                       _targetEnemy.Value.transform.up * _aISkill.AimHeightOffset - 
-                       _headTransform.position + 
-                       new Vector3(Random.Range(-_aISkill.ShootError, _aISkill.ShootError), Random.Range(-_aISkill.ShootError, _aISkill.ShootError), Random.Range(-_aISkill.ShootError, _aISkill.ShootError));         // 現在地から敵へのベクトル
+        var enemyDir = _targetPosition - _headTransform.position;                               // 現在地から敵へのベクトル
         var enemyDirXZPlane = Vector3.ProjectOnPlane(enemyDir, _headTransform.up);              // 上記ベクトルをXY平面に射影
         var enemyAngleXZ = Vector3.SignedAngle(_headTransform.forward, enemyDirXZPlane, _headTransform.up); // 今向いている方向との差を計算
         var enemyDirYZPlane = Vector3.ProjectOnPlane(enemyDir, _headTransform.right);
@@ -698,7 +735,7 @@ public class AIInputter : InputterBase
 
     private void CombatAndMoving(Vector3 targetPoint, UnityAction actionWhenReaching)
     {
-        if (_targetEnemy.Value != null && _targetEnemy.Value.gameObject != null)
+        if (TargetEnemy != null && TargetEnemy.gameObject != null && _targetPosition != Vector3.zero)
         {
             Combat();
 
