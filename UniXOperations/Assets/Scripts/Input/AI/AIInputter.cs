@@ -434,14 +434,15 @@ public class AIInputter : InputterBase
             }
             else
             {
-                float errorScale = (TargetEnemy.transform.position - _characterTransform.position).magnitude / _aISkill.DetectionRange;
-                float error = _aISkill.ShootError * errorScale;
+                float distanceScale = (TargetEnemy.transform.position - _characterTransform.position).magnitude / _aISkill.DetectionRange;
+                float error = _aISkill.ShootError * distanceScale;
                 _targetPosition = TargetEnemy.transform.position +
                                   TargetEnemy.transform.up * _aISkill.AimHeightOffset +
+                                  TargetEnemy.MoveDelta * distanceScale * 2;
                                   new Vector3(Random.Range(-error, error), Random.Range(-error, error), Random.Range(-error, error));
             }
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(Random.Range(0.1f, 1f));
         }
     }
 
