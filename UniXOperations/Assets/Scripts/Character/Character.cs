@@ -58,6 +58,8 @@ public class Character : MonoBehaviour
     [ReadOnly]
     public bool IsZoom;
 
+    [ReadOnly]
+    public Vector3 MoveDelta;
     #endregion
 
     #region privateフィールド
@@ -67,7 +69,6 @@ public class Character : MonoBehaviour
     private Material material;
     private Texture2D texture;
     private float _currentXAngle;
-    private Vector3 _moveDelta;
     private Animator _characterAnimator;
     private float _animatorFactor = 0.0f;
     private float _currentArmAngle;
@@ -257,8 +258,8 @@ public class Character : MonoBehaviour
         if (HitPoint <= 0) Kill();
         if (transform.position.y < KillHeight) HitPoint = 0;
 
-        _moveDelta.x = 0;
-        _moveDelta.z = 0;
+        MoveDelta.x = 0;
+        MoveDelta.z = 0;
 
         Vector3 rayPoint = transform.position + CharacterController.center + Vector3.up * (-CharacterController.height * 0.5F + CharacterController.radius);
         bool newIsGround = GetIsGround(rayPoint);
@@ -270,12 +271,12 @@ public class Character : MonoBehaviour
         if (!IsGround && newIsGround)
         {
             // 落下ダメージ
-            if (_moveDelta.y < -8)
+            if (MoveDelta.y < -8)
             {
-                TakeDamage((_moveDelta.y + 7) * -50, Vector3.zero);
+                TakeDamage((MoveDelta.y + 7) * -50, Vector3.zero);
             }
 
-            _moveDelta.y = 0;
+            MoveDelta.y = 0;
         }
 
         // 設置フラグを更新
@@ -286,17 +287,17 @@ public class Character : MonoBehaviour
         {
             if (!isSlide && Inputter.JumpEnter)
             {
-                _moveDelta.y = JumpPower;
+                MoveDelta.y = JumpPower;
                 IsGround = false;
             }
             else
             {
-                _moveDelta.y = -Gravity * Time.deltaTime;
+                MoveDelta.y = -Gravity * Time.deltaTime;
             }
         }
         else
         {
-            _moveDelta.y -= Gravity * Time.deltaTime;
+            MoveDelta.y -= Gravity * Time.deltaTime;
         }
 
         if (Inputter != null)
@@ -342,8 +343,8 @@ public class Character : MonoBehaviour
                 var inputDelta = Vector3.forward * WalkSpeed;
                 inputDelta = transform.TransformDirection(inputDelta);
 
-                _moveDelta.x += inputDelta.x;
-                _moveDelta.z += inputDelta.z;
+                MoveDelta.x += inputDelta.x;
+                MoveDelta.z += inputDelta.z;
 
                 _characterAnimator.SetBool(_animatorParamIsWalk, true);
                 _characterAnimator.SetBool(_animatorParamIsRun, false);
@@ -377,8 +378,8 @@ public class Character : MonoBehaviour
 
                 inputDelta = transform.TransformDirection(inputDelta);
 
-                _moveDelta.x += inputDelta.x;
-                _moveDelta.z += inputDelta.z;
+                MoveDelta.x += inputDelta.x;
+                MoveDelta.z += inputDelta.z;
             }
 
             _characterAnimator.SetFloat(_animatorParamFactor, _animatorFactor);
@@ -389,12 +390,12 @@ public class Character : MonoBehaviour
         {
             Vector3 reactionForce = slideHits[0].normal * SlidingForce;
 
-            _moveDelta.x += reactionForce.x;
-            _moveDelta.y -= reactionForce.y;
-            _moveDelta.z += reactionForce.z;
+            MoveDelta.x += reactionForce.x;
+            MoveDelta.y -= reactionForce.y;
+            MoveDelta.z += reactionForce.z;
         }
 
-        CharacterController.Move(_moveDelta * Time.deltaTime);
+        CharacterController.Move(MoveDelta * Time.deltaTime);
 
         // 視点移動
         Vector3 rotate = new Vector3(Inputter.MouseY, Inputter.MouseX, 0) * _mouseSensitivity * Time.deltaTime;
@@ -692,7 +693,7 @@ public class Character : MonoBehaviour
 
     public void ResetMoveDeltaY()
     {
-        _moveDelta.y = 0.0f;
+        MoveDelta.y = 0.0f;
     }
 
     private bool GetIsGround(Vector3 rayPoint)
