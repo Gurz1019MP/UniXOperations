@@ -6,15 +6,13 @@ using UnityEngine.EventSystems;
 using UniRx.Triggers;
 using UniRx;
 
-public class MenuMissionNodePresenter : MonoBehaviour , IPointerEnterHandler, IPointerExitHandler
+public class MenuMissionNodePresenter : MonoBehaviour
 {
     public Color DefaultTextColor;
     public Color MouseOnTextColor;
 
     [ReadOnly]
     public Text MissionName;
-    [ReadOnly]
-    public Button Button;
 
     private Subject<MissionInformation> _selectedSubject = new Subject<MissionInformation>();
     public System.IObservable<MissionInformation> Selected => _selectedSubject;
@@ -22,26 +20,32 @@ public class MenuMissionNodePresenter : MonoBehaviour , IPointerEnterHandler, IP
     public void SetMissionInformation(MissionInformation information)
     {
         MissionName = transform.GetDescendantsWithParent().Single(c => c.name.Equals("Text")).GetComponent<Text>();
-        Button = transform.GetDescendantsWithParent().Single(c => c.name.Equals("Button")).GetComponent<Button>();
         _information = information;
 
         MissionName.text = _information.DisplayName;
         MissionName.color = DefaultTextColor;
-        Button.onClick.AddListener(() =>
+    }
+
+    public void RaiseSelected()
+    {
+        _selectedSubject.OnNext(_information);
+        _selectedSubject.OnCompleted();
+    }
+
+    public void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Cursor"))
         {
-            _selectedSubject.OnNext(_information);
-            _selectedSubject.OnCompleted();
-        });
+            MissionName.color = MouseOnTextColor;
+        }
     }
 
-    public void OnPointerEnter(PointerEventData eventData)
+    public void OnTriggerExit2D(Collider2D collision)
     {
-        MissionName.color = MouseOnTextColor;
-    }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        MissionName.color = DefaultTextColor;
+        if (collision.gameObject.CompareTag("Cursor"))
+        {
+            MissionName.color = DefaultTextColor;
+        }
     }
 
     private MissionInformation _information;
