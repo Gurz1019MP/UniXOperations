@@ -1,10 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.EventSystems;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class MenuSwitchButton : MonoBehaviour, IPointerClickHandler
+public class MenuSwitchButton : MonoBehaviour
 {
     public GameObject DefaultMissionList;
     public GameObject AddonMissionList;
@@ -20,7 +17,7 @@ public class MenuSwitchButton : MonoBehaviour, IPointerClickHandler
         ListChange();
     }
 
-    public void OnPointerClick(PointerEventData eventData)
+    public void ChangeLists()
     {
         _isShowAddons = !_isShowAddons;
         ListChange();
