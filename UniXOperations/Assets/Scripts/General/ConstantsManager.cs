@@ -38,7 +38,7 @@ public static class ConstantsManager
 
     public static string PrefabPointVisual { get; } = "Assets/Prefabs/PointVisual.prefab";
 
-    public static string PrefabMuzzleFlash { get; } = "Assets/Effect/MuzzleFlash.prefab";
+    public static string PrefabMuzzleFlash { get; } = "Assets/Prefabs/MuzzleFlash.prefab";
 
     #endregion
 
