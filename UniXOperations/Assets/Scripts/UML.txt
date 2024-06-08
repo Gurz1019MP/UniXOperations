@@ -1,0 +1,443 @@
+@startuml
+skinparam groupInheritance 2
+
+package UnityEngine{
+	class MonoBehaviour
+	class GameObject
+	class Transform
+	class Mesh
+	class Material
+	class Texture2D
+	class TextMesh
+	class Animator
+	class AnimationCurve
+	class CharacterController
+	class Camera
+}
+
+package Article{
+	class Article
+	class ArticleContainer
+	class ArticleSpec
+	class BrokenArticle
+}
+
+package AssetLoader{
+	class AssetLoader
+}
+
+package Camera{
+	class DiedCameraController
+	class GameCameraController
+	class MenuCameraController
+	class WeaponPreviewCamera
+}
+
+package Character{
+	struct BulletHitInfo
+	class Character
+	class CharacterInfomation
+	class CharacterPrefabProvider
+	class CharacterSpec
+	class DiedCharacter
+}
+
+package General{
+	class BlockData
+	class Block
+	class Triangle
+	class bd1loader
+	class ConstantsManager
+	class Fallable
+	class GameDataContainer
+	class JsonContainer
+	class MissionDataLoader
+	class PointData
+	class pd1loader
+	class VisualChanger
+}
+
+package Input{
+	package AI{
+		class AIInputter
+		class AISkill
+		class Controller
+	}
+	package Path{
+		class AbstractPath
+		class PathContainer
+		class RandomPath
+		class SinglePath
+	}
+	class CharacterInputterContainer
+	class HardwareMouseInputter
+	class InputterBase
+	class KeyBindSettingNodeItem
+	class PlayerInputter
+}
+
+package Manager{
+	class AnimationEvent
+	class BriefingManager
+	class GameCoreManager
+	class MenuManager
+	class MenuMissionNodePresenter
+	class MenuSwitchButton
+	class MenuUIManager
+	class PointVisualizer
+	class ResultInformation
+	class ResultManager
+	class SettingsManager
+	class TitleManager
+	class UIUpdater
+	class UnityEventContainer
+}
+
+package Mission{
+	class AddonMissionInformationLoader
+	class DefaultMissionInformation
+	class MissionInformation
+}
+
+package Utilities{
+	class ReadOnly
+	class TransformExtension
+}
+
+package Weapon{
+	class Bullet
+	class Cartridge
+	class CombatStatistics
+	class Grenade
+	class HandlingWeapon
+	class Hit
+	interface IBullet
+	class MuzzleFlash
+	class WeaponPickup
+	class WeaponPreview
+	class WeaponSpec
+	class WeaponState
+	class ZombieAttack
+}
+
+package Article{
+	ReadOnly <-- Article
+	ArticleSpec <-- Article
+
+	MonoBehaviour <|-- ArticleContainer
+	Article <-- ArticleContainer
+	PointData <-- ArticleContainer
+	Fallable <-- ArticleContainer
+	ArticleSpec <-- ArticleContainer
+	AssetLoader.AssetLoader <-- ArticleContainer
+	GameObject <-- ArticleContainer
+	ConstantsManager <-- ArticleContainer
+	Mesh <-- ArticleContainer
+	VisualChanger <-- ArticleContainer
+	Material <-- ArticleContainer
+	Texture2D <-- ArticleContainer
+	BrokenArticle <-- ArticleContainer
+
+	JsonContainer <-- ArticleSpec
+
+	MonoBehaviour <|-- BrokenArticle
+	Mesh <-- BrokenArticle
+	Material <-- BrokenArticle
+	Texture2D <-- BrokenArticle
+	VisualChanger <-- BrokenArticle
+}
+
+package Camera{
+	MonoBehaviour <|-- DiedCameraController
+	ReadOnly <-- DiedCameraController
+	ConstantsManager <-- DiedCameraController
+
+	MonoBehaviour <|-- GameCameraController
+	ReadOnly <-- GameCameraController
+	UnityEngine.Camera <-- GameCameraController
+	Transform <-- GameCameraController
+	Character.Character <-- GameCameraController
+	GameObject <-- GameCameraController
+	ConstantsManager <-- GameCameraController
+	WeaponSpec <-- GameCameraController
+
+	MonoBehaviour <|-- MenuCameraController
+	ReadOnly <-- MenuCameraController
+	Transform <-- MenuCameraController
+	Character.Character <-- MenuCameraController
+
+	MonoBehaviour <|-- WeaponPreviewCamera
+	GameObject <-- WeaponPreviewCamera
+}
+
+package Character{
+	MonoBehaviour <|-- Character
+	WeaponState <-- Character
+	TextMesh <-- Character
+	ReadOnly <-- Character
+	GameObject <-- Character
+	Mesh <-- Character
+	Material <-- Character
+	Texture2D <-- Character
+	Animator <-- Character
+	AnimationCurve <-- Character
+	CharacterInputterContainer <-- Character
+	CharacterController <-- Character
+	InputterBase <-- Character
+	Transform <-- Character
+	CombatStatistics <-- Character
+	WeaponSpec <-- Character
+	BulletHitInfo <-- Character
+	PointData <-- Character
+	CharacterInfomation <-- Character
+	AssetLoader.AssetLoader <-- Character
+	ConstantsManager <-- Character
+	VisualChanger <-- Character
+	CharacterPrefabProvider <-- Character
+	WeaponPickup <-- Character
+	HandlingWeapon <-- Character
+	MuzzleFlash <-- Character
+
+	CharacterSpec <-- CharacterInfomation
+
+	GameObject <-- CharacterPrefabProvider
+	AssetLoader.AssetLoader <-- CharacterPrefabProvider
+	ConstantsManager <-- CharacterPrefabProvider
+
+	JsonContainer <-- CharacterSpec
+
+	MonoBehaviour <|-- DiedCharacter
+	GameObject <-- DiedCharacter
+	Transform <-- DiedCharacter
+	Mesh <-- DiedCharacter
+	Material <-- DiedCharacter
+	Texture2D <-- DiedCharacter
+	ConstantsManager <-- DiedCharacter
+	VisualChanger <-- DiedCharacter
+}
+
+package General{
+	Block <-- BlockData
+	Mesh <-- BlockData
+	Material <-- BlockData
+	Triangle <-- BlockData
+	Texture2D <-- BlockData
+
+	BlockData <-- bd1loader
+	Block <-- bd1loader
+
+	MonoBehaviour <|-- Fallable
+	Transform <-- Fallable
+	ReadOnly <-- Fallable
+
+	Character.Character <-- GameDataContainer
+	ArticleContainer <-- GameDataContainer
+	MissionEventContainer <-- GameDataContainer
+	CombatStatistics <-- GameDataContainer
+	PathContainer <-- GameDataContainer
+	PlayerInputter <-- GameDataContainer
+
+	ArticleSpec <-- JsonContainer
+	WeaponSpec <-- JsonContainer
+	CharacterSpec <-- JsonContainer
+	AISkill <-- JsonContainer
+
+	GameObject <-- MissionDataLoader
+	MissionInformation <-- MissionDataLoader
+	DefaultMissionInformation <-- MissionDataLoader
+	GameDataContainer <-- MissionDataLoader
+	AssetLoader.AssetLoader <-- MissionDataLoader
+	GameObject <-- MissionDataLoader
+	ConstantsManager <-- MissionDataLoader
+
+	PointData <-- pd1loader
+
+	GameObject <-- VisualChanger
+	Mesh <-- VisualChanger
+	Material <-- VisualChanger
+	Texture2D <-- VisualChanger
+}
+
+package Input{
+	package AI{
+		InputterBase <|-- AIInputter
+		Character.Character <-- AIInputter
+		PathContainer <-- AIInputter
+		GameDataContainer <-- AIInputter
+		AISkill <-- AIInputter
+		SinglePath <-- AIInputter
+		Transform <-- AIInputter
+		RandomPath <-- AIInputter
+
+		JsonContainer <-- AISkill
+	}
+	package Path{
+		GameDataContainer <-- AbstractPath
+		PathContainer <-- AbstractPath
+
+		MonoBehaviour <|-- PathContainer
+		ReadOnly <-- PathContainer
+		AbstractPath <-- PathContainer
+
+		AbstractPath <|-- RandomPath
+		GameDataContainer <-- RandomPath
+		PathContainer <-- RandomPath
+
+		AbstractPath <|-- SinglePath
+		GameDataContainer <-- SinglePath
+		PathContainer <-- SinglePath
+	}
+
+	MonoBehaviour <|-- CharacterInputterContainer
+	PlayerInputter <-- CharacterInputterContainer
+	AIInputter <-- CharacterInputterContainer
+	InputterBase <-- CharacterInputterContainer
+
+	MonoBehaviour <|-- HardwareMouseInputter
+
+	GameObject <-- InputterBase
+
+	MonoBehaviour <|-- KeyBindSettingNodeItem
+
+	InputterBase <|-- PlayerInputter
+	GameObject <-- PlayerInputter
+	ConstantsManager <-- PlayerInputter
+}
+
+
+package Manager{
+	MonoBehaviour <|-- AnimationEvent
+	GameObject <-- AnimationEvent
+	GameCoreManager <-- AnimationEvent
+
+	MonoBehaviour <|-- BriefingManager
+	MissionInformation <-- BriefingManager
+	Texture2D <-- BriefingManager
+	GameCoreManager <-- BriefingManager
+
+	MonoBehaviour <|-- GameCoreManager
+	GameDataContainer <-- GameCoreManager
+	GameCameraController <-- GameCoreManager
+	MissionInformation <-- GameCoreManager
+	ConstantsManager <-- GameCoreManager
+	MissionDataLoader <-- GameCoreManager
+	GameObject <-- GameCoreManager
+	Material <-- GameCoreManager
+	MissionEventManager <-- GameCoreManager
+	Character.Character <-- GameCoreManager
+	ResultInformation <-- GameCoreManager
+	ResultManager <-- GameCoreManager
+	AssetLoader.AssetLoader <-- GameCoreManager
+
+	MonoBehaviour <|-- MenuManager
+	MenuCameraController <-- MenuManager
+	MissionDataLoader <-- MenuManager
+	GameObject <-- MenuManager
+
+	MonoBehaviour <|-- MenuMissionNodePresenter
+	ReadOnly <-- MenuMissionNodePresenter
+	MissionInformation <-- MenuMissionNodePresenter
+
+	MonoBehaviour <|-- MenuSwitchButton
+	GameObject <-- MenuSwitchButton
+
+	MonoBehaviour <|-- MenuUIManager
+	GameObject <-- MenuUIManager
+	MissionInformation <-- MenuUIManager
+	MissionDataLoader <-- MenuUIManager
+	DefaultMissionInformation <-- MenuUIManager
+	MenuMissionNodePresenter <-- MenuUIManager
+	AddonMissionInformationLoader <-- MenuUIManager
+	BriefingManager <-- MenuUIManager
+
+	MonoBehaviour <|-- PointVisualizer
+	GameObject <-- PointVisualizer
+	UnityEngine.Camera <-- PointVisualizer
+	PointData <-- PointVisualizer
+
+	CombatStatistics <-- ResultInformation
+
+	MonoBehaviour <|-- ResultManager
+	GameObject <-- ResultManager
+	MissionInformation <-- ResultManager
+	
+	MonoBehaviour <|-- SettingsManager
+	GameObject <-- SettingsManager
+	ConstantsManager <-- SettingsManager
+
+	MonoBehaviour <|-- TitleManager
+	MissionDataLoader <-- TitleManager
+	GameObject <-- TitleManager
+
+	MonoBehaviour <|-- UIUpdater
+	GameCameraController <-- UIUpdater
+	GameObject <-- UIUpdater
+	Character.Character <-- UIUpdater
+	WeaponSpec <-- UIUpdater
+	AssetLoader.AssetLoader <-- UIUpdater
+	ConstantsManager <-- UIUpdater
+
+	MonoBehaviour <|-- UnityEventContainer
+}
+
+package Mission{
+	MissionInformation <-- AddonMissionInformationLoader
+
+	MissionInformation <-- DefaultMissionInformation
+}
+
+package Utilities{
+	Transform <-- TransformExtension
+}
+
+package Weapon{
+	MonoBehaviour <|-- Bullet
+	IBullet <|-- Bullet
+	GameObject <-- Bullet
+	BulletHitInfo <-- Bullet
+	ConstantsManager <-- Bullet
+	Character.Character <-- Bullet
+	ArticleContainer <-- Bullet
+
+	MonoBehaviour <|-- Cartridge
+
+	BulletHitInfo <-- CombatStatistics
+
+	MonoBehaviour <|-- Grenade
+	IBullet <|-- Grenade
+	GameObject <-- Grenade
+	BulletHitInfo <-- Grenade
+
+	MonoBehaviour <|-- HandlingWeapon
+	GameObject <-- HandlingWeapon
+	WeaponSpec <-- HandlingWeapon
+	AssetLoader.AssetLoader <-- HandlingWeapon
+	ConstantsManager <-- HandlingWeapon
+
+	MonoBehaviour <|-- Hit
+
+	BulletHitInfo <-- IBullet
+
+	MonoBehaviour <|-- MuzzleFlash
+	GameObject <-- MuzzleFlash
+
+	MonoBehaviour <|-- WeaponPickup
+	WeaponState <-- WeaponPickup
+	GameObject <-- WeaponPickup
+	AssetLoader.AssetLoader <-- WeaponPickup
+	ConstantsManager <-- WeaponPickup
+
+	MonoBehaviour <|-- WeaponPreview
+
+	JsonContainer <-- WeaponSpec
+
+	WeaponSpec <-- WeaponState
+
+	MonoBehaviour <|-- ZombieAttack
+	IBullet <|-- ZombieAttack
+	BulletHitInfo <-- ZombieAttack
+	Character.Character <-- ZombieAttack
+	ArticleContainer <-- ZombieAttack
+}
+
+@enduml
