@@ -1,24 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
 public class BrokenArticle : MonoBehaviour
 {
-    public void Initialize(Mesh mesh, Material material, Texture2D texture, float jumpPower)
+    public void Initialize(VarialbeVisual visual, float jumpPower)
     {
-        SetVisual(mesh, material, texture);
+        SetVisual(visual);
         Jump(jumpPower);
         Destroy(gameObject, 3);
     }
 
-    private void SetVisual(Mesh mesh, Material material, Texture2D texture)
+    private void SetVisual(VarialbeVisual visual)
     {
-        // メッシュの読み込み
-        VisualChanger.ChangeMesh(gameObject, mesh);
-
-        // マテリアルの読み込み
-        VisualChanger.ChangeMaterial(gameObject, material, texture);
+        visual.ChangeMesh(gameObject);
+        visual.ChangeMaterial(gameObject);
     }
 
     private void Jump(float jumpPower)

@@ -92,12 +92,7 @@ public class GameCoreManager : MonoBehaviour
     public void TransitionToResult(bool result)
     {
         _playerInputter.Dispose();
-        _result = new ResultInformation()
-        {
-            IsSuccess = result,
-            Time = DateTime.Now - _startTime,
-            CombatStatistics = GameDataContainer.PlayerCombatStatistics,
-        };
+        _result = new ResultInformation(result, DateTime.Now - _startTime, GameDataContainer.PlayerCombatStatistics);
 
         Cursor.lockState = CursorLockMode.None;
         StopAllCoroutines();
@@ -111,7 +106,7 @@ public class GameCoreManager : MonoBehaviour
         SceneManager.sceneLoaded -= ResultLoaded;
 
         ResultManager resultManager = scene.GetRootGameObjects().Single(g => g.name.Equals("SceneManager")).GetComponent<ResultManager>();
-        resultManager.Initialize(_missionInformation,_result);
+        resultManager.Initialize(_missionInformation, _result);
     }
 
     public Material GetSkybox(string index)

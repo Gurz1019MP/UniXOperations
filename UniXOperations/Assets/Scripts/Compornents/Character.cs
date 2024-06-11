@@ -65,9 +65,7 @@ public class Character : MonoBehaviour
     #region privateフィールド
 
     private GameObject[] _arms;                         // 各持ち方用の腕オブジェクト
-    private Mesh upMesh;
-    private Material material;
-    private Texture2D texture;
+    private VarialbeVisual _visual;
     private float _currentXAngle;
     private Animator _characterAnimator;
     private float _animatorFactor = 0.0f;
@@ -204,16 +202,17 @@ public class Character : MonoBehaviour
             var up = GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsManager.TagUp)).Select(t => t.gameObject).Single();
             var leg = GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsManager.TagLeg)).Select(t => t.gameObject).Single();
 
+            _visual = new VarialbeVisual(CharacterSpec.GetMesh(info.GetKind()),
+                                         CharacterSpec.GetMaterial(),
+                                         CharacterSpec.GetTexture(info.GetKind()));
+
             // メッシュの読み込み
-            upMesh = CharacterSpec.GetMesh(info.GetKind());
-            VisualChanger.ChangeMesh(up, upMesh);
+            _visual.ChangeMesh(up);
 
             // マテリアルの読み込み
-            material = CharacterSpec.GetMaterial();
-            texture = CharacterSpec.GetTexture(info.GetKind());
             foreach (var target in arms.Concat(new GameObject[] { up, leg }))
             {
-                VisualChanger.ChangeMaterial(target, material, texture);
+                _visual.ChangeMaterial(target);
             }
         }
         catch
@@ -453,7 +452,7 @@ public class Character : MonoBehaviour
         }
         else
         {
-            if (IsTriggerPulled && !IsLoading && CurrentWeaponState.OutOfMagazine && !IsReloading && !IsSemiFired)
+            if (IsTriggerPulled && !IsLoading && !CurrentWeaponState.OutOfMagazine && !IsReloading && !IsSemiFired)
             {
                 Fire();
             }
@@ -475,7 +474,7 @@ public class Character : MonoBehaviour
 
         var instance = Instantiate(CharacterPrefabProvider.Instance.PrefabDiedCharacter, transform.position + Vector3.up * -0.558f, transform.rotation);
         var diedCharacter = instance.GetComponent<DiedCharacter>();
-        diedCharacter.Initialize(upMesh, material, texture, false);
+        diedCharacter.Initialize(_visual, false);
 
         _onDiedSubject.OnNext(this);
         _onDiedSubject.OnCompleted();

@@ -25,14 +25,9 @@ public class ArticleContainer : MonoBehaviour
         // モデルの読み込み
         if (!string.IsNullOrEmpty(_spec.ModelName) && !string.IsNullOrEmpty(_spec.Texture))
         {
-            // メッシュの読み込み
-            _mesh = AssetLoader.LoadAsset<Mesh>(ConstantsManager.GetResoucePathArticleModel(_spec.ModelName));
-            VisualChanger.ChangeMesh(gameObject, _mesh);
-
-            // マテリアルの読み込み
-            _material = AssetLoader.LoadAsset<Material>(ConstantsManager.GetResoucePathArticleModel(_spec.ModelName));
-            _texture = AssetLoader.LoadAsset<Texture2D>(ConstantsManager.GetResoucePathArticleTexture(_spec.Texture));
-            VisualChanger.ChangeMaterial(gameObject, _material, _texture);
+            _visual = new VarialbeVisual(_spec.Mesh, _spec.Material, _spec.Texture2D);
+            _visual.ChangeMesh(gameObject);
+            _visual.ChangeMaterial(gameObject);
         }
         else
         {
@@ -43,7 +38,7 @@ public class ArticleContainer : MonoBehaviour
         {
             var instance = Instantiate(_broken, transform.position, transform.rotation);
             var broken = instance.GetComponent<BrokenArticle>();
-            broken.Initialize(_mesh, _material, _texture, _spec.JumpPower);
+            broken.Initialize(_visual, _spec.JumpPower);
 
             _onDestroyedSubject.OnNext(this);
             _onDestroyedSubject.OnCompleted();
@@ -55,8 +50,6 @@ public class ArticleContainer : MonoBehaviour
     private Article _article;
     private ArticleSpec _spec;
     private GameObject _broken;
-    private Mesh _mesh;
-    private Material _material;
-    private Texture2D _texture;
+    private VarialbeVisual _visual;
     private Subject<ArticleContainer> _onDestroyedSubject = new Subject<ArticleContainer>();
 }

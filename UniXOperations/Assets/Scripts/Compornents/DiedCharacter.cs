@@ -15,10 +15,10 @@ public class DiedCharacter : MonoBehaviour
     private float TargetAngle;
     private float _currentArmAngle;
 
-    public void Initialize(Mesh mesh, Material material, Texture2D texture, bool isFrontFall)
+    public void Initialize(VarialbeVisual visual, bool isFrontFall)
     {
         fallDirection = isFrontFall ? 1 : -1;
-        SetCharacterVisual(mesh, material, texture);
+        SetCharacterVisual(visual);
         TargetAngle = Random.Range(0, 3) == 0 ? -90 : 90;
         _currentArmAngle = ArmBase.localEulerAngles.x;
         if (_currentArmAngle > 180)
@@ -53,7 +53,7 @@ public class DiedCharacter : MonoBehaviour
         }
     }
 
-    private void SetCharacterVisual(Mesh mesh, Material material, Texture2D texture)
+    private void SetCharacterVisual(VarialbeVisual visual)
     {
         try
         {
@@ -63,12 +63,12 @@ public class DiedCharacter : MonoBehaviour
             var leg = gameObject.GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsManager.TagLeg)).Select(t => t.gameObject).Single();
 
             // メッシュの読み込み
-            VisualChanger.ChangeMesh(up, mesh);
+            visual.ChangeMesh(up);
 
             // マテリアルの読み込み
             foreach(var target in new GameObject[] { arm, up, leg })
             {
-                VisualChanger.ChangeMaterial(target, material, texture);
+                visual.ChangeMaterial(target);
             }
         }
         catch

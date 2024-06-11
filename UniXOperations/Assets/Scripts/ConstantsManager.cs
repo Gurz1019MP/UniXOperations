@@ -63,20 +63,6 @@ public static class ConstantsManager
 
     #endregion
 
-    #region Model
-
-    public static string GetResoucePathCharacterModel(string name) => $"Assets/Models/Character/Built-in/{name}.fbx";
-
-    public static string GetResoucePathCharacterMaterial() => $"Assets/Models/Character/Built-in/Material.mat";
-
-    public static string GetResoucePathCharacterTexture(string name) => $"Assets/Models/Character/{name}.bmp";
-
-    public static string GetResoucePathArticleModel(string name) => $"Assets/Models/article/{name}.fbx";
-
-    public static string GetResoucePathArticleTexture(string name) => $"Assets/Models/article/{name}.bmp";
-
-    #endregion
-
     #region Audio
 
     public static string Fire1 { get; } = "Assets/Audio/fire1.wav";

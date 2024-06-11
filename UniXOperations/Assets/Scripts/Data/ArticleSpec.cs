@@ -39,6 +39,10 @@ public struct ArticleSpec : IEquatable<ArticleSpec>
 
     private bool _isEmpty;
 
+    public readonly Mesh Mesh => AssetLoader.LoadAsset<Mesh>(string.Format(GetResoucePathArticleModelFormat, ModelName));
+    public readonly Material Material => AssetLoader.LoadAsset<Material>(string.Format(GetResoucePathArticleModelFormat, ModelName));
+    public readonly Texture2D Texture2D => AssetLoader.LoadAsset<Texture2D>(string.Format(GetResoucePathArticleTextureFormat, Texture));
+
     public static ArticleSpec Empty { get; }
 
     public static ArticleSpec GetArticleSpec(short articleKind)
@@ -94,4 +98,8 @@ public struct ArticleSpec : IEquatable<ArticleSpec>
         new(10, "パソコン 起動中 暗", 60f, new Vector3(0, -0.161f, 0), 0.1f, "pc", "pc_d", false),
         new(11, "パイロン", 30f, new Vector3(0, -0.093f, 0), 0.5f, "cone", "cone", false),
     };
+
+    private static readonly string GetResoucePathArticleModelFormat = "Assets/Models/article/{0}.fbx";
+
+    private static readonly string GetResoucePathArticleTextureFormat = "Assets/Models/article/{0}.bmp";
 }
