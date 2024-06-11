@@ -187,10 +187,10 @@ public class Character : MonoBehaviour
         HitPoint = CharacterSpec.GetHitpoint(info.GetKind());
         Team = info.GetTeam();
         IsZombie = CharacterSpec.GetAISkill(info.GetKind()).IsZombie();
-        Weapon1 = WeaponState.EquipWeapon(CharacterSpec.GetWeapon1(info.GetKind()));
+        Weapon1 = WeaponState.EquipWeapon(WeaponSpec.GetWeaponSpec(CharacterSpec.GetWeapon1(info.GetKind())));
         if (equipWeapon2)
         {
-            Weapon2 = WeaponState.EquipWeapon(CharacterSpec.GetWeapon2(info.GetKind()));
+            Weapon2 = WeaponState.EquipWeapon(WeaponSpec.GetWeaponSpec(CharacterSpec.GetWeapon2(info.GetKind())));
         }
 
         // 初期武器を装備（WeaponSystemの初期化）
@@ -318,17 +318,17 @@ public class Character : MonoBehaviour
 
         if (Inputter != null)
         {
-            if (CurrentWeaponState.Kind != 0)
+            if (!CurrentWeaponState.Spec.IsNone)
             {
                 if (Inputter.DropWeaponEnter && !IsReloading && !IsSwitching)
                 {
                     DropWeapon(CurrentWeaponState);
                 }
-                else if (CurrentWeaponState.Ammo > 0 && Inputter.ReloadEnter && !IsReloading && !IsSwitching)
+                else if (CurrentWeaponState.HasAmmo && Inputter.ReloadEnter && !IsReloading && !IsSwitching)
                 {
                     Reload();
                 }
-                else if (CurrentWeaponState.CanChangeFireMode() && Inputter.FireModeEnter)
+                else if (CurrentWeaponState.Spec.CanChangeFireMode && Inputter.FireModeEnter)
                 {
                     CurrentWeaponState.ChangeFireMode();
                 }
@@ -337,7 +337,7 @@ public class Character : MonoBehaviour
                     IsTriggerPulled = Inputter.Fire;
                 }
 
-                if (CurrentWeaponState.HasScope() && Inputter.ZoomEnter)
+                if (CurrentWeaponState.Spec.HasScope && Inputter.ZoomEnter)
                 {
                     ChangeZoom();
                 }
@@ -453,7 +453,7 @@ public class Character : MonoBehaviour
         }
         else
         {
-            if (IsTriggerPulled && !IsLoading && CurrentWeaponState.Magazine > 0 && !IsReloading && !IsSemiFired)
+            if (IsTriggerPulled && !IsLoading && CurrentWeaponState.OutOfMagazine && !IsReloading && !IsSemiFired)
             {
                 Fire();
             }
@@ -463,7 +463,7 @@ public class Character : MonoBehaviour
                 IsSemiFired = false;
             }
 
-            AccuracyRatio = Mathf.Clamp(AccuracyRatio - 1f * Time.deltaTime, CurrentWeaponState.GetCorrectedMinAccuracyRatio(IsZoom), 1);
+            AccuracyRatio = Mathf.Clamp(AccuracyRatio - 1f * Time.deltaTime, CurrentWeaponState.Spec.GetCorrectedMinAccuracyRatio(IsZoom), 1);
         }
     }
 
@@ -506,7 +506,7 @@ public class Character : MonoBehaviour
     /// <param name="pickedWeapon">拾った武器</param>
     public bool PickupWeapon(WeaponState pickedWeapon)
     {
-        if (CurrentWeaponState.Kind == 0 && !IsZombie)
+        if (CurrentWeaponState.Spec.IsNone && !IsZombie)
         {
             ChangeWeapon(pickedWeapon);
             return true;
@@ -574,10 +574,10 @@ public class Character : MonoBehaviour
         IsLoading = false;
 
         // 射撃精度のカーブ
-        Accuracy = CurrentWeaponState.GetAccuracyAnimationCurve();
+        Accuracy = CurrentWeaponState.Spec.GetAccuracyAnimationCurve();
 
         // モデルの更新
-        string holdingName = $"Arm_{CurrentWeaponState.GetHolding()}";
+        string holdingName = $"Arm_{CurrentWeaponState.Spec.Holding}";
         foreach (var arm in _arms)
         {
             // 全腕共通処理
@@ -599,7 +599,7 @@ public class Character : MonoBehaviour
         }
 
         // 腕の更新
-        if (CurrentWeaponState.IsHoldingBody())
+        if (CurrentWeaponState.Spec.IsHoldingBody)
         {
             ArmTargetAngleMode();
             ArmTargetAngle = 90;
@@ -747,14 +747,14 @@ public class Character : MonoBehaviour
 
     private void Fire()
     {
-        if (CurrentWeaponState.GetIsGrenade())
+        if (CurrentWeaponState.Spec.IsGrenade)
         {
             var instance = Instantiate(
                 CharacterPrefabProvider.Instance.PrefabGrenade,
                 FpsCameraAnchor.position + FpsCameraAnchor.forward * 0.5f,
                 FpsCameraAnchor.rotation * Quaternion.Euler(0, 0, Random.Range(0, 360)));
             var bullet = instance.GetComponent<IBullet>();
-            CurrentWeaponState.SetBullet(bullet, Team.Empty);
+            CurrentWeaponState.Spec.SetBullet(bullet, Team.Empty);
             bullet.OnHit.Subscribe(t =>
             {
                 _onHitSubject.OnNext(t.Item2);
@@ -764,12 +764,12 @@ public class Character : MonoBehaviour
 
             StartCoroutine(Loading());
 
-            if (CurrentWeaponState.Ammo > 0)
+            if (CurrentWeaponState.HasAmmo)
             {
                 Reload();
             }
 
-            if (CurrentWeaponState.Ammo == 0 && CurrentWeaponState.Magazine == 0)
+            if (CurrentWeaponState.OutOfAmmo)
             {
                 CurrentWeaponState.LostWeapon();
                 UpdateWeaponVisual();
@@ -777,7 +777,7 @@ public class Character : MonoBehaviour
         }
         else
         {
-            for (short i = 0; i < CurrentWeaponState.GetBulletCount(); i++)
+            for (short i = 0; i < CurrentWeaponState.Spec.BulletCount; i++)
             {
                 float shootingError = GetShootingError();
 
@@ -786,7 +786,7 @@ public class Character : MonoBehaviour
                     FpsCameraAnchor.position,
                     FpsCameraAnchor.rotation * Quaternion.Euler(0, 0, Random.Range(0, 360)) * Quaternion.Euler(shootingError, 0, 0));
                 var bullet = instance.GetComponent<IBullet>();
-                CurrentWeaponState.SetBullet(bullet, Team);
+                CurrentWeaponState.Spec.SetBullet(bullet, Team);
                 bullet.OnHit.Subscribe(t =>
                 {
                     _onHitSubject.OnNext(t.Item2);
@@ -797,14 +797,14 @@ public class Character : MonoBehaviour
 
             if (IsZoom)
             {
-                CameraMuzzleJump(CurrentWeaponState.GetCameraMuzzleJump());
+                CameraMuzzleJump(CurrentWeaponState.Spec.GetCameraMuzzleJump);
             }
 
-            ArmMuzzleJump(CurrentWeaponState.GetMuzzleJump());
+            ArmMuzzleJump(CurrentWeaponState.Spec.MuzzleJump);
 
-            var mfInstance = Instantiate(CharacterPrefabProvider.Instance.PrefabMuzzleFlash, CurrentHand.TransformPoint(-CurrentWeaponState.GetHandlingPosition() + CurrentWeaponState.GetMuzzlePosition()), CurrentHand.rotation * Quaternion.Euler(0, 180, 0));
+            var mfInstance = Instantiate(CharacterPrefabProvider.Instance.PrefabMuzzleFlash, CurrentHand.TransformPoint(-CurrentWeaponState.Spec.HandlingPosition + CurrentWeaponState.Spec.MuzzlePosition), CurrentHand.rotation * Quaternion.Euler(0, 180, 0));
             var muzzleFlash = mfInstance.GetComponent<MuzzleFlash>();
-            muzzleFlash.FireAudio = CharacterPrefabProvider.Instance.FireAudioClips[$"Assets/Audio/{CurrentWeaponState.GetFireAudio()}.wav"];
+            muzzleFlash.FireAudio = CharacterPrefabProvider.Instance.FireAudioClips[$"Assets/Audio/{CurrentWeaponState.Spec.FireAudio}.wav"];
 
             Instantiate(CharacterPrefabProvider.Instance.PrefabCartridge, CurrentHand.position, CurrentHand.rotation);
 
@@ -816,7 +816,7 @@ public class Character : MonoBehaviour
 
             StartCoroutine(Loading());
 
-            if (!CurrentWeaponState.GetIsFullAuto())
+            if (!CurrentWeaponState.Spec.FullAuto)
             {
                 IsSemiFired = true;
             }
@@ -834,9 +834,9 @@ public class Character : MonoBehaviour
 
     private IEnumerator Loading()
     {
-        CurrentWeaponState = new WeaponState(CurrentWeaponState.Kind, CurrentWeaponState.Ammo, CurrentWeaponState.Magazine - 1);
+        CurrentWeaponState = CurrentWeaponState.Loading();
         IsLoading = true;
-        yield return CurrentWeaponState.WaitForFireInterval();
+        yield return CurrentWeaponState.Spec.WaitForFireInterval;
         IsLoading = false;
     }
 
@@ -848,7 +848,7 @@ public class Character : MonoBehaviour
     private IEnumerator Reloading()
     {
         IsReloading = true;
-        yield return CurrentWeaponState.WaitForReloadTime();
+        yield return CurrentWeaponState.Spec.WaitForReloadTime;
         CurrentWeaponState = CurrentWeaponState.Reload();
         IsReloading = false;
     }

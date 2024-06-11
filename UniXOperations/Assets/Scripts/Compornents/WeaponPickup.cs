@@ -42,9 +42,9 @@ public class WeaponPickup : MonoBehaviour
     {
         Weapon = weapon;
 
-        if (Weapon.CanGetResourceWeaponModel())
+        if (Weapon.Spec.CanGetResourceWeaponModel)
         {
-            GameObject model = AssetLoader.LoadAsset<GameObject>(Weapon.GetResourceWeaponModel());
+            GameObject model = AssetLoader.LoadAsset<GameObject>(Weapon.Spec.GetResourceWeaponModel);
             if (model == null)
             {
                 Debug.Log($"ピックアップに使用する武器モデルが見つかりませんでした");

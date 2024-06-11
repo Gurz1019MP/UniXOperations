@@ -184,13 +184,15 @@ public class MissionDataLoader
         if (isRandom)
         {
             short kind = Random.Range(0, 2) == 0 ? pointData.Data2 : pointData.Data3;
-            weapon = new WeaponState(kind, WeaponSpec.GetWeaponSpec(kind).MagazineSize * 2, WeaponSpec.GetWeaponSpec(kind).MagazineSize);
+            WeaponSpec spec = WeaponSpec.GetWeaponSpec(kind);
+            weapon = new WeaponState(spec, spec.MagazineSize * 2, spec.MagazineSize);
         }
         else
         {
-            weapon = new WeaponState(pointData.Data2, 
-                                     pointData.Data3 - WeaponSpec.GetWeaponSpec(pointData.Data2).MagazineSize, 
-                                     pointData.Data3 > WeaponSpec.GetWeaponSpec(pointData.Data2).MagazineSize ? WeaponSpec.GetWeaponSpec(pointData.Data2).MagazineSize : pointData.Data3);
+            WeaponSpec spec = WeaponSpec.GetWeaponSpec(pointData.Data2);
+            weapon = new WeaponState(spec, 
+                                     pointData.Data3 - spec.MagazineSize, 
+                                     pointData.Data3 > spec.MagazineSize ? spec.MagazineSize : pointData.Data3);
         }
 
         instance.GetComponent<WeaponPickup>().Initialize(weapon);

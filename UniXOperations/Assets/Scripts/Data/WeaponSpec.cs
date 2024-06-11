@@ -1,37 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Serialization;
 using UnityEngine;
-using UnityEngine.InputSystem.Interactions;
-using UnityEngine.TextCore.Text;
 
 [Serializable]
 public struct WeaponSpec : IEquatable<WeaponSpec>
 {
-    public WeaponSpec(short id,
-                      string weaponName,
-                      float firePower,
-                      float penetrationPower,
-                      float firingInterval,
-                      float bulletSpeed,
-                      int magazineSize,
-                      float reloadTime,
-                      float recoilAngle,
-                      float accuracyMin,
-                      float accuracyMax,
-                      bool fullAuto,
-                      ZoomModeEnum scope,
-                      HoldingMethod holding,
-                      string modelName,
-                      string fireAudio,
-                      float sound,
-                      short changeFireModeWeapon,
-                      short bulletCount,
-                      Vector3 handlingPosition,
-                      Vector3 muzzlePosition,
-                      bool isGrenade,
-                      float muzzleJump)
+    private WeaponSpec(short id,
+                       string weaponName,
+                       float firePower,
+                       float penetrationPower,
+                       float firingInterval,
+                       float bulletSpeed,
+                       int magazineSize,
+                       float reloadTime,
+                       float recoilAngle,
+                       float accuracyMin,
+                       float accuracyMax,
+                       bool fullAuto,
+                       ZoomModeEnum scope,
+                       HoldingMethod holding,
+                       string modelName,
+                       string fireAudio,
+                       float sound,
+                       short changeFireModeWeapon,
+                       short bulletCount,
+                       Vector3 handlingPosition,
+                       Vector3 muzzlePosition,
+                       bool isGrenade,
+                       float muzzleJump)
     {
         Id = id;
         WeaponName = weaponName;
@@ -82,19 +78,84 @@ public struct WeaponSpec : IEquatable<WeaponSpec>
     public bool IsGrenade;
     public float MuzzleJump;
 
-    public enum HoldingMethod
+    public readonly bool IsNone => this == None;
+
+    public readonly bool IsCase => this == weaponSpecs[15];
+
+    public readonly bool IsHoldingBody => Holding == HoldingMethod.Body;
+
+    public readonly bool CanGetResourceWeaponModel => !string.IsNullOrEmpty(ModelName) && ModelName != "null";
+
+    public readonly bool CanChangeFireMode => ChangeFireModeWeapon != 0;
+
+    public readonly bool HasScope => Scope != ZoomModeEnum.None;
+
+    public readonly float GetCameraMuzzleJump => FirePower * 0.1f;
+
+    public readonly WaitForSeconds WaitForFireInterval => new WaitForSeconds(FiringInterval);
+
+    public readonly WaitForSeconds WaitForReloadTime => new WaitForSeconds(ReloadTime);
+
+    public readonly string GetResourceWeaponModel => string.Format(GetResoucePathWeaponFormat, ModelName);
+
+    public static WeaponSpec None => weaponSpecs[0];
+
+    public static WeaponSpec GetWeaponSpec(short weaponKind)
     {
-        Body,
-        Rifle,
-        Pistol
+        try
+        {
+            return weaponSpecs.Single(s => s.Id == weaponKind);
+        }
+        catch
+        {
+            Debug.LogError($"WeaponSpecの読み込みで定義されていないIdを読み込みました(Id:{weaponKind})");
+            return None;
+        }
     }
 
-    public enum ZoomModeEnum
+    public readonly WeaponSpec NextWeapon()
     {
-        None,
-        Equal,
-        Low,
-        Detail
+        short nextId = (short)(Id == (weaponSpecs.Length - 1) ? 0 : Id + 1);
+        return GetWeaponSpec(nextId);
+    }
+
+    public readonly WeaponSpec PreWeapon()
+    {
+        short preId = (short)(Id == 0 ? weaponSpecs.Length - 1 : Id - 1);
+        return GetWeaponSpec(preId);
+    }
+
+    public readonly WeaponSpec ChangeFireMode()
+    {
+        return GetWeaponSpec(ChangeFireModeWeapon);
+    }
+
+    public readonly float GetCorrectedMinAccuracyRatio(bool isZoom)
+    {
+        float ratio = BulletCount > 1 ? 0.5f : 0;
+        if (Scope == ZoomModeEnum.Detail && !isZoom)
+        {
+            ratio = 1f;
+        }
+        return ratio;
+    }
+
+    public readonly AnimationCurve GetAccuracyAnimationCurve()
+    {
+        AnimationCurve curve = new AnimationCurve();
+        curve.AddKey(0, AccuracyMin);
+        curve.AddKey(1, AccuracyMax);
+
+        return curve;
+    }
+
+    public readonly void SetBullet(IBullet bullet, Team team)
+    {
+        bullet.Damage = FirePower;
+        bullet.Penetration = PenetrationPower;
+        bullet.Speed = BulletSpeed;
+        bullet.Team = team;
+        bullet.Sound = Sound;
     }
 
     #region IEquatable
@@ -128,18 +189,19 @@ public struct WeaponSpec : IEquatable<WeaponSpec>
                MuzzleJump == p.MuzzleJump;
     }
 
-    public override int GetHashCode() {
+    public override int GetHashCode()
+    {
         return (Id,
                 WeaponName,
                 FirePower,
-                PenetrationPower, 
-                FiringInterval, 
-                BulletSpeed, 
-                MagazineSize, 
-                ReloadTime, 
-                RecoilAngle, 
-                AccuracyMin, 
-                AccuracyMax, 
+                PenetrationPower,
+                FiringInterval,
+                BulletSpeed,
+                MagazineSize,
+                ReloadTime,
+                RecoilAngle,
+                AccuracyMin,
+                AccuracyMax,
                 FullAuto,
                 Scope,
                 Holding,
@@ -159,52 +221,6 @@ public struct WeaponSpec : IEquatable<WeaponSpec>
     public static bool operator !=(WeaponSpec lhs, WeaponSpec rhs) => !(lhs == rhs);
 
     #endregion
-
-    public static WeaponSpec GetWeaponSpec(short weaponKind)
-    {
-        try
-        {
-            return weaponSpecs.Single(s => s.Id == weaponKind);
-        }
-        catch
-        {
-            Debug.LogError($"WeaponSpecの読み込みで定義されていないIdを読み込みました(Id:{weaponKind})");
-            return weaponSpecs[0];
-        }
-    }
-
-    public static short NextWeaponId(short id)
-    {
-        short nextId = (short)(id == (weaponSpecs.Length - 1) ? 0 : id + 1);
-        return GetWeaponSpec(nextId).Id;
-    }
-
-    public static short PreWeaponId(short id)
-    {
-        short preId = (short)(id == 0 ? weaponSpecs.Length - 1 : id - 1);
-        return GetWeaponSpec(preId).Id;
-    }
-
-    public static int WeaponAmmo(short id)
-    {
-        return GetWeaponSpec(id).MagazineSize;
-    }
-
-    public static bool CanChangeFireMode(short kind)
-    {
-        return GetWeaponSpec(kind).ChangeFireModeWeapon != 0;
-    }
-
-    public static bool HasScope(short kind)
-    {
-        return GetWeaponSpec(kind).Scope != ZoomModeEnum.None;
-    }
-
-    public static string GetResourceWeaponModel(short kind)
-    {
-        WeaponSpec spec = GetWeaponSpec(kind);
-        return string.Format(GetResoucePathWeaponFormat, spec.ModelName);
-    }
 
     private static readonly WeaponSpec[] weaponSpecs = new WeaponSpec[]
     {
@@ -234,4 +250,19 @@ public struct WeaponSpec : IEquatable<WeaponSpec>
     };
 
     private static readonly string GetResoucePathWeaponFormat = "Assets/Models/Weapon/{0}/{0}.fbx";
+
+    public enum HoldingMethod
+    {
+        Body,
+        Rifle,
+        Pistol
+    }
+
+    public enum ZoomModeEnum
+    {
+        None,
+        Equal,
+        Low,
+        Detail
+    }
 }

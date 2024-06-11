@@ -175,7 +175,7 @@ public class GameCameraController : MonoBehaviour
     private void CharacterState_OnChangeZoom()
     {
         bool isZoom = Character.Value.IsZoom;
-        WeaponSpec.ZoomModeEnum zoomMode = WeaponSpec.GetWeaponSpec(Character.Value.CurrentWeaponState.Kind).Scope;
+        WeaponSpec.ZoomModeEnum zoomMode = Character.Value.CurrentWeaponState.Spec.Scope;
 
         if (isZoom)
         {

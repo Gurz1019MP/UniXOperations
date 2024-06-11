@@ -171,8 +171,8 @@ public class AIInputter : InputterBase
             MouseX = _rollValue * _rollSign;
             MouseY = _aISkill.GetCorrectionOperatingVolume(angleYZ);
 
-            if (_character.CurrentWeaponState.Kind == 0 &&
-                _character.DisableWeaponState.Kind != 0 &&
+            if (_character.CurrentWeaponState.Spec.IsNone &&
+                !_character.DisableWeaponState.Spec.IsNone &&
                 !_character.IsSwitching)
             {
                 Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_character);
@@ -555,7 +555,7 @@ public class AIInputter : InputterBase
     {
         Stop();
 
-        if (_character.CurrentWeaponState.Kind == 13)
+        if (_character.CurrentWeaponState.Spec.IsGrenade)
         {
             var enemyDir = targetPoint - _headTransform.position;         // 現在地から敵へのベクトル
             var enemyDirXZPlane = Vector3.ProjectOnPlane(enemyDir, _headTransform.up);              // 上記ベクトルをXY平面に射影
@@ -572,7 +572,7 @@ public class AIInputter : InputterBase
                 ChangeNextPathContainer();
             }
         }
-        else if (_character.DisableWeaponState.Kind == 13)
+        else if (_character.DisableWeaponState.Spec.IsGrenade)
         {
             if (!_character.IsSwitching)
             {
@@ -678,7 +678,7 @@ public class AIInputter : InputterBase
         {
             if (_fireSubscriver == null)
             {
-                if (_character.CurrentWeaponState.GetIsFullAuto())
+                if (_character.CurrentWeaponState.Spec.FullAuto)
                 {
                     _fireSubscriver = Observable.FromCoroutine(FireFull).Subscribe().AddTo(_character);
                 }
@@ -694,35 +694,35 @@ public class AIInputter : InputterBase
     {
         Shooting();
 
-        if (_character.CurrentWeaponState.Kind != 0 &&
-            _character.CurrentWeaponState.Magazine == 0)
+        if (!_character.CurrentWeaponState.Spec.IsNone &&
+            _character.CurrentWeaponState.OutOfMagazine)
         {
-            if (_character.CurrentWeaponState.Ammo == 0)
+            if (_character.CurrentWeaponState.OutOfAmmo)
             {
                 Observable.FromCoroutine(_ => PushOne(v => DropWeapon = v)).Subscribe().AddTo(_character);
             }
-            else if (_character.CurrentWeaponState.Ammo != 0 &&
+            else if (_character.CurrentWeaponState.HasAmmo &&
                      !_character.IsReloading)
             {
                 Observable.FromCoroutine(_ => PushOne(v => Reload = v)).Subscribe().AddTo(_character);
             }
         }
 
-        if (_character.CurrentWeaponState.Kind == 0 &&
-            _character.DisableWeaponState.Kind != 0 &&
+        if (_character.CurrentWeaponState.Spec.IsNone &&
+            !_character.DisableWeaponState.Spec.IsNone &&
             !_character.IsSwitching)
         {
             Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_character);
         }
 
-        if (_character.CurrentWeaponState.HasScope() &&
+        if (_character.CurrentWeaponState.Spec.HasScope &&
             !_character.IsZoom)
         {
             Observable.FromCoroutine(_ => PushOne(v => Zoom = v)).Subscribe().AddTo(_character);
         }
 
-        if (_character.CurrentWeaponState.Kind == 0 &&
-            _character.DisableWeaponState.Kind == 0)
+        if (_character.CurrentWeaponState.Spec.IsNone &&
+            _character.DisableWeaponState.Spec.IsNone)
         {
             _character.ArmTargetAngle = -90;
             if (_character.IsArmLookAtMode)

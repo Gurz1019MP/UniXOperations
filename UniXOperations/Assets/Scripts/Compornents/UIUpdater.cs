@@ -39,8 +39,8 @@ public class UIUpdater : MonoBehaviour
     {
         if (CharacterState != null)
         {
-            CurrentWeaponName.text = WeaponSpec.GetWeaponSpec((CharacterState.IsWeapon1 ? CharacterState.Weapon1 : CharacterState.Weapon2).Kind).WeaponName;
-            DisableWeaponName.text = WeaponSpec.GetWeaponSpec((CharacterState.IsWeapon1 ? CharacterState.Weapon2 : CharacterState.Weapon1).Kind).WeaponName;
+            CurrentWeaponName.text = (CharacterState.IsWeapon1 ? CharacterState.Weapon1 : CharacterState.Weapon2).Spec.WeaponName;
+            DisableWeaponName.text = (CharacterState.IsWeapon1 ? CharacterState.Weapon2 : CharacterState.Weapon1).Spec.WeaponName;
 
             Ammo.text = CharacterState.CurrentWeaponState.Ammo.ToString();
             MagazineAmmo.text = CharacterState.CurrentWeaponState.Magazine.ToString();
@@ -123,9 +123,9 @@ public class UIUpdater : MonoBehaviour
     {
         Destroy(WeaponPreviewModel);
 
-        if (!CharacterState.CurrentWeaponState.CanGetResourceWeaponModel()) return;
+        if (!CharacterState.CurrentWeaponState.Spec.CanGetResourceWeaponModel) return;
 
-        var model = AssetLoader.LoadAsset<GameObject>(CharacterState.CurrentWeaponState.GetResourceWeaponModel());
+        var model = AssetLoader.LoadAsset<GameObject>(CharacterState.CurrentWeaponState.Spec.GetResourceWeaponModel);
         if (model == null)
         {
             Debug.Log($"ピックアップに使用する武器モデルが見つかりませんでした");

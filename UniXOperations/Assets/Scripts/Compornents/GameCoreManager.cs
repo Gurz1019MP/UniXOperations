@@ -173,21 +173,21 @@ public class GameCoreManager : MonoBehaviour
     private void NextWeapon(InputAction.CallbackContext obj)
     {
         Character character = GameDataContainer.Characters[_currentCharacterIndex];
-        character.CurrentWeaponState.NextWeapon();
+        character.CurrentWeaponState = character.CurrentWeaponState.NextWeapon();
         character.ChangeWeapon(character.CurrentWeaponState);
     }
 
     private void PreWeapon(InputAction.CallbackContext obj)
     {
         Character character = GameDataContainer.Characters[_currentCharacterIndex];
-        character.CurrentWeaponState.PreWeapon();
+        character.CurrentWeaponState = character.CurrentWeaponState.PreWeapon();
         character.ChangeWeapon(character.CurrentWeaponState);
     }
 
     private void AddAmmo(InputAction.CallbackContext obj)
     {
         Character character = GameDataContainer.Characters[_currentCharacterIndex];
-        character.CurrentWeaponState.AddAmmo();
+        character.CurrentWeaponState = character.CurrentWeaponState.AddAmmo();
     }
 
     private MissionInformation _missionInformation;

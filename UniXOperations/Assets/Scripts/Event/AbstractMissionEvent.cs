@@ -55,7 +55,7 @@ public abstract class AbstractMissionEvent
             {
                 if (withCase)
                 {
-                    if (character.Weapon1.Kind == 15 || character.Weapon2.Kind == 15)
+                    if (character.Weapon1.Spec.IsCase || character.Weapon2.Spec.IsCase)
                     {
                         break;
                     }
