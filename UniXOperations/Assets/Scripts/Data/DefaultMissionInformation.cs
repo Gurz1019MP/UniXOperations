@@ -1,132 +1,116 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
-using System.IO;
-using B83.Image.BMP;
 
-class DefaultMissionInformation
+public struct DefaultMissionInformation
 {
-    public byte MapNumber { get; set; }
+    public DefaultMissionInformation(byte mapNumber,
+                                     string objective = "DEMO",
+                                     byte order = 1)
+    {
+        _mapNumber = mapNumber;
+        _objective = objective;
+        _order = order;
+    }
 
-    public string Objective { get; set; }
-
-    public byte Order { get; set; }
-
-    public static IEnumerable<MissionInformation> GetMissionInformation()
+    public static IEnumerable<MissionInformation> GetMissionInformations()
     {
         foreach (var defaultMission in _defaultMissions)
         {
-            string order = defaultMission.Order == 1 ? string.Empty : defaultMission.Order.ToString();
-            string mapPath = $"{Application.streamingAssetsPath}/XOps/data/map{defaultMission.MapNumber}";
-            string mifPath = $"{mapPath}/{defaultMission.Objective.ToLower()}{order}.txt";
+            string order = defaultMission._order == 1 ? string.Empty : defaultMission._order.ToString();
+            string mapPath = $"{Application.streamingAssetsPath}/XOps/data/map{defaultMission._mapNumber}";
+            string mifPath = $"{mapPath}/{defaultMission._objective.ToLower()}{order}.txt";
 
-            yield return new MissionInformation()
-            {
-                DisplayName = $"{_mapNameMapper[defaultMission.MapNumber]}_{defaultMission.Objective}{order}",
-                Name = $"{_mapNameMapper[defaultMission.MapNumber]} {_objectiveMapper[defaultMission.Objective]}{order}",
-                BlockPath = $"{mapPath}/temp.bd1",
-                PointPath = $"{mapPath}/{defaultMission.Objective.ToLower()}{order}.pd1",
-                MifPath = mifPath,
-            };
+            yield return MissionInformation.BuildMenuMissionInformation(
+                $"{_mapNameMapper[defaultMission._mapNumber]}_{defaultMission._objective}{order}",
+                $"{_mapNameMapper[defaultMission._mapNumber]} {_objectiveMapper[defaultMission._objective]}{order}",
+                $"{mapPath}/temp.bd1",
+                $"{mapPath}/{defaultMission._objective.ToLower()}{order}.pd1",
+                mifPath);
         }
     }
 
-    public static IEnumerable<MissionInformation> GetDemo()
+    public static MissionInformation GetDemo()
     {
-        foreach (var demo in _demos)
+        MissionInformation[] demoMissionInformations = _demos.Select(d =>
         {
-            string mapPath = $"{Application.streamingAssetsPath}/XOps/data/map{demo.MapNumber}";
-            yield return new MissionInformation()
-            {
-                BlockPath = $"{mapPath}/temp.bd1",
-                PointPath = $"{mapPath}/demo.pd1",
-            };
-        }
-    }
+            string mapPath = $"{Application.streamingAssetsPath}/XOps/data/map{d._mapNumber}";
+            return MissionInformation.BuildDemoMissionInformation($"{mapPath}/temp.bd1", $"{mapPath}/demo.pd1");
+        }).ToArray();
 
-    public static MissionInformation GetOpening()
-    {
-        string mapPath = $"{Application.streamingAssetsPath}/XOps/data/map10";
-        return new MissionInformation()
-        {
-            BlockPath = $"{mapPath}/temp.bd1",
-            PointPath = $"{mapPath}/op.pd1",
-        };
+        return demoMissionInformations[Random.Range(0, demoMissionInformations.Length)];
     }
 
     private static readonly DefaultMissionInformation[] _defaultMissions = new DefaultMissionInformation[]
     {
-        new DefaultMissionInformation(){ MapNumber = 0, Objective = "TR", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 5, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 1, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 2, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 4, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 7, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 9, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 6, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 13, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 14, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 8, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 5, Objective = "EXT", Order = 2 },
-        new DefaultMissionInformation(){ MapNumber = 12, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 8, Objective = "DEF", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 3, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 8, Objective = "DEF", Order = 2 },
-        new DefaultMissionInformation(){ MapNumber = 7, Objective = "KT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 14, Objective = "RE", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 16, Objective = "CAP", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 4, Objective = "DE", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 14, Objective = "CAP", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 3, Objective = "KT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 2, Objective = "RE", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 5, Objective = "DEF", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 12, Objective = "EXT", Order = 2 },
-        new DefaultMissionInformation(){ MapNumber = 16, Objective = "DEF", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 8, Objective = "KT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 10, Objective = "KT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 6, Objective = "KT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 7, Objective = "DEF", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 8, Objective = "KT", Order = 2 },
-        new DefaultMissionInformation(){ MapNumber = 15, Objective = "DEF", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 8, Objective = "CAP", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 10, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 12, Objective = "ESC", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 13, Objective = "CAP", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 7, Objective = "DEF", Order = 2 },
-        new DefaultMissionInformation(){ MapNumber = 14, Objective = "DE", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 8, Objective = "KT", Order = 3 },
-        new DefaultMissionInformation(){ MapNumber = 9, Objective = "EXT", Order = 2 },
-        new DefaultMissionInformation(){ MapNumber = 16, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 2, Objective = "DEF", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 1, Objective = "KT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 13, Objective = "ESC", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 10, Objective = "EXT", Order = 2 },
-        new DefaultMissionInformation(){ MapNumber = 4, Objective = "ESC", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 3, Objective = "DEF", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 15, Objective = "KT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 1, Objective = "DEF", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 15, Objective = "KT", Order = 2 },
-        new DefaultMissionInformation(){ MapNumber = 4, Objective = "CAP", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 12, Objective = "KT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 15, Objective = "RE", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 8, Objective = "KT", Order = 4 },
-        new DefaultMissionInformation(){ MapNumber = 5, Objective = "EXT", Order = 3 },
-        new DefaultMissionInformation(){ MapNumber = 11, Objective = "EXT", Order = 1 },
-        new DefaultMissionInformation(){ MapNumber = 11, Objective = "EXT", Order = 2 },
-        new DefaultMissionInformation(){ MapNumber = 11, Objective = "DE", Order = 1 },
+        new(0, "TR", 1),
+        new(5, "EXT", 1),
+        new(1, "EXT", 1),
+        new(2, "EXT", 1),
+        new(4, "EXT", 1),
+        new(7, "EXT", 1),
+        new(9, "EXT", 1),
+        new(6, "EXT", 1),
+        new(13, "EXT", 1),
+        new(14, "EXT", 1),
+        new(8, "EXT", 1),
+        new(5, "EXT", 2),
+        new(12, "EXT", 1),
+        new(8, "DEF", 1),
+        new(3, "EXT", 1),
+        new(8, "DEF", 2),
+        new(7, "KT", 1),
+        new(14, "RE", 1),
+        new(16, "CAP", 1),
+        new(4, "DE", 1),
+        new(14, "CAP", 1),
+        new(3, "KT", 1),
+        new(2, "RE", 1),
+        new(5, "DEF", 1),
+        new(12, "EXT", 2),
+        new(16, "DEF", 1),
+        new(8, "KT", 1),
+        new(10, "KT", 1),
+        new(6, "KT", 1),
+        new(7, "DEF", 1),
+        new(8, "KT", 2),
+        new(15, "DEF", 1),
+        new(8, "CAP", 1),
+        new(10, "EXT", 1),
+        new(12, "ESC", 1),
+        new(13, "CAP", 1),
+        new(7, "DEF", 2),
+        new(14, "DE", 1),
+        new(8, "KT", 3),
+        new(9, "EXT", 2),
+        new(16, "EXT", 1),
+        new(2, "DEF", 1),
+        new(1, "KT", 1),
+        new(13, "ESC", 1),
+        new(10, "EXT", 2),
+        new(4, "ESC", 1),
+        new(3, "DEF", 1),
+        new(15, "KT", 1),
+        new(1, "DEF", 1),
+        new(15, "KT", 2),
+        new(4, "CAP", 1),
+        new(12, "KT", 1),
+        new(15, "RE", 1),
+        new(8, "KT", 4),
+        new(5, "EXT", 3),
+        new(11, "EXT", 1),
+        new(11, "EXT", 2),
+        new(11, "DE", 1),
     };
 
     private static readonly DefaultMissionInformation[] _demos = new DefaultMissionInformation[]
     {
-        new DefaultMissionInformation(){ MapNumber = 2 },
-        new DefaultMissionInformation(){ MapNumber = 8 },
-        new DefaultMissionInformation(){ MapNumber = 7 },
-        new DefaultMissionInformation(){ MapNumber = 4 },
-        new DefaultMissionInformation(){ MapNumber = 5 },
-        new DefaultMissionInformation(){ MapNumber = 16 },
+        new(2),
+        new(8),
+        new(7),
+        new(4),
+        new(5),
+        new(16),
     };
 
     private static readonly Dictionary<byte, string> _mapNameMapper = new Dictionary<byte, string>()
@@ -161,4 +145,8 @@ class DefaultMissionInformation
         { "RE", "release" },
         { "TR", "training" },
     };
+
+    private readonly byte _mapNumber;
+    private readonly string _objective;
+    private readonly byte _order;
 }

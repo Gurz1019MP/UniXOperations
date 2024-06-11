@@ -38,7 +38,7 @@ public class MenuUIManager : MonoBehaviour
 
                 if (DefaultMissionContent != null)
                 {
-                    foreach (var mi in DefaultMissionInformation.GetMissionInformation())
+                    foreach (var mi in DefaultMissionInformation.GetMissionInformations())
                     {
                         var instance = Instantiate(StageButton, DefaultMissionContent.transform);
                         var presenter = instance.GetComponent<MenuMissionNodePresenter>();
@@ -53,7 +53,7 @@ public class MenuUIManager : MonoBehaviour
                 DemoImage.enabled = false;
             }
 
-            foreach (var mi in AddonMissionInformationLoader.GetMissionInformation())
+            foreach (var mi in MissionInformation.GetAddonMissionInformations())
             {
                 var instance = Instantiate(StageButton, AddonMissionContent.transform);
                 var presenter = instance.GetComponent<MenuMissionNodePresenter>();
@@ -114,7 +114,7 @@ public class MenuUIManager : MonoBehaviour
         SceneManager.sceneLoaded -= BriefingLoaded;
 
         BriefingManager briefingManager = scene.GetRootGameObjects().Single(g => g.name.Equals("SceneManager")).GetComponent<BriefingManager>();
-        briefingManager.Initialize(_selectedMissionInformation);
+        briefingManager.Initialize(_selectedMissionInformation.ReadMif());
     }
 
     private void ScrollRectColliderUpdate(ScrollRect scrollRect, Collider2D[] colliders)

@@ -12,23 +12,16 @@ public class MissionDataLoader
 
     public static bool ExistsXOps()
     {
-        MissionInformation mif = DefaultMissionInformation.GetOpening();
+        MissionInformation mif = MissionInformation.GetOpening();
         return System.IO.File.Exists(mif.BlockPath) && System.IO.File.Exists(mif.PointPath);
     }
 
-    public GameDataContainer Load(MissionInformation missionInformation = null)
+    public GameDataContainer Load(MissionInformation missionInformation)
     {
         //_stage = GameObject.Find("Stage");
         LoadResource();
 
-        if (missionInformation != null)
-        {
-            return Load(missionInformation.BlockPath, missionInformation.PointPath);
-        }
-        else
-        {
-            return Load(Application.streamingAssetsPath + "/XOps/data/map0/temp.bd1", Application.streamingAssetsPath + "/XOps/data/map0/tr.pd1");
-        }
+        return Load(missionInformation.BlockPath, missionInformation.PointPath);
     }
 
     public GameDataContainer LoadDemo()
@@ -36,17 +29,9 @@ public class MissionDataLoader
         //_stage = GameObject.Find("Stage");
         LoadResource();
 
-        var demos = DefaultMissionInformation.GetDemo().ToArray();
-        var demo = demos[Random.Range(0, demos.Length)];
+        MissionInformation demo = DefaultMissionInformation.GetDemo();
 
-        if (demo != null)
-        {
-            return Load(demo.BlockPath, demo.PointPath);
-        }
-        else
-        {
-            return Load(Application.streamingAssetsPath + "/XOps/data/map0/temp.bd1", Application.streamingAssetsPath + "/XOps/data/map0/tr.pd1");
-        }
+        return Load(demo.BlockPath, demo.PointPath);
     }
 
     private void LoadResource()
@@ -59,20 +44,6 @@ public class MissionDataLoader
         _path = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabPathContainer);
         _article = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabArticle);
         _missionEvent = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabEventContainer);
-
-        //_pointVisual = AssetBundleProvider.AssetBundle.LoadAsset<GameObject>(ConstantsManager.PrefabPointVisual);
-        //_character = AssetBundleProvider.AssetBundle.LoadAsset<GameObject>(ConstantsManager.PrefabCharacter);
-        //_weapon = AssetBundleProvider.AssetBundle.LoadAsset<GameObject>(ConstantsManager.PrefabWeaponPickup);
-        //_path = AssetBundleProvider.AssetBundle.LoadAsset<GameObject>(ConstantsManager.PrefabPathContainer);
-        //_article = AssetBundleProvider.AssetBundle.LoadAsset<GameObject>(ConstantsManager.PrefabArticle);
-        //_missionEvent = AssetBundleProvider.AssetBundle.LoadAsset<GameObject>(ConstantsManager.PrefabEventContainer);
-
-        //_pointVisual = Resources.Load<GameObject>(ConstantsManager.PrefabPointVisual);
-        //_character = Resources.Load<GameObject>(ConstantsManager.PrefabCharacter);
-        //_weapon = Resources.Load<GameObject>(ConstantsManager.PrefabWeaponPickup);
-        //_path = Resources.Load<GameObject>(ConstantsManager.PrefabPathContainer);
-        //_article = Resources.Load<GameObject>(ConstantsManager.PrefabArticle);
-        //_missionEvent = Resources.Load<GameObject>(ConstantsManager.PrefabEventContainer);
     }
 
     private GameDataContainer Load(string blockPath, string pointPath)
@@ -105,12 +76,12 @@ public class MissionDataLoader
         return gameDataContainer;
     }
 
-    private CharacterInfomation[] CreateCharacterInfomations(IEnumerable<PointData> pointDatas)
+    private CharacterInformations CreateCharacterInfomations(IEnumerable<PointData> pointDatas)
     {
-        return pointDatas
+        return new CharacterInformations(pointDatas
             .Where(p => p.Data1 == 4)
-            .Select(p => new CharacterInfomation() { Id = p.Data4, Spec = CharacterSpec.GetCharacterSpec(p.Data2), Team = p.Data3 })
-            .ToArray();
+            .Select(p => new CharacterInformation(p))
+            .ToArray());
     }
 
     private PathContainer[] CreatePaths(IEnumerable<PointData> pointDatas, GameDataContainer gameDataContainer)
@@ -139,7 +110,7 @@ public class MissionDataLoader
         return paths.ToArray();
     }
 
-    private Character[] CreateCharacters(IEnumerable<PointData> pointDatas, CharacterInfomation[] characterInfomations, PathContainer[] paths, GameDataContainer gameDataContainer)
+    private Character[] CreateCharacters(IEnumerable<PointData> pointDatas, CharacterInformations characterInfomations, PathContainer[] paths, GameDataContainer gameDataContainer)
     {
         List<Character> characters = new List<Character>();
 
@@ -188,21 +159,16 @@ public class MissionDataLoader
         return articles.ToArray();
     }
 
-    private Character PlaceCharacter(PointData pointData, CharacterInfomation[] characterInfomations, PathContainer[] paths, GameDataContainer gameDataContainer, bool equipWeapon2)
+    private Character PlaceCharacter(PointData pointData, CharacterInformations characterInfomations, PathContainer[] paths, GameDataContainer gameDataContainer, bool equipWeapon2)
     {
         GameObject character = Object.Instantiate(_character, pointData.Position * _stage.transform.localScale.x + Vector3.up * 0.6f, pointData.Rotation);
         Character state = character.GetComponent<Character>();
-        CharacterInfomation info = characterInfomations.SingleOrDefault(i => i.Id == pointData.Data2);
-
-        if (info == null)
-        {
-            info = characterInfomations.First();
-        }
+        CharacterInformation info = characterInfomations.Find(pointData.Data2);
 
         state.InitCharacterState(pointData, info, equipWeapon2);
 
         //AIInputterの生成
-        var aiInputter = new AIInputter(state, paths.SingleOrDefault(p => p.Path.Id == pointData.Data3), gameDataContainer, info.Spec.AISkill);
+        var aiInputter = new AIInputter(state, paths.SingleOrDefault(p => p.Path.Id == pointData.Data3), gameDataContainer, CharacterSpec.GetAISkill(info.GetKind()));
 
         // 各種コンポーネントの初期化
         state.InputterContainer.Initialize(aiInputter);
@@ -213,19 +179,18 @@ public class MissionDataLoader
     private void PlaceWeapon(PointData pointData, bool isRandom)
     {
         GameObject instance = Object.Instantiate(_weapon, pointData.Position * _stage.transform.localScale.x, pointData.Rotation * Quaternion.Euler(0, 180, -90));
-        WeaponState weapon = new WeaponState();
+        WeaponState weapon;
 
         if (isRandom)
         {
-            weapon.Kind = Random.Range(0, 2) == 0 ? pointData.Data2 : pointData.Data3;
-            weapon.Magazine = weapon.Spec.MagazineSize;
-            weapon.Ammo = weapon.Spec.MagazineSize * 2;
+            short kind = Random.Range(0, 2) == 0 ? pointData.Data2 : pointData.Data3;
+            weapon = new WeaponState(kind, WeaponSpec.GetWeaponSpec(kind).MagazineSize * 2, WeaponSpec.GetWeaponSpec(kind).MagazineSize);
         }
         else
         {
-            weapon.Kind = pointData.Data2;
-            weapon.Magazine = pointData.Data3 > weapon.Spec.MagazineSize ? weapon.Spec.MagazineSize : pointData.Data3;
-            weapon.Ammo = pointData.Data3 - weapon.Magazine;
+            weapon = new WeaponState(pointData.Data2, 
+                                     pointData.Data3 - WeaponSpec.GetWeaponSpec(pointData.Data2).MagazineSize, 
+                                     pointData.Data3 > WeaponSpec.GetWeaponSpec(pointData.Data2).MagazineSize ? WeaponSpec.GetWeaponSpec(pointData.Data2).MagazineSize : pointData.Data3);
         }
 
         instance.GetComponent<WeaponPickup>().Initialize(weapon);

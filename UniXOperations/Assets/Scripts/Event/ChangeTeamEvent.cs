@@ -15,7 +15,7 @@ public class ChangeTeamEvent : AbstractMissionEvent
         var characters = GameDataContainer.Characters.Where(c => c.ID == Data);
         foreach (var character in characters)
         {
-            character.Team = 0;
+            character.Team = new Team(0);
         }
 
         RaiseChangeEventChain();

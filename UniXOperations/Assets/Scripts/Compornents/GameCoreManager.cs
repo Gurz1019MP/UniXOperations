@@ -18,7 +18,7 @@ public class GameCoreManager : MonoBehaviour
     {
         if (GameDataContainer == null)
         {
-            Initialize(null);
+            Initialize(MissionInformation.Fallback);
         }
     }
 
@@ -43,7 +43,7 @@ public class GameCoreManager : MonoBehaviour
         _missionInformation = missionInformation;
         GameDataContainer = new MissionDataLoader(GameObject.Find("Stage")).Load(missionInformation);
 
-        Material skybox = GetSkybox(missionInformation?.Sky);
+        Material skybox = GetSkybox(missionInformation.Sky);
         RenderSettings.skybox = skybox;
 
         MissionEventManager missionEventManager = GetComponent<MissionEventManager>();
@@ -111,7 +111,7 @@ public class GameCoreManager : MonoBehaviour
         SceneManager.sceneLoaded -= ResultLoaded;
 
         ResultManager resultManager = scene.GetRootGameObjects().Single(g => g.name.Equals("SceneManager")).GetComponent<ResultManager>();
-        resultManager.Initialize(_missionInformation == null ? DebugMissionInformation : _missionInformation, _result);
+        resultManager.Initialize(_missionInformation,_result);
     }
 
     public Material GetSkybox(string index)
@@ -173,25 +173,24 @@ public class GameCoreManager : MonoBehaviour
     private void NextWeapon(InputAction.CallbackContext obj)
     {
         Character character = GameDataContainer.Characters[_currentCharacterIndex];
-        character.CurrentWeaponState.Kind = (short)(character.CurrentWeaponState.Kind == (JsonContainer.Instance.WeaponSpecArray.Length - 1) ? 0 : character.CurrentWeaponState.Kind + 1);
+        character.CurrentWeaponState.NextWeapon();
         character.ChangeWeapon(character.CurrentWeaponState);
     }
 
     private void PreWeapon(InputAction.CallbackContext obj)
     {
         Character character = GameDataContainer.Characters[_currentCharacterIndex];
-        character.CurrentWeaponState.Kind = (short)(character.CurrentWeaponState.Kind == 0 ? JsonContainer.Instance.WeaponSpecArray.Length - 1 : character.CurrentWeaponState.Kind - 1);
+        character.CurrentWeaponState.PreWeapon();
         character.ChangeWeapon(character.CurrentWeaponState);
     }
 
     private void AddAmmo(InputAction.CallbackContext obj)
     {
         Character character = GameDataContainer.Characters[_currentCharacterIndex];
-        character.CurrentWeaponState.Ammo += JsonContainer.Instance.WeaponSpecArray.First(w => w.Id == character.CurrentWeaponState.Kind).MagazineSize;
+        character.CurrentWeaponState.AddAmmo();
     }
 
     private MissionInformation _missionInformation;
     private ResultInformation _result;
     private DateTime _startTime;
-    private static readonly MissionInformation DebugMissionInformation = new MissionInformation() { Name = "Debug" };
 }

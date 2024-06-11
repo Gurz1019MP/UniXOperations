@@ -9,9 +9,9 @@ public class Character : MonoBehaviour
 {
     public int ID = -1;
     public float HitPoint = 100;
-    public short Team = -1;
-    public WeaponState Weapon1 = new WeaponState();
-    public WeaponState Weapon2 = new WeaponState();
+    public Team Team = Team.Empty;
+    public WeaponState Weapon1 = WeaponState.None;
+    public WeaponState Weapon2 = WeaponState.None;
     public float KillHeight;
     public TextMesh DebugText;
     public float WalkSpeed;        // 一般的な成人の歩行スピード
@@ -103,7 +103,24 @@ public class Character : MonoBehaviour
     public Transform CurrentHand { get; private set; }
 
 
-    public WeaponState CurrentWeaponState => IsWeapon1 ? Weapon1 : Weapon2;
+    public WeaponState CurrentWeaponState
+    {
+        get
+        {
+            return IsWeapon1 ? Weapon1 : Weapon2;
+        }
+        set
+        {
+            if (IsWeapon1)
+            {
+                Weapon1 = value;
+            }
+            else
+            {
+                Weapon2 = value;
+            }
+        }
+    }
 
     public WeaponState DisableWeaponState => IsWeapon1 ? Weapon2 : Weapon1;
 
@@ -131,7 +148,7 @@ public class Character : MonoBehaviour
         }
     }
 
-    public CombatStatistics CombatStatistics { get; set; }
+    public CombatStatistics CombatStatistics { get; private set; }
 
     #endregion
 
@@ -145,7 +162,7 @@ public class Character : MonoBehaviour
 
     public System.IObservable<Vector3> OnGunSound => _onGunSoundSubject;
 
-    public System.IObservable<System.Tuple<bool, WeaponSpec.ZoomModeEnum>> OnChangeZoom => _onChangeZoomSubject;
+    public System.IObservable<Unit> OnChangeZoom => _onChangeZoomSubject;
 
     public System.IObservable<Unit> OnWeaponVisualUpdated => _onWeaponVisualUpdated;
 
@@ -155,7 +172,7 @@ public class Character : MonoBehaviour
 
     #endregion
 
-    public void InitCharacterState(PointData pointData, CharacterInfomation info, bool equipWeapon2)
+    public void InitCharacterState(PointData pointData, CharacterInformation info, bool equipWeapon2)
     {
         // 初期化
         // コンポーネントの取得
@@ -167,20 +184,20 @@ public class Character : MonoBehaviour
 
         // パラメータの設定
         ID = pointData.Data4;
-        HitPoint = info.Spec.Hitpoint;
-        Team = info.Team;
-        IsZombie = info.Spec.IsZombie;
-        EquipWeapon(Weapon1, info.Spec.Weapon1);
+        HitPoint = CharacterSpec.GetHitpoint(info.GetKind());
+        Team = info.GetTeam();
+        IsZombie = CharacterSpec.GetAISkill(info.GetKind()).IsZombie();
+        Weapon1 = WeaponState.EquipWeapon(CharacterSpec.GetWeapon1(info.GetKind()));
         if (equipWeapon2)
         {
-            EquipWeapon(Weapon2, info.Spec.Weapon2);
+            Weapon2 = WeaponState.EquipWeapon(CharacterSpec.GetWeapon2(info.GetKind()));
         }
 
         // 初期武器を装備（WeaponSystemの初期化）
         UpdateWeaponVisual();
 
         // モデルの読み込み
-        if (!string.IsNullOrEmpty(info.Spec.UpperModel) && !string.IsNullOrEmpty(info.Spec.Texture))
+        try
         {
             // ビジュアル用オブジェクトを取得
             var arms = GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsManager.TagArmHolding)).Select(t => t.gameObject).ToArray();
@@ -188,21 +205,20 @@ public class Character : MonoBehaviour
             var leg = GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsManager.TagLeg)).Select(t => t.gameObject).Single();
 
             // メッシュの読み込み
-            upMesh = AssetLoader.LoadAsset<Mesh>(ConstantsManager.GetResoucePathCharacterModel(info.Spec.UpperModel));
+            upMesh = CharacterSpec.GetMesh(info.GetKind());
             VisualChanger.ChangeMesh(up, upMesh);
 
             // マテリアルの読み込み
-            material = AssetLoader.LoadAsset<Material>(ConstantsManager.GetResoucePathCharacterMaterial());
-            material.shader = Shader.Find("Unlit/Texture");
-            texture = AssetLoader.LoadAsset<Texture2D>(ConstantsManager.GetResoucePathCharacterTexture(info.Spec.Texture));
+            material = CharacterSpec.GetMaterial();
+            texture = CharacterSpec.GetTexture(info.GetKind());
             foreach (var target in arms.Concat(new GameObject[] { up, leg }))
             {
                 VisualChanger.ChangeMaterial(target, material, texture);
             }
         }
-        else
+        catch
         {
-            Debug.Log("人情報に上半身モデル情報が登録されていません");
+
         }
 
         _currentXAngle = FpsCameraAnchor.transform.localEulerAngles.x;
@@ -312,7 +328,7 @@ public class Character : MonoBehaviour
                 {
                     Reload();
                 }
-                else if (CurrentWeaponState.Spec.ChangeFireModeWeapon != 0 && Inputter.FireModeEnter)
+                else if (CurrentWeaponState.CanChangeFireMode() && Inputter.FireModeEnter)
                 {
                     CurrentWeaponState.ChangeFireMode();
                 }
@@ -321,7 +337,7 @@ public class Character : MonoBehaviour
                     IsTriggerPulled = Inputter.Fire;
                 }
 
-                if (CurrentWeaponState.Spec.Scope != WeaponSpec.ZoomModeEnum.None && Inputter.ZoomEnter)
+                if (CurrentWeaponState.HasScope() && Inputter.ZoomEnter)
                 {
                     ChangeZoom();
                 }
@@ -447,14 +463,7 @@ public class Character : MonoBehaviour
                 IsSemiFired = false;
             }
 
-            float ShotgunValue = CurrentWeaponState.Spec.BulletCount > 1 ? 0.5f : 0;
-            if (CurrentWeaponState.Spec.Scope == WeaponSpec.ZoomModeEnum.Detail && !IsZoom)
-            {
-                ShotgunValue = 1f;
-            }
-            MinAccuracyRatio = ShotgunValue;
-
-            AccuracyRatio = Mathf.Clamp(AccuracyRatio - 1f * Time.deltaTime, MinAccuracyRatio, 1);
+            AccuracyRatio = Mathf.Clamp(AccuracyRatio - 1f * Time.deltaTime, CurrentWeaponState.GetCorrectedMinAccuracyRatio(IsZoom), 1);
         }
     }
 
@@ -510,7 +519,7 @@ public class Character : MonoBehaviour
 
     public void ChangeWeapon(WeaponState pickedWeapon)
     {
-        CurrentWeaponState.ChangeWeapon(pickedWeapon);
+        CurrentWeaponState = pickedWeapon;
         UpdateWeaponVisual();
     }
 
@@ -545,14 +554,14 @@ public class Character : MonoBehaviour
         pickup.Initialize(weapon);
 
         // WeaponStateを変更
-        weapon.ChangeWeapon(WeaponState.None);
+        CurrentWeaponState = WeaponState.None;
         UpdateWeaponVisual();
     }
 
     private void ChangeZoom()
     {
         IsZoom = !IsZoom;
-        _onChangeZoomSubject.OnNext(new System.Tuple<bool, WeaponSpec.ZoomModeEnum>(IsZoom, CurrentWeaponState.Spec.Scope));
+        _onChangeZoomSubject.OnNext(Unit.Default);
     }
 
     /// <summary>
@@ -565,12 +574,10 @@ public class Character : MonoBehaviour
         IsLoading = false;
 
         // 射撃精度のカーブ
-        Accuracy = new AnimationCurve();
-        Accuracy.AddKey(0, CurrentWeaponState.Spec.AccuracyMin);
-        Accuracy.AddKey(1, CurrentWeaponState.Spec.AccuracyMax);
+        Accuracy = CurrentWeaponState.GetAccuracyAnimationCurve();
 
         // モデルの更新
-        string holdingName = $"Arm_{CurrentWeaponState.Spec.Holding}";
+        string holdingName = $"Arm_{CurrentWeaponState.GetHolding()}";
         foreach (var arm in _arms)
         {
             // 全腕共通処理
@@ -586,13 +593,13 @@ public class Character : MonoBehaviour
 
             if (active) // 可視化された腕の処理
             {
-                handlingWeapon.Initialize(CurrentWeaponState.Spec);
+                handlingWeapon.Initialize(CurrentWeaponState);
                 CurrentHand = hand.transform;
             }
         }
 
         // 腕の更新
-        if (CurrentWeaponState.Spec.Holding == WeaponSpec.HoldingMethod.Body)
+        if (CurrentWeaponState.IsHoldingBody())
         {
             ArmTargetAngleMode();
             ArmTargetAngle = 90;
@@ -603,15 +610,6 @@ public class Character : MonoBehaviour
         }
 
         _onWeaponVisualUpdated.OnNext(Unit.Default);
-    }
-
-    private void EquipWeapon(WeaponState weaponState, short weaponKind)
-    {
-        if (weaponKind == 0) return;
-
-        weaponState.Kind = weaponKind;
-        weaponState.Magazine = WeaponSpec.GetSpec(weaponKind).MagazineSize;
-        weaponState.Ammo = WeaponSpec.GetSpec(weaponKind).MagazineSize * 2;
     }
 
     public BulletHitInfo TakeDamage(float baseDamage, RaycastHit hit, Vector3 direction)
@@ -749,15 +747,14 @@ public class Character : MonoBehaviour
 
     private void Fire()
     {
-        if (CurrentWeaponState.Spec.IsGrenade)
+        if (CurrentWeaponState.GetIsGrenade())
         {
             var instance = Instantiate(
                 CharacterPrefabProvider.Instance.PrefabGrenade,
                 FpsCameraAnchor.position + FpsCameraAnchor.forward * 0.5f,
                 FpsCameraAnchor.rotation * Quaternion.Euler(0, 0, Random.Range(0, 360)));
             var bullet = instance.GetComponent<IBullet>();
-            bullet.Damage = CurrentWeaponState.Spec.FirePower;
-            bullet.Speed = CurrentWeaponState.Spec.BulletSpeed;
+            CurrentWeaponState.SetBullet(bullet, Team.Empty);
             bullet.OnHit.Subscribe(t =>
             {
                 _onHitSubject.OnNext(t.Item2);
@@ -780,7 +777,7 @@ public class Character : MonoBehaviour
         }
         else
         {
-            for (short i = 0; i < CurrentWeaponState.Spec.BulletCount; i++)
+            for (short i = 0; i < CurrentWeaponState.GetBulletCount(); i++)
             {
                 float shootingError = GetShootingError();
 
@@ -789,11 +786,7 @@ public class Character : MonoBehaviour
                     FpsCameraAnchor.position,
                     FpsCameraAnchor.rotation * Quaternion.Euler(0, 0, Random.Range(0, 360)) * Quaternion.Euler(shootingError, 0, 0));
                 var bullet = instance.GetComponent<IBullet>();
-                bullet.Damage = CurrentWeaponState.Spec.FirePower;
-                bullet.Penetration = CurrentWeaponState.Spec.PenetrationPower;
-                bullet.Speed = CurrentWeaponState.Spec.BulletSpeed;
-                bullet.Team = Team;
-                bullet.Sound = CurrentWeaponState.Spec.Sound;
+                CurrentWeaponState.SetBullet(bullet, Team);
                 bullet.OnHit.Subscribe(t =>
                 {
                     _onHitSubject.OnNext(t.Item2);
@@ -804,14 +797,14 @@ public class Character : MonoBehaviour
 
             if (IsZoom)
             {
-                CameraMuzzleJump(CurrentWeaponState.Spec.FirePower * 0.1f);
+                CameraMuzzleJump(CurrentWeaponState.GetCameraMuzzleJump());
             }
 
-            ArmMuzzleJump(CurrentWeaponState.Spec.MuzzleJump);
+            ArmMuzzleJump(CurrentWeaponState.GetMuzzleJump());
 
-            var mfInstance = Instantiate(CharacterPrefabProvider.Instance.PrefabMuzzleFlash, CurrentHand.TransformPoint(-CurrentWeaponState.Spec.HandlingPosition + CurrentWeaponState.Spec.MuzzlePosition), CurrentHand.rotation * Quaternion.Euler(0, 180, 0));
+            var mfInstance = Instantiate(CharacterPrefabProvider.Instance.PrefabMuzzleFlash, CurrentHand.TransformPoint(-CurrentWeaponState.GetHandlingPosition() + CurrentWeaponState.GetMuzzlePosition()), CurrentHand.rotation * Quaternion.Euler(0, 180, 0));
             var muzzleFlash = mfInstance.GetComponent<MuzzleFlash>();
-            muzzleFlash.FireAudio = CharacterPrefabProvider.Instance.FireAudioClips[$"Assets/Audio/{CurrentWeaponState.Spec.FireAudio}.wav"];
+            muzzleFlash.FireAudio = CharacterPrefabProvider.Instance.FireAudioClips[$"Assets/Audio/{CurrentWeaponState.GetFireAudio()}.wav"];
 
             Instantiate(CharacterPrefabProvider.Instance.PrefabCartridge, CurrentHand.position, CurrentHand.rotation);
 
@@ -823,7 +816,7 @@ public class Character : MonoBehaviour
 
             StartCoroutine(Loading());
 
-            if (!CurrentWeaponState.Spec.FullAuto)
+            if (!CurrentWeaponState.GetIsFullAuto())
             {
                 IsSemiFired = true;
             }
@@ -841,9 +834,9 @@ public class Character : MonoBehaviour
 
     private IEnumerator Loading()
     {
-        CurrentWeaponState.Magazine--;
+        CurrentWeaponState = new WeaponState(CurrentWeaponState.Kind, CurrentWeaponState.Ammo, CurrentWeaponState.Magazine - 1);
         IsLoading = true;
-        yield return new WaitForSeconds(CurrentWeaponState.Spec.FiringInterval);
+        yield return CurrentWeaponState.WaitForFireInterval();
         IsLoading = false;
     }
 
@@ -855,9 +848,8 @@ public class Character : MonoBehaviour
     private IEnumerator Reloading()
     {
         IsReloading = true;
-        yield return new WaitForSeconds(CurrentWeaponState.Spec.ReloadTime);
-        CurrentWeaponState.Magazine = CurrentWeaponState.Ammo > CurrentWeaponState.Spec.MagazineSize ? CurrentWeaponState.Spec.MagazineSize : CurrentWeaponState.Ammo;
-        CurrentWeaponState.Ammo -= CurrentWeaponState.Magazine;
+        yield return CurrentWeaponState.WaitForReloadTime();
+        CurrentWeaponState = CurrentWeaponState.Reload();
         IsReloading = false;
     }
 
@@ -898,7 +890,7 @@ public class Character : MonoBehaviour
     private Subject<Vector3> _onDamagedSubject = new Subject<Vector3>();
     private Subject<Vector3> _onClosedSubject = new Subject<Vector3>();
     private Subject<Vector3> _onGunSoundSubject = new Subject<Vector3>();
-    private Subject<System.Tuple<bool, WeaponSpec.ZoomModeEnum>> _onChangeZoomSubject = new Subject<System.Tuple<bool, WeaponSpec.ZoomModeEnum>>();
+    private Subject<Unit> _onChangeZoomSubject = new Subject<Unit>();
     private Subject<Unit> _onWeaponVisualUpdated = new Subject<Unit>();
     private Subject<Unit> _onFireSubject = new Subject<Unit>();
     private Subject<BulletHitInfo> _onHitSubject = new Subject<BulletHitInfo>();

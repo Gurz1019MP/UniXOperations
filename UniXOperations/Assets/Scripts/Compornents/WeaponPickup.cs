@@ -40,14 +40,14 @@ public class WeaponPickup : MonoBehaviour
     /// </summary>
     public void Initialize(WeaponState weapon)
     {
-        Weapon.ChangeWeapon(weapon);
+        Weapon = weapon;
 
-        if (!string.IsNullOrEmpty(Weapon.Spec.ModelName) && Weapon.Spec.ModelName != "null")
+        if (Weapon.CanGetResourceWeaponModel())
         {
-            GameObject model = AssetLoader.LoadAsset<GameObject>(ConstantsManager.GetResoucePathWeapon(Weapon.Spec.ModelName));
+            GameObject model = AssetLoader.LoadAsset<GameObject>(Weapon.GetResourceWeaponModel());
             if (model == null)
             {
-                Debug.Log($"ピックアップに使用する武器モデルが見つかりませんでした ModelName:{Weapon.Spec.ModelName}");
+                Debug.Log($"ピックアップに使用する武器モデルが見つかりませんでした");
             }
             else
             {

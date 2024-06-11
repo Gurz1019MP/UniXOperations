@@ -1,4 +1,4 @@
-﻿public struct BulletHitInfo
+﻿public readonly struct BulletHitInfo
 {
     public BulletHitInfo(HitPartEnum hitPart, bool isKill)
     {

@@ -11,7 +11,7 @@ public class Grenade : MonoBehaviour, IBullet
     public float Damage { get; set; }
     public float Penetration { get; set; }
     public float Speed { get; set; }
-    public short Team { get; set; }
+    public Team Team { get; set; } = Team.Empty;
     public float Sound { get; set; }
 
     public LayerMask HitMask;

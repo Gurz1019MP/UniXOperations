@@ -39,8 +39,8 @@ public class UIUpdater : MonoBehaviour
     {
         if (CharacterState != null)
         {
-            CurrentWeaponName.text = WeaponSpec.GetSpec((CharacterState.IsWeapon1 ? CharacterState.Weapon1 : CharacterState.Weapon2).Kind).WeaponName;
-            DisableWeaponName.text = WeaponSpec.GetSpec((CharacterState.IsWeapon1 ? CharacterState.Weapon2 : CharacterState.Weapon1).Kind).WeaponName;
+            CurrentWeaponName.text = WeaponSpec.GetWeaponSpec((CharacterState.IsWeapon1 ? CharacterState.Weapon1 : CharacterState.Weapon2).Kind).WeaponName;
+            DisableWeaponName.text = WeaponSpec.GetWeaponSpec((CharacterState.IsWeapon1 ? CharacterState.Weapon2 : CharacterState.Weapon1).Kind).WeaponName;
 
             Ammo.text = CharacterState.CurrentWeaponState.Ammo.ToString();
             MagazineAmmo.text = CharacterState.CurrentWeaponState.Magazine.ToString();
@@ -95,15 +95,17 @@ public class UIUpdater : MonoBehaviour
         {
             Debug.Log($"ChangeCharacter ID:{CharacterState.ID}");
 
-            _onChangeZoomSubscriber = CharacterState.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom(sender.Item1, sender.Item2)).AddTo(CharacterState);
+            _onChangeZoomSubscriber = CharacterState.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom()).AddTo(CharacterState);
             _onDamagedSubscriber = CharacterState.OnDamaged.Subscribe(CharacterState_OnDamage).AddTo(CharacterState.gameObject);
             _onWeaponVisualUpdatedSubscriber = CharacterState.OnWeaponVisualUpdated.Subscribe(CharacterState_OnWeaponVisualUpdated).AddTo(CharacterState.gameObject);
             CharacterState_OnWeaponVisualUpdated(Unit.Default);
         }
     }
 
-    private void CharacterState_OnChangeZoom(bool isZoom, WeaponSpec.ZoomModeEnum zoomMode)
+    private void CharacterState_OnChangeZoom()
     {
+        bool isZoom = CharacterState.IsZoom;
+
         NormalSight.SetActive(!isZoom);
         ScopeSight.SetActive(isZoom);
     }
@@ -121,13 +123,12 @@ public class UIUpdater : MonoBehaviour
     {
         Destroy(WeaponPreviewModel);
 
-        if (string.IsNullOrEmpty(CharacterState.CurrentWeaponState.Spec.ModelName)) return;
-        if (CharacterState.CurrentWeaponState.Spec.ModelName == "null") return;
+        if (!CharacterState.CurrentWeaponState.CanGetResourceWeaponModel()) return;
 
-        var model = AssetLoader.LoadAsset<GameObject>(ConstantsManager.GetResoucePathWeapon(CharacterState.CurrentWeaponState.Spec.ModelName));
+        var model = AssetLoader.LoadAsset<GameObject>(CharacterState.CurrentWeaponState.GetResourceWeaponModel());
         if (model == null)
         {
-            Debug.Log($"ピックアップに使用する武器モデルが見つかりませんでした({CharacterState.CurrentWeaponState.Spec.ModelName})");
+            Debug.Log($"ピックアップに使用する武器モデルが見つかりませんでした");
         }
         else
         {

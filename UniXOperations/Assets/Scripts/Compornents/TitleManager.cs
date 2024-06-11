@@ -9,7 +9,7 @@ public class TitleManager : MonoBehaviour
 
         if (MissionDataLoader.ExistsXOps())
         {
-            new MissionDataLoader(GameObject.Find("Stage")).Load(DefaultMissionInformation.GetOpening());
+            new MissionDataLoader(GameObject.Find("Stage")).Load(MissionInformation.GetOpening());
         }
         else
         {

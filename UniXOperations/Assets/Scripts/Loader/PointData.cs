@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PointData
@@ -44,7 +46,7 @@ public class PointData
             case 3:
                 return string.Format(_formatMapper[Data1], Data4, _pathKindMapper[Data2], Data3);
             case 4:
-                return string.Format(_formatMapper[Data1], Data4, _characterKindMapper[Data2], Data3);
+                return string.Format(_formatMapper[Data1], Data4, CharacterSpec.GetName(new CharacterKind(Data2)), Data3);
             case 5:
                 return string.Format(_formatMapper[Data1], Data4, _objectKindMapper[Data2], Data3);
             case 7:
@@ -106,53 +108,6 @@ public class PointData
         { 5, "時間待ち" },
         { 6, "手榴弾投げ" },
         { 7, "優先的な走り" },
-    };
-
-    private static Dictionary<sbyte, string> _characterKindMapper = new Dictionary<sbyte, string>()
-    {
-        { 0, "特殊 黒 A" },
-        { 1, "特殊 黒 B" },
-        { 2, "特殊 緑 A" },
-        { 3, "特殊 緑 B" },
-        { 4, "特殊 緑 C" },
-        { 5, "特殊 白 A" },
-        { 6, "特殊 白 B" },
-        { 7, "ハゲ" },
-        { 8, "特殊 紫" },
-        { 9, "特殊 青" },
-        { 10, "戦闘用ロボット" },
-        { 11, "スーツ 黒 SG" },
-        { 12, "スーツ 黒" },
-        { 13, "スーツ 灰" },
-        { 14, "警察官" },
-        { 15, "スーツ 茶" },
-        { 16, "シャツ男 1" },
-        { 17, "中東兵" },
-        { 18, "女" },
-        { 19, "金髪男" },
-        { 20, "市民 1" },
-        { 21, "市民 2" },
-        { 22, "シャツ男 1 SG" },
-        { 23, "金髪男 SG" },
-        { 24, "市民 1 SG" },
-        { 25, "市民 2 SG" },
-        { 26, "兵士 1 A" },
-        { 27, "兵士 1 B" },
-        { 28, "兵士 2" },
-        { 29, "ゾンビ 1" },
-        { 30, "ゾンビ 2" },
-        { 31, "ゾンビ 3" },
-        { 32, "ゾンビ 4" },
-        { 33, "スーツ 紺" },
-        { 34, "スーツ 紺 SG" },
-        { 35, "将軍" },
-        { 36, "スーツ 青" },
-        { 37, "スーツ 青 SG" },
-        { 38, "シャツ男 2 SG" },
-        { 39, "兵士 3" },
-        { 40, "兵士 3 SG" },
-        { 41, "ゲイツ" },
-        { 42, "ゲイツ SG" },
     };
 
     private static Dictionary<sbyte, string> _weaponKindMapper = new Dictionary<sbyte, string>()

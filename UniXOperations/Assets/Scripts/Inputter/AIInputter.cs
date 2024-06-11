@@ -9,17 +9,16 @@ public class AIInputter : InputterBase
 {
     #region .ctor
 
-    public AIInputter(Character characterState, PathContainer firstPath, GameDataContainer gameDataContainer, short aISkill) : base(characterState.gameObject)
+    public AIInputter(Character characterState, PathContainer firstPath, GameDataContainer gameDataContainer, AISkill aISkill) : base(characterState.gameObject)
     {
         // フィールドの初期化
         _character = characterState;
         _firstPath = firstPath;
         _gameDataContainer = gameDataContainer;
-        _aISkill = AISkill.GetAISkill(aISkill);
+        _aISkill = aISkill;
         _currentPath = _firstPath;
         _characterTransform = _character.transform;
         _headTransform = _character.FpsCameraAnchor;
-        _isZombie = _aISkill.Id == -1;
 
         _character.OnDamaged.Subscribe(DangerDetected).AddTo(_character.gameObject);
         _character.OnClosed.Subscribe(DangerDetected).AddTo(_character.gameObject);
@@ -101,7 +100,6 @@ public class AIInputter : InputterBase
     private float _rollValue;
     private int _rollSign;
     private Vector3 _attackedDirection;
-    private bool _isZombie;
     private System.IDisposable _targetDiedSubscriver;
     private System.IDisposable _stateModeSubscriver;
     private System.IDisposable _lookSubscriver;
@@ -171,7 +169,7 @@ public class AIInputter : InputterBase
             var angleYZ = Vector3.SignedAngle(_headTransform.forward, _characterTransform.forward, _headTransform.right);
 
             MouseX = _rollValue * _rollSign;
-            MouseY = angleYZ * _aISkill.PropControlConstant;
+            MouseY = _aISkill.GetCorrectionOperatingVolume(angleYZ);
 
             if (_character.CurrentWeaponState.Kind == 0 &&
                 _character.DisableWeaponState.Kind != 0 &&
@@ -184,7 +182,7 @@ public class AIInputter : InputterBase
         {
             if (TargetEnemy != null && TargetEnemy.gameObject != null && _targetPosition != Vector3.zero)
             {
-                if (_isZombie)
+                if (_aISkill.IsZombie())
                 {
                     Shooting();
 
@@ -260,7 +258,7 @@ public class AIInputter : InputterBase
         }
         else if (kind == StateKind.Combat)
         {
-            if (_isZombie)
+            if (_aISkill.IsZombie())
             {
                 _character.ArmTargetAngle = 0;
             }
@@ -290,7 +288,7 @@ public class AIInputter : InputterBase
         }
         else if (kind == StateKind.Combat)
         {
-            if (_isZombie)
+            if (_aISkill.IsZombie())
             {
                 _character.ArmTargetAngle = 90;
             }
@@ -346,9 +344,9 @@ public class AIInputter : InputterBase
                     {
                         Vector3 enemyDirection = c.FpsCameraAnchor.position - _headTransform.position;
 
-                        return enemyDirection.magnitude < _aISkill.DetectionRange &&
-                               Vector3.Angle(_headTransform.forward, Vector3.ProjectOnPlane(enemyDirection, _characterTransform.up)) < _aISkill.DetectionAngleHorizontal &&
-                               Vector3.Angle(_headTransform.forward, Vector3.ProjectOnPlane(enemyDirection, _characterTransform.right)) < _aISkill.DetectionAngleVertical &&
+                        return _aISkill.IsInRange(enemyDirection.magnitude, 
+                                                  Vector3.Angle(_headTransform.forward, Vector3.ProjectOnPlane(enemyDirection, _characterTransform.up)), 
+                                                  Vector3.Angle(_headTransform.forward, Vector3.ProjectOnPlane(enemyDirection, _characterTransform.right))) &&
                                !Physics.Raycast(_headTransform.position, enemyDirection, enemyDirection.magnitude, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
                     }).ToArray();
 
@@ -357,7 +355,7 @@ public class AIInputter : InputterBase
                     {
                         Vector3 enemyDirection = c.FpsCameraAnchor.position - _headTransform.position;
 
-                        return enemyDirection.magnitude < _aISkill.RunningDetectionRange &&
+                        return _aISkill.IsInRunningRange(enemyDirection.magnitude) &&
                                (Mathf.Abs(c.Inputter.Horizontal) > 0 || Mathf.Abs(c.Inputter.Vertical) > 0);
                     });
 
@@ -420,7 +418,7 @@ public class AIInputter : InputterBase
                 }
             }
 
-            yield return new WaitForSeconds(_aISkill.DetectionDelay);
+            yield return _aISkill.WaitForDetectionDelay();
         }
     }
 
@@ -434,10 +432,10 @@ public class AIInputter : InputterBase
             }
             else
             {
-                float distanceScale = (TargetEnemy.transform.position - _characterTransform.position).magnitude / _aISkill.DetectionRange;
-                float error = _aISkill.ShootError * distanceScale;
+                float distanceScale = _aISkill.GetDistanceScale((TargetEnemy.transform.position - _characterTransform.position).magnitude);
+                float error = _aISkill.GetError((TargetEnemy.transform.position - _characterTransform.position).magnitude);
                 _targetPosition = TargetEnemy.transform.position +
-                                  TargetEnemy.transform.up * _aISkill.AimHeightOffset +
+                                  _aISkill.AimHeightOffsetVector(TargetEnemy.transform.up) +
                                   TargetEnemy.MoveDelta * distanceScale * 2;
                                   new Vector3(Random.Range(-error, error), Random.Range(-error, error), Random.Range(-error, error));
             }
@@ -448,7 +446,7 @@ public class AIInputter : InputterBase
 
     private IEnumerator CombatToAlert()
     {
-        yield return new WaitForSeconds(_aISkill.MissDelay * Random.Range(0.5f, 1.5f));
+        yield return _aISkill.WaitForMiss();
 
         if (_stateModeSubscriver == null) yield break;
 
@@ -466,7 +464,7 @@ public class AIInputter : InputterBase
 
     private IEnumerator AlertToSafe()
     {
-        yield return new WaitForSeconds(_aISkill.AlertTime * Random.Range(0.8f, 1.5f));
+        yield return _aISkill.WaitForAlertToSafe();
 
         if (_stateModeSubscriver == null) yield break;
 
@@ -490,8 +488,8 @@ public class AIInputter : InputterBase
         var angleXZ = Vector3.SignedAngle(_characterTransform.forward, pathDirPlane, _characterTransform.up);   // 今向いている方向との差を計算
         var angleYZ = Vector3.SignedAngle(_headTransform.forward, _characterTransform.forward, _headTransform.right);
 
-        MouseX = angleXZ * _aISkill.PropControlConstant;
-        MouseY = angleYZ * _aISkill.PropControlConstant;
+        MouseX = _aISkill.GetCorrectionOperatingVolume(angleXZ);
+        MouseY = _aISkill.GetCorrectionOperatingVolume(angleYZ);
 
         float movingAngle = _movingAngle * (isRunning ? _runningMovingAngleConstant : 1);
         float distance = isTracking ? _trackingDistance : _movingDistance;
@@ -499,7 +497,7 @@ public class AIInputter : InputterBase
         {
             if (isRunning)
             {
-                Vertical = pathDirPlane.magnitude * _aISkill.PropControlConstant;
+                Vertical = _aISkill.GetCorrectionOperatingVolume(pathDirPlane.magnitude);
             }
             else
             {
@@ -534,7 +532,7 @@ public class AIInputter : InputterBase
         else
         {
             var angleYZ = Vector3.SignedAngle(_headTransform.forward, _characterTransform.forward, _headTransform.right);
-            MouseY = angleYZ * _aISkill.PropControlConstant;
+            MouseY = _aISkill.GetCorrectionOperatingVolume(angleYZ);
         }
     }
 
@@ -565,8 +563,8 @@ public class AIInputter : InputterBase
             var enemyDirYZPlane = Vector3.ProjectOnPlane(enemyDir, _headTransform.right);
             var angleYZ = Vector3.SignedAngle(_headTransform.forward, enemyDirYZPlane, _headTransform.right);
 
-            MouseX = angleXZ * _aISkill.PropControlConstant;
-            MouseY = angleYZ * _aISkill.PropControlConstant;
+            MouseX = _aISkill.GetCorrectionOperatingVolume(angleXZ);
+            MouseY = _aISkill.GetCorrectionOperatingVolume(angleYZ);
 
             if (angleXZ < 0.1 && angleYZ < 0.1)
             {
@@ -659,7 +657,7 @@ public class AIInputter : InputterBase
         while (true)
         {
             var angleXZ = Vector3.SignedAngle(_characterTransform.forward, _currentPath.transform.forward, _characterTransform.up);
-            MouseX = angleXZ * _aISkill.PropControlConstant;
+            MouseX = _aISkill.GetCorrectionOperatingVolume(angleXZ);
             yield return null;
         }
     }
@@ -672,15 +670,15 @@ public class AIInputter : InputterBase
         var enemyDirYZPlane = Vector3.ProjectOnPlane(enemyDir, _headTransform.right);
         var enemyAngleYZ = Vector3.SignedAngle(_headTransform.forward, enemyDirYZPlane, _headTransform.right);
 
-        MouseX = enemyAngleXZ * _aISkill.PropControlConstant;
-        MouseY = enemyAngleYZ * _aISkill.PropControlConstant;
+        MouseX = _aISkill.GetCorrectionOperatingVolume(enemyAngleXZ);
+        MouseY = _aISkill.GetCorrectionOperatingVolume(enemyAngleYZ);
 
-        if (Mathf.Abs(enemyAngleXZ) < _aISkill.ShootThreshold && Mathf.Abs(enemyAngleYZ) < _aISkill.ShootThreshold &&
+        if (_aISkill.BeShoot(enemyAngleXZ, enemyAngleYZ) &&
             !Physics.Raycast(_headTransform.position, enemyDir, enemyDir.magnitude, LayerMask.GetMask("Stage")))
         {
             if (_fireSubscriver == null)
             {
-                if (_character.CurrentWeaponState.Spec.FullAuto)
+                if (_character.CurrentWeaponState.GetIsFullAuto())
                 {
                     _fireSubscriver = Observable.FromCoroutine(FireFull).Subscribe().AddTo(_character);
                 }
@@ -717,7 +715,7 @@ public class AIInputter : InputterBase
             Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_character);
         }
 
-        if (_character.CurrentWeaponState.Spec.Scope != WeaponSpec.ZoomModeEnum.None &&
+        if (_character.CurrentWeaponState.HasScope() &&
             !_character.IsZoom)
         {
             Observable.FromCoroutine(_ => PushOne(v => Zoom = v)).Subscribe().AddTo(_character);

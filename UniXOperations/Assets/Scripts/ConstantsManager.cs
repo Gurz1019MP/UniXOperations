@@ -75,8 +75,6 @@ public static class ConstantsManager
 
     public static string GetResoucePathArticleTexture(string name) => $"Assets/Models/article/{name}.bmp";
 
-    public static string GetResoucePathWeapon(string name) => $"Assets/Models/Weapon/{name}/{name}.fbx";
-
     #endregion
 
     #region Audio

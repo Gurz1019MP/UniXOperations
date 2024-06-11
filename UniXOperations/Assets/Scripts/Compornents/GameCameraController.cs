@@ -87,7 +87,7 @@ public class GameCameraController : MonoBehaviour
         // 変更後のキャラクターの設定
         Character.Value = newCharacter;
 
-        _onChangeZoomSubscriber = Character.Value.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom(sender.Item1, sender.Item2)).AddTo(Character.Value);
+        _onChangeZoomSubscriber = Character.Value.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom()).AddTo(Character.Value);
         _onDiedSubscriber = Character.Value.OnDied.Subscribe(OnDiedHandler).AddTo(Character.Value);
 
         // 注視点とカメラアンカーを変更
@@ -172,8 +172,11 @@ public class GameCameraController : MonoBehaviour
         Instantiate(_diedCamera, transform.position, transform.rotation);
     }
 
-    private void CharacterState_OnChangeZoom(bool isZoom, WeaponSpec.ZoomModeEnum zoomMode)
+    private void CharacterState_OnChangeZoom()
     {
+        bool isZoom = Character.Value.IsZoom;
+        WeaponSpec.ZoomModeEnum zoomMode = WeaponSpec.GetWeaponSpec(Character.Value.CurrentWeaponState.Kind).Scope;
+
         if (isZoom)
         {
             if (zoomMode == WeaponSpec.ZoomModeEnum.Detail)

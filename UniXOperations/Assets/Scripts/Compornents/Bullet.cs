@@ -11,7 +11,7 @@ public class Bullet : MonoBehaviour, IBullet
     public float Damage { get; set; }
     public float Penetration { get; set; }
     public float Speed { get; set; }
-    public short Team { get; set; } = -1;
+    public Team Team { get; set; } = Team.Empty;
     public float Sound { get; set; }
     public LayerMask Mask;
 
@@ -33,7 +33,7 @@ public class Bullet : MonoBehaviour, IBullet
         RaycastHit[] sounds = Physics.SphereCastAll(transform.position, Sound, Vector3.up, 0f, LayerMask.GetMask(ConstantsManager.LayerMask_Character_Root));
         if (sounds.Any())
         {
-            foreach (Character characterState in sounds.Select(c => c.collider.gameObject.GetComponent<Character>()).Where(cs => cs != null).Where(cs => cs.Team != Team))
+            foreach (Character characterState in sounds.Select(c => c.collider.gameObject.GetComponent<Character>()).Where(cs => cs != null).Where(cs => cs.Team == Team))
             {
                 characterState.RaiseOnGunSound(characterState.transform.position - transform.position);
                 //Debug.Log("Sound");
@@ -64,10 +64,10 @@ public class Bullet : MonoBehaviour, IBullet
             foreach (RaycastHit hit in hits.OrderBy(h => h.distance))
             {
                 //Debug.Log($"hit {hit.collider.gameObject.name}");
-                var characterState = hit.collider.gameObject.GetComponentInParent<Character>();
+                var character = hit.collider.gameObject.GetComponentInParent<Character>();
                 var articleState = hit.collider.gameObject.GetComponentInParent<ArticleContainer>();
 
-                if (characterState == null && articleState == null)
+                if (character == null && articleState == null)
                 {
                     // ステージに命中した場合
                     Vector3 penetrationEndPoint = hit.point + displacementSinceLastFrame.normalized * Penetration;
@@ -85,11 +85,11 @@ public class Bullet : MonoBehaviour, IBullet
 
                     Instantiate(BulletHole, hit.point, Quaternion.FromToRotation(BulletHole.transform.up * -1f, hit.normal));
                 }
-                if (characterState != null && characterState.Team != Team)
+                if (character != null && character.Team != Team)
                 {
                     // キャラクターに命中した場合
-                    var bulletHitInfo = characterState.TakeDamage(Damage, hit, displacementSinceLastFrame.normalized);
-                    characterState.KnockBack(_bulletMoveDelta.normalized, 0.1f);
+                    var bulletHitInfo = character.TakeDamage(Damage, hit, displacementSinceLastFrame.normalized);
+                    character.KnockBack(_bulletMoveDelta.normalized, 0.1f);
 
                     _onHitSubject.OnNext(new Tuple<IBullet, BulletHitInfo>(this, bulletHitInfo));
                     _onHitSubject.OnCompleted();

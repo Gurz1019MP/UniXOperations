@@ -14,7 +14,7 @@ public class ArticleContainer : MonoBehaviour
     {
         transform.position += new Vector3(0, 0.1f, 0);
         var fallable = GetComponent<Fallable>();
-        _spec = ArticleSpec.GetSpec(pointData.Data2);
+        _spec = ArticleSpec.GetArticleSpec(pointData.Data2);
 
         // パラメータの設定
         _article = new Article(pointData.Data4, _spec);

@@ -14,7 +14,7 @@ public class ZombieAttack : MonoBehaviour, IBullet
 
     public float Speed { get; set; }
 
-    public short Team { get; set; }
+    public Team Team { get; set; }
     public float Sound { get; set; }
     public LayerMask Mask;
     public float Range;

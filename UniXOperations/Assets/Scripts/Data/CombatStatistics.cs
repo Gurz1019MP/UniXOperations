@@ -3,9 +3,9 @@ using UniRx;
 
 public class CombatStatistics
 {
-    public int RoundsFired { get; set; }
+    public int RoundsFired { get; private set; }
 
-    public int RoundsOnTarget { get; set; }
+    public int RoundsOnTarget { get; private set; }
 
     public float AccuracyRate
     {
@@ -17,9 +17,9 @@ public class CombatStatistics
         }
     }
 
-    public int Kill { get; set; }
+    public int Kill { get; private set; }
 
-    public int HeadShot { get; set; }
+    public int HeadShot { get; private set; }
 
     public void OnFire(Unit _)
     {
