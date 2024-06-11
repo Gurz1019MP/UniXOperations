@@ -20,7 +20,7 @@ public class WaitForDestroyEvent : AbstractMissionEvent
     {
         while (true)
         {
-            if (GameDataContainer.Articles.All(c => c.Article.ID != Data))
+            if (GameDataContainer.Articles.All(c => c.Article.Id != Data))
             {
                 break;
             }

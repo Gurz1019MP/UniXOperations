@@ -8,7 +8,7 @@ public class ArticleContainer : MonoBehaviour
 {
     public IObservable<ArticleContainer> OnDestroyed => _onDestroyedSubject;
 
-    public Article Article => _article;
+    public ArticleState Article => _article;
 
     public void InitArticleSpec(PointData pointData)
     {
@@ -17,7 +17,7 @@ public class ArticleContainer : MonoBehaviour
         _spec = ArticleSpec.GetArticleSpec(pointData.Data2);
 
         // パラメータの設定
-        _article = new Article(pointData.Data4, _spec);
+        _article = new ArticleState(pointData.Data4, _spec);
         _broken = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabBrokenArticle);
         fallable.IsGround = pointData.Data3 == 0;
         fallable.BottomTransfrom.localPosition = _spec.BottomPosition;
@@ -47,7 +47,7 @@ public class ArticleContainer : MonoBehaviour
     }
 
     [SerializeField]
-    private Article _article;
+    private ArticleState _article;
     private ArticleSpec _spec;
     private GameObject _broken;
     private VarialbeVisual _visual;

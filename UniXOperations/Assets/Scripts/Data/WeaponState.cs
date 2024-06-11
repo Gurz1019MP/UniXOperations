@@ -2,7 +2,7 @@
 using UnityEngine;
 
 [Serializable]
-public readonly struct WeaponState : IEquatable<WeaponState>
+public readonly struct WeaponState
 {
     public WeaponState(WeaponSpec spec,
                        int ammo,
@@ -65,18 +65,4 @@ public readonly struct WeaponState : IEquatable<WeaponState>
     {
         return new WeaponState(Spec, Ammo + Spec.MagazineSize, Magazine);
     }
-
-    #region IEquatable
-
-    public override bool Equals(object obj) => obj is WeaponState other && this.Equals(other);
-
-    public bool Equals(WeaponState p) => Spec == p.Spec && Ammo == p.Ammo && Magazine == p.Magazine;
-
-    public override int GetHashCode() => (Spec, Ammo, Magazine).GetHashCode();
-
-    public static bool operator ==(WeaponState lhs, WeaponState rhs) => lhs.Equals(rhs);
-
-    public static bool operator !=(WeaponState lhs, WeaponState rhs) => !(lhs == rhs);
-
-    #endregion
 }
