@@ -4,17 +4,19 @@ using UnityEngine;
 
 public class WaitForArrivalEvent : AbstractMissionEvent
 {
-    public WaitForArrivalEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
+    public WaitForArrivalEvent(Characters characters)
     {
-
+        _characters = characters;
     }
 
-    public override void BeginEvent()
+    public override void BeginEvent(MissionEvents missionEvents)
     {
         Debug.Log($"イベントチェーン変更 [{Id}]到着待ち");
-        var missionEventContainer = GameDataContainer.MissionEvents.Single(m => m.MissionEvent.Id == Id);
-        var character = GameDataContainer.Characters.First(c => c.ID == Data);
+        var missionEventContainer = missionEvents.GetMissionEventContainer(Id);
+        var character = _characters.GetCharacter(Data);
 
         Observable.FromCoroutine(() => WaitForPerson(character, missionEventContainer, false)).Subscribe().AddTo(character.gameObject);
     }
+
+    private readonly Characters _characters;
 }

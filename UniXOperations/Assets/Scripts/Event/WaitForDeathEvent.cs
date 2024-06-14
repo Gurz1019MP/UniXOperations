@@ -5,12 +5,12 @@ using UnityEngine;
 
 public class WaitForDeathEvent : AbstractMissionEvent
 {
-    public WaitForDeathEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
+    public WaitForDeathEvent(Characters characters)
     {
-
+        _characters = characters;
     }
 
-    public override void BeginEvent()
+    public override void BeginEvent(MissionEvents missionEvents)
     {
         Debug.Log($"イベントチェーン変更 [{Id}]死亡待ち");
         Observable.FromCoroutine(WaitForDeath).Subscribe();
@@ -20,7 +20,7 @@ public class WaitForDeathEvent : AbstractMissionEvent
     {
         while (true)
         {
-            if (GameDataContainer.Characters.All(c => c.ID != Data))
+            if (_characters.NoOneId(Data))
             {
                 break;
             }
@@ -29,4 +29,6 @@ public class WaitForDeathEvent : AbstractMissionEvent
 
         RaiseChangeEventChain();
     }
+
+    private readonly Characters _characters;
 }

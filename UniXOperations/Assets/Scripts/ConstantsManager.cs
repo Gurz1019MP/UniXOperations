@@ -5,16 +5,6 @@ public static class ConstantsManager
 {
     #region Prefab
 
-    public static string PrefabCharacter { get; } = "Assets/Prefabs/Character.prefab";
-
-    public static string PrefabWeaponPickup { get; } = "Assets/Prefabs/WeaponPickup.prefab";
-
-    public static string PrefabArticle { get; } = "Assets/Prefabs/Article.prefab";
-
-    public static string PrefabPathContainer { get; } = "Assets/Prefabs/PathContainer.prefab";
-
-    public static string PrefabEventContainer { get; } = "Assets/Prefabs/EventContainer.prefab";
-
     public static string PrefabBullet { get; } = "Assets/Prefabs/BulletPrefab.prefab";
 
     public static string PrefabGrenade { get; } = "Assets/Prefabs/GrenadePrefab.prefab";
@@ -101,14 +91,4 @@ public static class ConstantsManager
     public static string MouseSensitivityKey { get; } = "MouseSensitivity";
 
     #endregion
-
-    public static Dictionary<string, string> SkyboxMapper = new Dictionary<string, string>()
-    {
-        { "0", null },
-        { "1", "Assets/Skybox/CasualDay.mat" },
-        { "2", "Assets/Skybox/DarkStorm.mat" },
-        { "3", "Assets/Skybox/CoriolisNight4k.mat" },
-        { "4", "Assets/Skybox/CloudedSunGlow.mat" },
-        { "5", "Assets/Skybox/UnearthlyRed.mat" }
-    };
 }

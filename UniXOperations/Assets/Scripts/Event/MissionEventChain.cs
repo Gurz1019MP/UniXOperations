@@ -4,15 +4,19 @@ using UniRx;
 
 public class MissionEventChain
 {
+    public MissionEventChain(MissionEvents missionEvents)
+    {
+        _missionEvents = missionEvents;
+    }
+
     public AbstractMissionEvent CurrentEvent { get; private set; }
 
     public IObservable<bool> OnEndEventChain => _onEndEventChainSubject;
 
     public IObservable<string> OnShowMessage => _onShowMessage;
 
-    public MissionEventChain(AbstractMissionEvent firstEvent, GameDataContainer gameDataContainer)
+    public MissionEventChain(AbstractMissionEvent firstEvent)
     {
-        _gameDataContainer = gameDataContainer;
         ChangeEventChain(firstEvent);
     }
 
@@ -26,13 +30,13 @@ public class MissionEventChain
             CurrentEvent.OnEndEventChain.Subscribe(OnEndEventChainHandler);
             CurrentEvent.OnShowMessage.Subscribe(OnShowMessageHandler);
 
-            CurrentEvent.BeginEvent();
+            CurrentEvent.BeginEvent(_missionEvents);
         }
     }
 
     private void OnChangeEventChainHandler(Unit _)
     {
-        ChangeEventChain(_gameDataContainer.MissionEvents.Single(e => e.MissionEvent.Id == CurrentEvent.Next).MissionEvent);
+        ChangeEventChain(_missionEvents.GetMissionEvent(CurrentEvent.Next));
     }
     private void OnEndEventChainHandler(bool result)
     {
@@ -44,7 +48,7 @@ public class MissionEventChain
         _onShowMessage.OnNext(message);
     }
 
-    private GameDataContainer _gameDataContainer;
     private Subject<bool> _onEndEventChainSubject = new Subject<bool>();
     private Subject<string> _onShowMessage = new Subject<string>();
+    private MissionEvents _missionEvents;
 }

@@ -17,14 +17,7 @@ public abstract class AbstractMissionEvent
 
     public IObservable<string> OnShowMessage => _onShowMessageSubject;
 
-    protected GameDataContainer GameDataContainer { get; private set; }
-
-    public AbstractMissionEvent(GameDataContainer gameDataContainer)
-    {
-        GameDataContainer = gameDataContainer;
-    }
-
-    public abstract void BeginEvent();
+    public abstract void BeginEvent(MissionEvents missionEvents);
 
     protected void RaiseChangeEventChain()
     {

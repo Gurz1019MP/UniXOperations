@@ -9,16 +9,17 @@ public class AIInputter : InputterBase
 {
     #region .ctor
 
-    public AIInputter(Character characterState, PathContainer firstPath, GameDataContainer gameDataContainer, AISkill aISkill) : base(characterState.gameObject)
+    public AIInputter(Character characterState, AISkill aISkill, Paths paths, Characters characters) : base(characterState.gameObject)
     {
         // フィールドの初期化
         _character = characterState;
-        _firstPath = firstPath;
-        _gameDataContainer = gameDataContainer;
+        _firstPath = paths.GetPath(characterState.Point3);
         _aISkill = aISkill;
         _currentPath = _firstPath;
         _characterTransform = _character.transform;
         _headTransform = _character.FpsCameraAnchor;
+        _paths = paths;
+        _characters = characters;
 
         _character.OnDamaged.Subscribe(DangerDetected).AddTo(_character.gameObject);
         _character.OnClosed.Subscribe(DangerDetected).AddTo(_character.gameObject);
@@ -84,7 +85,6 @@ public class AIInputter : InputterBase
 
     private Character _character;
     private PathContainer _firstPath;
-    private GameDataContainer _gameDataContainer;
     private AISkill _aISkill;
     private PathContainer _currentPath;
     private Vector3 _targetPosition;
@@ -106,6 +106,8 @@ public class AIInputter : InputterBase
     private System.IDisposable _waitPathSubscriver;
     private System.IDisposable _fireSubscriver;
     private System.IDisposable _evideSubscriver;
+    private readonly Paths _paths;
+    private readonly Characters _characters;
 
     #endregion
 
@@ -331,89 +333,84 @@ public class AIInputter : InputterBase
     {
         while (true)
         {
-            if (_gameDataContainer != null && _gameDataContainer.Characters != null)
-            {
-                // 検出範囲内の敵をすべて抽出
-                // 遅延実行のためパフォーマンスへの影響はそれほど高くないことを期待
-                var allEnemies = _gameDataContainer.Characters
-                    .Where(c => c.Team != _character.Team)
-                    .Where(c => c.gameObject != null);
+            // 検出範囲内の敵をすべて抽出
+            // 遅延実行のためパフォーマンスへの影響はそれほど高くないことを期待
+            var allEnemies = _characters.Enemies(_character.Team);
 
-                var detectedEnemies = allEnemies
-                    .Where(c =>
-                    {
-                        Vector3 enemyDirection = c.FpsCameraAnchor.position - _headTransform.position;
-
-                        return _aISkill.IsInRange(enemyDirection.magnitude, 
-                                                  Vector3.Angle(_headTransform.forward, Vector3.ProjectOnPlane(enemyDirection, _characterTransform.up)), 
-                                                  Vector3.Angle(_headTransform.forward, Vector3.ProjectOnPlane(enemyDirection, _characterTransform.right))) &&
-                               !Physics.Raycast(_headTransform.position, enemyDirection, enemyDirection.magnitude, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
-                    }).ToArray();
-
-                var runningEnemies = allEnemies
-                    .Where(c =>
-                    {
-                        Vector3 enemyDirection = c.FpsCameraAnchor.position - _headTransform.position;
-
-                        return _aISkill.IsInRunningRange(enemyDirection.magnitude) &&
-                               (Mathf.Abs(c.Inputter.Horizontal) > 0 || Mathf.Abs(c.Inputter.Vertical) > 0);
-                    });
-
-                if (StateMode == StateKind.Safe ||
-                    StateMode == StateKind.Alert)
+            var detectedEnemies = allEnemies
+                .Where(c =>
                 {
-                    // 安全時、または警戒時
-                    // 敵を一人でも発見したら戦闘状態に移行
-                    if (detectedEnemies.Any())
-                    {
-                        TargetEnemy = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
+                    Vector3 enemyDirection = c.FpsCameraAnchor.position - _headTransform.position;
 
-                        // 警戒状態に移行するコルーチンを中止
-                        if (_stateModeSubscriver != null)
-                        {
-                            _stateModeSubscriver.Dispose();
-                            _stateModeSubscriver = null;
-                        }
+                    return _aISkill.IsInRange(enemyDirection.magnitude, 
+                                                Vector3.Angle(_headTransform.forward, Vector3.ProjectOnPlane(enemyDirection, _characterTransform.up)), 
+                                                Vector3.Angle(_headTransform.forward, Vector3.ProjectOnPlane(enemyDirection, _characterTransform.right))) &&
+                            !Physics.Raycast(_headTransform.position, enemyDirection, enemyDirection.magnitude, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
+                }).ToArray();
 
-                        if (!IsPriorityRunning)
-                        {
-                            StateMode = StateKind.Combat;
-                        }
-                    }
-                    else if (runningEnemies.Any() && !IsPriorityRunning)
+            var runningEnemies = allEnemies
+                .Where(c =>
+                {
+                    Vector3 enemyDirection = c.FpsCameraAnchor.position - _headTransform.position;
+
+                    return _aISkill.IsInRunningRange(enemyDirection.magnitude) &&
+                            (Mathf.Abs(c.Inputter.Horizontal) > 0 || Mathf.Abs(c.Inputter.Vertical) > 0);
+                });
+
+            if (StateMode == StateKind.Safe ||
+                StateMode == StateKind.Alert)
+            {
+                // 安全時、または警戒時
+                // 敵を一人でも発見したら戦闘状態に移行
+                if (detectedEnemies.Any())
+                {
+                    TargetEnemy = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
+
+                    // 警戒状態に移行するコルーチンを中止
+                    if (_stateModeSubscriver != null)
                     {
-                        BeginAlert(runningEnemies.First().transform.position - _characterTransform.position);
+                        _stateModeSubscriver.Dispose();
+                        _stateModeSubscriver = null;
                     }
-                    else
+
+                    if (!IsPriorityRunning)
                     {
-                        TargetEnemy = null;
+                        StateMode = StateKind.Combat;
                     }
                 }
-                else if (StateMode == StateKind.Combat)
+                else if (runningEnemies.Any() && !IsPriorityRunning)
                 {
-                    if (detectedEnemies.Contains(TargetEnemy))
+                    BeginAlert(runningEnemies.First().transform.position - _characterTransform.position);
+                }
+                else
+                {
+                    TargetEnemy = null;
+                }
+            }
+            else if (StateMode == StateKind.Combat)
+            {
+                if (detectedEnemies.Contains(TargetEnemy))
+                {
+                    // 検出された敵にターゲットが含まれる
+                    // 警戒状態に移行するコルーチンを中止
+                    if (_stateModeSubscriver != null)
                     {
-                        // 検出された敵にターゲットが含まれる
-                        // 警戒状態に移行するコルーチンを中止
-                        if (_stateModeSubscriver != null)
-                        {
-                            _stateModeSubscriver.Dispose();
-                            _stateModeSubscriver = null;
-                        }
+                        _stateModeSubscriver.Dispose();
+                        _stateModeSubscriver = null;
+                    }
+                }
+                else
+                {
+                    // 検出された敵にターゲットが含まれない → ターゲットを見失った
+                    if (detectedEnemies.Any())
+                    {
+                        // 他の敵がいる場合はターゲットを直ちに変更
+                        TargetEnemy = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
                     }
                     else
                     {
-                        // 検出された敵にターゲットが含まれない → ターゲットを見失った
-                        if (detectedEnemies.Any())
-                        {
-                            // 他の敵がいる場合はターゲットを直ちに変更
-                            TargetEnemy = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
-                        }
-                        else
-                        {
-                            // しばらく記憶してから警戒状態に移行
-                            _stateModeSubscriver ??= Observable.FromCoroutine(CombatToAlert).Subscribe().AddTo(_character);
-                        }
+                        // しばらく記憶してから警戒状態に移行
+                        _stateModeSubscriver ??= Observable.FromCoroutine(CombatToAlert).Subscribe().AddTo(_character);
                     }
                 }
             }
@@ -540,7 +537,7 @@ public class AIInputter : InputterBase
     {
         try
         {
-            _trackingPosition = _gameDataContainer.Characters.FirstOrDefault(c => c.ID == targetId).transform.position;
+            _trackingPosition = _characters.GetCharacter(targetId).transform.position;
         }
         catch
         {
@@ -590,7 +587,7 @@ public class AIInputter : InputterBase
         EndWaitLook();
         _wasAlert = false;
 
-        var nextPath = _currentPath.Path.GetNextPathContainer();
+        var nextPath = _currentPath.Path.GetNextPathContainer(_paths);
 
         _currentPath = nextPath;
     }

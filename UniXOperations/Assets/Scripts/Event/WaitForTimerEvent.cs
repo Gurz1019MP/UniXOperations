@@ -4,12 +4,7 @@ using UnityEngine;
 
 public class WaitForTimerEvent : AbstractMissionEvent
 {
-    public WaitForTimerEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
-    {
-
-    }
-
-    public override void BeginEvent()
+    public override void BeginEvent(MissionEvents missionEvents)
     {
         Debug.Log($"イベントチェーン変更 [{Id}]時間待ち");
         Observable.FromCoroutine(WaitEventTimer).Subscribe();

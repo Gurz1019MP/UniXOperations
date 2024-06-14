@@ -2,12 +2,7 @@
 
 public class DummyEvent : AbstractMissionEvent
 {
-    public DummyEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
-    {
-
-    }
-
-    public override void BeginEvent()
+    public override void BeginEvent(MissionEvents missionEvents)
     {
         throw new NotImplementedException();
     }

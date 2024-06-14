@@ -100,6 +100,10 @@ public class Character : MonoBehaviour
 
     public Transform CurrentHand { get; private set; }
 
+    public short Point2 {  get; private set; }
+
+    public short Point3 {  get; private set; }
+
 
     public WeaponState CurrentWeaponState
     {
@@ -182,6 +186,8 @@ public class Character : MonoBehaviour
 
         // パラメータの設定
         ID = pointData.Data4;
+        Point2 = pointData.Data2;
+        Point3 = pointData.Data3;
         HitPoint = CharacterSpec.GetHitpoint(info.GetKind());
         Team = info.GetTeam();
         IsZombie = CharacterSpec.GetAISkill(info.GetKind()).IsZombie();
@@ -546,7 +552,7 @@ public class Character : MonoBehaviour
         //Debug.Log($"InstantiateDistance : {InstantiateDistance}");
 
         // ピックアップを生成
-        var instance = Instantiate(CharacterPrefabProvider.Instance.PrefabWeaponPickup, InstantiatePosition, transform.rotation * Quaternion.Euler(0, 0, -90));
+        var instance = Instantiate(MissionPrefabProvider.Instance.PrefabWeaponPickup, InstantiatePosition, transform.rotation * Quaternion.Euler(0, 0, -90));
 
         // ピックアップを初期化
         var pickup = instance.GetComponent<WeaponPickup>();

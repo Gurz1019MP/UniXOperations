@@ -5,7 +5,6 @@ public class CharacterPrefabProvider
 {
     private static CharacterPrefabProvider _instance;
 
-    public GameObject PrefabWeaponPickup;
     public GameObject PrefabDiedCharacter;
     public GameObject PrefabMuzzleFlash;
     public GameObject PrefabBullet;
@@ -25,7 +24,6 @@ public class CharacterPrefabProvider
 
     public CharacterPrefabProvider()
     {
-        PrefabWeaponPickup = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabWeaponPickup);
         PrefabDiedCharacter = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabDiedCharacter);
         PrefabBullet = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabBullet);
         PrefabGrenade = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabGrenade);

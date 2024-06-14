@@ -1,5 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.SceneManagement;
+using XOPS;
 
 public class TitleManager : MonoBehaviour
 {
@@ -7,9 +9,9 @@ public class TitleManager : MonoBehaviour
     {
         _playerInputter = new InputSystem();
 
-        if (MissionDataLoader.ExistsXOps())
+        if (GameCore.ExistsXOps())
         {
-            new MissionDataLoader(GameObject.Find("Stage")).Load(MissionInformation.GetOpening());
+            _gameCore = new GameCore(GameObject.Find("Stage"), LoadBlock, MissionInformation.GetOpening());
         }
         else
         {
@@ -29,5 +31,15 @@ public class TitleManager : MonoBehaviour
         SceneManager.LoadScene("Scene/Menu");
     }
 
+    private void LoadBlock(BlockData blockData)
+    {
+        GameObject stage = GameObject.Find("Stage") ?? throw new InvalidOperationException("ヒエラルキーにゲームオブジェクト\"Stage\"が見つかりません。");
+
+        stage.GetComponent<MeshFilter>().mesh = blockData.Mesh;
+        stage.GetComponent<MeshCollider>().sharedMesh = blockData.Mesh;
+        stage.GetComponent<MeshRenderer>().materials = blockData.Materials;
+    }
+
     private InputSystem _playerInputter;
+    private GameCore _gameCore;
 }

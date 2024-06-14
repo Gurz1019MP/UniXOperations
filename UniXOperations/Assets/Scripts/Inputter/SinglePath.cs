@@ -6,15 +6,15 @@ public class SinglePath : AbstractPath
     public short NextId;
     public PathKind Kind;
 
-    public SinglePath(short id, short nextId, PathKind kind, GameDataContainer gameDataContainer) : base(id, gameDataContainer)
+    public SinglePath(short id, short nextId, PathKind kind) : base(id)
     {
         NextId = nextId;
         Kind = kind;
     }
 
-    public override PathContainer GetNextPathContainer()
+    public override PathContainer GetNextPathContainer(Paths paths)
     {
-        return GameDataContainer.GetPath(NextId);
+        return paths.GetPath(NextId);
     }
 
     public void ChangeKindToWalk()

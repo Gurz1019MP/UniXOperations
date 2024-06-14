@@ -2,15 +2,15 @@
 
 public class ChangeToWalkingEvent : AbstractMissionEvent
 {
-    public ChangeToWalkingEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
+    public ChangeToWalkingEvent(Paths paths)
     {
-
+        _paths = paths;
     }
 
-    public override void BeginEvent()
+    public override void BeginEvent(MissionEvents missionEvents)
     {
         Debug.Log($"イベントチェーン変更 [{Id}]歩きに変更");
-        SinglePath path = GameDataContainer.GetPath(Data).Path as SinglePath;
+        SinglePath path = _paths.GetPath(Data).Path as SinglePath;
         if (path != null)
         {
             path.ChangeKindToWalk();
@@ -18,4 +18,6 @@ public class ChangeToWalkingEvent : AbstractMissionEvent
 
         RaiseChangeEventChain();
     }
+
+    private readonly Paths _paths;
 }

@@ -163,6 +163,26 @@ public struct MissionInformation : IEquatable<MissionInformation>
         return GetTexture2D(Pic2Name);
     }
 
+    public Material GetSkybox()
+    {
+        if (!string.IsNullOrEmpty(Sky) && _skyboxMapper.ContainsKey(Sky))
+        {
+            string assetName = _skyboxMapper[Sky];
+            if (assetName == null)
+            {
+                return null;
+            }
+            else
+            {
+                return AssetLoader.LoadAsset<Material>(assetName);
+            }
+        }
+        else
+        {
+            return AssetLoader.LoadAsset<Material>(_skyboxMapper["1"]);
+        }
+    }
+
     #region IEquatable
 
     public override bool Equals(object obj) => obj is MissionInformation other && this.Equals(other);
@@ -227,4 +247,14 @@ public struct MissionInformation : IEquatable<MissionInformation>
     }
 
     private static readonly string _addonFolder = $"{Application.streamingAssetsPath}/XOps/addon";
+
+    private static readonly Dictionary<string, string> _skyboxMapper = new Dictionary<string, string>()
+    {
+        { "0", null },
+        { "1", "Assets/Skybox/CasualDay.mat" },
+        { "2", "Assets/Skybox/DarkStorm.mat" },
+        { "3", "Assets/Skybox/CoriolisNight4k.mat" },
+        { "4", "Assets/Skybox/CloudedSunGlow.mat" },
+        { "5", "Assets/Skybox/UnearthlyRed.mat" }
+    };
 }

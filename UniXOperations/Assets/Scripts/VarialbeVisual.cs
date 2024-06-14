@@ -2,18 +2,20 @@
 
 public readonly struct VarialbeVisual
 {
+    #region .ctor
+
     public VarialbeVisual(Mesh mesh,
-                          Material material,
-                          Texture2D texture)
+                      Material material,
+                      Texture2D texture)
     {
         _mesh = mesh;
         _material = material;
         _texture = texture;
     }
 
-    private readonly Mesh _mesh;
-    private readonly Material _material;
-    private readonly Texture2D _texture;
+    #endregion
+
+    #region Method
 
     public void ChangeMesh(GameObject target)
     {
@@ -49,4 +51,14 @@ public readonly struct VarialbeVisual
         component.material = _material;
         component.material.mainTexture = _texture;
     }
+
+    #endregion
+
+    #region Field
+
+    private readonly Mesh _mesh;
+    private readonly Material _material;
+    private readonly Texture2D _texture;
+
+    #endregion
 }
