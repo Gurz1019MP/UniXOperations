@@ -29,7 +29,7 @@ public class GameCameraController : MonoBehaviour
     [ReadOnly]
     public bool isShowArm = false;
 
-    public ReactiveProperty<Character> Character { get; private set; } = new ReactiveProperty<Character>();
+    public ReactiveProperty<CharacterContainer> Character { get; private set; } = new ReactiveProperty<CharacterContainer>();
     public InputSystem PlayerInputter { get; set; }
 
     private GameObject _diedCamera;
@@ -62,7 +62,7 @@ public class GameCameraController : MonoBehaviour
     /// <summary>
     /// キャラクターを切り替える
     /// </summary>
-    public void ChangeCharacter(Character newCharacter)
+    public void ChangeCharacter(CharacterContainer newCharacter)
     {
         if (newCharacter == null) return;
 
@@ -167,7 +167,7 @@ public class GameCameraController : MonoBehaviour
         }
     }
 
-    private void OnDiedHandler(Character sender)
+    private void OnDiedHandler(CharacterContainer sender)
     {
         Instantiate(_diedCamera, transform.position, transform.rotation);
     }

@@ -74,13 +74,13 @@ public class GameCoreManager : MonoBehaviour
         if (_playerInputter.Player.MoveUp.IsPressed())
         {
             Debug.Log("MoveUp");
-            Character character = _characters.GetCharacterAtIndex(_currentCharacterIndex);
+            CharacterContainer character = _characters.GetCharacterAtIndex(_currentCharacterIndex);
             character.transform.position = new Vector3(character.transform.position.x, character.transform.position.y + 10 * Time.deltaTime, character.transform.position.z);
             character.ResetMoveDeltaY();
         }
     }
 
-    public void OnChangeCharacter(Character character, InputSystem inputSystem)
+    public void OnChangeCharacter(CharacterContainer character, InputSystem inputSystem)
     {
         _gameCameraController.ChangeCharacter(character);
         _gameCameraController.SetPlayerInputter(inputSystem);
@@ -114,13 +114,13 @@ public class GameCoreManager : MonoBehaviour
 
     private void NextCharacter(InputAction.CallbackContext obj)
     {
-        Character oldCharacter = _characters.GetCharacterAtIndex(_currentCharacterIndex);
+        CharacterContainer oldCharacter = _characters.GetCharacterAtIndex(_currentCharacterIndex);
 
         oldCharacter.InputterContainer.LeavePlayer();
 
         _currentCharacterIndex = _characters.NextCharacter(_currentCharacterIndex);
 
-        Character newCharacter = _characters.GetCharacterAtIndex(_currentCharacterIndex);
+        CharacterContainer newCharacter = _characters.GetCharacterAtIndex(_currentCharacterIndex);
 
         newCharacter.InputterContainer.EnterPlayer(_playerInputter);
         OnChangeCharacter(newCharacter, _playerInputter);
@@ -128,13 +128,13 @@ public class GameCoreManager : MonoBehaviour
 
     private void PreCharacter(InputAction.CallbackContext obj)
     {
-        Character oldCharacter = _characters.GetCharacterAtIndex(_currentCharacterIndex);
+        CharacterContainer oldCharacter = _characters.GetCharacterAtIndex(_currentCharacterIndex);
 
         oldCharacter.InputterContainer.LeavePlayer();
 
         _currentCharacterIndex = _characters.PreCharacter(_currentCharacterIndex);
 
-        Character newCharacter = _characters.GetCharacterAtIndex(_currentCharacterIndex);
+        CharacterContainer newCharacter = _characters.GetCharacterAtIndex(_currentCharacterIndex);
 
         newCharacter.InputterContainer.EnterPlayer(_playerInputter);
         OnChangeCharacter(newCharacter, _playerInputter);
@@ -142,21 +142,21 @@ public class GameCoreManager : MonoBehaviour
 
     private void NextWeapon(InputAction.CallbackContext obj)
     {
-        Character character = _characters.GetCharacterAtIndex(_currentCharacterIndex);
+        CharacterContainer character = _characters.GetCharacterAtIndex(_currentCharacterIndex);
         character.CurrentWeaponState = character.CurrentWeaponState.NextWeapon();
         character.ChangeWeapon(character.CurrentWeaponState);
     }
 
     private void PreWeapon(InputAction.CallbackContext obj)
     {
-        Character character = _characters.GetCharacterAtIndex(_currentCharacterIndex);
+        CharacterContainer character = _characters.GetCharacterAtIndex(_currentCharacterIndex);
         character.CurrentWeaponState = character.CurrentWeaponState.PreWeapon();
         character.ChangeWeapon(character.CurrentWeaponState);
     }
 
     private void AddAmmo(InputAction.CallbackContext obj)
     {
-        Character character = _characters.GetCharacterAtIndex(_currentCharacterIndex);
+        CharacterContainer character = _characters.GetCharacterAtIndex(_currentCharacterIndex);
         character.CurrentWeaponState = character.CurrentWeaponState.AddAmmo();
     }
 

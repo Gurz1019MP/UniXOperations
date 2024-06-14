@@ -9,7 +9,7 @@ public class AIInputter : InputterBase
 {
     #region .ctor
 
-    public AIInputter(Character characterState, AISkill aISkill, Paths paths, Characters characters) : base(characterState.gameObject)
+    public AIInputter(CharacterContainer characterState, AISkill aISkill, Paths paths, Characters characters) : base(characterState.gameObject)
     {
         // フィールドの初期化
         _character = characterState;
@@ -57,8 +57,8 @@ public class AIInputter : InputterBase
         }
     }
 
-    private Character _targetEnemy;
-    private Character TargetEnemy
+    private CharacterContainer _targetEnemy;
+    private CharacterContainer TargetEnemy
     {
         get { return _targetEnemy; }
         set
@@ -83,7 +83,7 @@ public class AIInputter : InputterBase
 
     #region フィールド
 
-    private Character _character;
+    private CharacterContainer _character;
     private PathContainer _firstPath;
     private AISkill _aISkill;
     private PathContainer _currentPath;

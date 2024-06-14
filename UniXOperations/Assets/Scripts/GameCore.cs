@@ -88,9 +88,9 @@ public class GameCore
         return paths;
     }
 
-    private IReadOnlyList<Character> CreateCharacters(IEnumerable<PointData> pointDatas, CharacterInformations characterInfomations, IReadOnlyList<PathContainer> paths)
+    private IReadOnlyList<CharacterContainer> CreateCharacters(IEnumerable<PointData> pointDatas, CharacterInformations characterInfomations, IReadOnlyList<PathContainer> paths)
     {
-        List<Character> characters = new List<Character>();
+        List<CharacterContainer> characters = new List<CharacterContainer>();
 
         foreach (PointData pointData in pointDatas)
         {
@@ -137,10 +137,10 @@ public class GameCore
         return articles;
     }
 
-    private Character PlaceCharacter(PointData pointData, CharacterInformations characterInfomations, IReadOnlyList<PathContainer> paths, bool equipWeapon2)
+    private CharacterContainer PlaceCharacter(PointData pointData, CharacterInformations characterInfomations, IReadOnlyList<PathContainer> paths, bool equipWeapon2)
     {
         GameObject character = Object.Instantiate(MissionPrefabProvider.Instance.PrefabCharacter, pointData.Position * _stage.transform.localScale.x + Vector3.up * 0.6f, pointData.Rotation);
-        Character state = character.GetComponent<Character>();
+        CharacterContainer state = character.GetComponent<CharacterContainer>();
         CharacterInformation info = characterInfomations.Find(pointData.Data2);
 
         state.InitCharacterState(pointData, info, equipWeapon2);
@@ -180,7 +180,7 @@ public class GameCore
         return state;
     }
 
-    private IReadOnlyList<MissionEventContainer> CreateMissionEvents(PointData[] pointDatas, IReadOnlyList<ArticleContainer> articles, IReadOnlyList<Character> characters, IReadOnlyList<PathContainer> paths)
+    private IReadOnlyList<MissionEventContainer> CreateMissionEvents(PointData[] pointDatas, IReadOnlyList<ArticleContainer> articles, IReadOnlyList<CharacterContainer> characters, IReadOnlyList<PathContainer> paths)
     {
         List<MissionEventContainer> missionEvents = new List<MissionEventContainer>();
 
@@ -247,7 +247,7 @@ public class GameCore
 
     public readonly GameObject _stage;
     public readonly IReadOnlyList<PathContainer> _paths;
-    public readonly IReadOnlyList<Character> _characters;
+    public readonly IReadOnlyList<CharacterContainer> _characters;
     public readonly IReadOnlyList<ArticleContainer> _articles;
     public readonly IReadOnlyList<MissionEventContainer> _missionEvents;
 }

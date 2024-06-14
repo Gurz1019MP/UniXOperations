@@ -8,7 +8,7 @@ public class Characters
 {
     #region .ctor
 
-    public Characters(Character[] characters)
+    public Characters(CharacterContainer[] characters)
     {
         _characters = characters.ToList();
 
@@ -38,9 +38,7 @@ public class Characters
 
     #region Property
 
-    public IReadOnlyList<Character> Items => _characters;
-
-    public Character Player => _characters.SingleOrDefault(c => c.ID == 0);
+    public CharacterContainer Player => _characters.SingleOrDefault(c => c.ID == 0);
 
     public CombatStatistics PlayerCombatStatistics => _diedPlayerCombatStatistics == null ?
         _characters.Single(c => c.ID == 0).CombatStatistics : _diedPlayerCombatStatistics;
@@ -55,7 +53,7 @@ public class Characters
 
     public void AppendAIInputter(CharacterInformations characterInformations, Paths paths)
     {
-        foreach(Character character in _characters)
+        foreach(CharacterContainer character in _characters)
         {
             CharacterInformation info = characterInformations.Find(character.Point2);
 
@@ -67,12 +65,12 @@ public class Characters
         }
     }
 
-    public IReadOnlyList<Character> WhereId(short id)
+    public IReadOnlyList<CharacterContainer> WhereId(short id)
     {
         return _characters.Where(c => c.ID == id).ToArray();
     }
 
-    public Character GetCharacter(short id)
+    public CharacterContainer GetCharacter(short id)
     {
         return WhereId(id).SingleOrDefault();
     }
@@ -92,17 +90,17 @@ public class Characters
         return !WhereId(id).Any();
     }
 
-    public IEnumerable<Character> Enemies(Team team)
+    public IEnumerable<CharacterContainer> Enemies(Team team)
     {
         return _characters.Where(c => c.Team != team).Where(c => c.gameObject != null);
     }
 
-    public int GetIndex(Character character)
+    public int GetIndex(CharacterContainer character)
     {
         return _characters.IndexOf(character);
     }
 
-    public Character GetCharacterAtIndex(int index)
+    public CharacterContainer GetCharacterAtIndex(int index)
     {
         return _characters[index];
     }
@@ -111,7 +109,7 @@ public class Characters
 
     #region Field
 
-    private readonly List<Character> _characters;
+    private readonly List<CharacterContainer> _characters;
     private CombatStatistics _diedPlayerCombatStatistics;
     private Subject<Unit> _onPlayerDiedSubject = new Subject<Unit>();
     private Subject<Unit> _onAllEnemyEliminatedSubject = new Subject<Unit>();

@@ -17,8 +17,6 @@ public class Articles
         }
     }
 
-    public IReadOnlyList<ArticleContainer> Items => _articles;
-
     public bool NoOneId(short id)
     {
         return !_articles.Where(a => a.Article.Id == id).Any();

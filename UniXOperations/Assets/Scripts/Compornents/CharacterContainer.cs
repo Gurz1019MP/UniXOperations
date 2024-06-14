@@ -5,7 +5,7 @@ using UniRx;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterInputterContainer))]
-public class Character : MonoBehaviour
+public class CharacterContainer : MonoBehaviour
 {
     public int ID = -1;
     public float HitPoint = 100;
@@ -156,7 +156,7 @@ public class Character : MonoBehaviour
 
     #region イベント
 
-    public System.IObservable<Character> OnDied => _onDiedSubject;
+    public System.IObservable<CharacterContainer> OnDied => _onDiedSubject;
 
     public System.IObservable<Vector3> OnDamaged => _onDamagedSubject;
 
@@ -891,7 +891,7 @@ public class Character : MonoBehaviour
     private static readonly string _animatorParamIsWalk = "IsWalk";
     private static readonly string _animatorParamIsRun = "IsRun";
     private static readonly string _animatorParamFactor = "Factor";
-    private Subject<Character> _onDiedSubject = new Subject<Character>();
+    private Subject<CharacterContainer> _onDiedSubject = new Subject<CharacterContainer>();
     private Subject<Vector3> _onDamagedSubject = new Subject<Vector3>();
     private Subject<Vector3> _onClosedSubject = new Subject<Vector3>();
     private Subject<Vector3> _onGunSoundSubject = new Subject<Vector3>();

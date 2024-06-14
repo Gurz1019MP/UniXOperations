@@ -33,7 +33,7 @@ public class Bullet : MonoBehaviour, IBullet
         RaycastHit[] sounds = Physics.SphereCastAll(transform.position, Sound, Vector3.up, 0f, LayerMask.GetMask(ConstantsManager.LayerMask_Character_Root));
         if (sounds.Any())
         {
-            foreach (Character characterState in sounds.Select(c => c.collider.gameObject.GetComponent<Character>()).Where(cs => cs != null).Where(cs => cs.Team == Team))
+            foreach (CharacterContainer characterState in sounds.Select(c => c.collider.gameObject.GetComponent<CharacterContainer>()).Where(cs => cs != null).Where(cs => cs.Team == Team))
             {
                 characterState.RaiseOnGunSound(characterState.transform.position - transform.position);
                 //Debug.Log("Sound");
@@ -52,7 +52,7 @@ public class Bullet : MonoBehaviour, IBullet
         RaycastHit[] closes = Physics.SphereCastAll(_lastPosition, 0.3f, displacementSinceLastFrame.normalized, displacementSinceLastFrame.magnitude, LayerMask.GetMask("Character_Root"));
         if (closes.Any())
         {
-            foreach (Character characterState in closes.Select(c => c.collider.gameObject.GetComponent<Character>()).Where(cs => cs != null))
+            foreach (CharacterContainer characterState in closes.Select(c => c.collider.gameObject.GetComponent<CharacterContainer>()).Where(cs => cs != null))
             {
                 characterState.RaiseOnClose(displacementSinceLastFrame.normalized);
             }
@@ -64,7 +64,7 @@ public class Bullet : MonoBehaviour, IBullet
             foreach (RaycastHit hit in hits.OrderBy(h => h.distance))
             {
                 //Debug.Log($"hit {hit.collider.gameObject.name}");
-                var character = hit.collider.gameObject.GetComponentInParent<Character>();
+                var character = hit.collider.gameObject.GetComponentInParent<CharacterContainer>();
                 var articleState = hit.collider.gameObject.GetComponentInParent<ArticleContainer>();
 
                 if (character == null && articleState == null)
