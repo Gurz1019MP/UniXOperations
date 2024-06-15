@@ -84,7 +84,6 @@ public class CharacterContainer : MonoBehaviour
         Character.OnZombieFire.Subscribe(ZombieFire).AddTo(gameObject);
         Character.OnCameraMuzzleJump.Subscribe(CameraMuzzleJump).AddTo(gameObject);
         Character.OnDropWeapon.Subscribe((_) => DropWeapon(Character.State.CurrentWeapon)).AddTo(gameObject);
-        Character.OnAnimation.Subscribe(t => ChangeAnimation(t)).AddTo(gameObject);
     }
 
     private void InitHierarchyObject()
@@ -131,20 +130,117 @@ public class CharacterContainer : MonoBehaviour
     {
         Vector3 rayPoint = transform.position + CharacterController.center + Vector3.up * (-CharacterController.height * 0.5F + CharacterController.radius);
         bool newIsGround = GetIsGround(rayPoint);
+
+        Character.Update(transform.position, newIsGround);
+
+        UpdateMove(rayPoint, newIsGround);
+
+        UpdateLook();
+
+        UpdateArm();
+    }
+
+    private void UpdateMove(Vector3 rayPoint, bool newIsGround)
+    {
         RaycastHit[] slideHits = Physics.RaycastAll(rayPoint, Vector3.down, float.MaxValue, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
         float tilt = slideHits.Length == 1 && newIsGround ? Mathf.Acos(Vector3.Dot(slideHits[0].normal, Vector3.up)) : 0;
         bool isSlide = tilt > CharacterController.slopeLimit / 180F * Mathf.PI;
 
-        Character.Update(transform.position, newIsGround, slideHits, isSlide, transform.TransformDirection, CharacterController.Move);
+        Vector3 moveDelta = Character.State.MoveDelta;
 
-        // 視点移動
+        moveDelta.x = 0;
+        moveDelta.z = 0;
+
+        // 着地判定
+        if (!Character.State.IsGround && newIsGround)
+        {
+            // 落下ダメージ
+            if (moveDelta.y < -8)
+            {
+                Character.TakeDamage((moveDelta.y + 7) * -50, Vector3.zero);
+            }
+
+            moveDelta.y = 0;
+        }
+
+        // 地に足ついている時の処理
+        if (newIsGround)
+        {
+            if (!isSlide && Character.InputterState.Inputter.JumpEnter)
+            {
+                moveDelta.y = Character.JUMPPOWER;
+                Character.SetState(Character.State.SetIsGround(false));
+            }
+            else
+            {
+                moveDelta.y = -Character.GRAVITY * Time.deltaTime;
+            }
+        }
+        else
+        {
+            moveDelta.y -= Character.GRAVITY * Time.deltaTime;
+        }
+
+        if (Character.InputterState.Inputter.Walk)
+        {
+            var inputDelta = Vector3.forward * Character.WALKSPEED;
+            inputDelta = transform.TransformDirection(inputDelta);
+
+            moveDelta.x += inputDelta.x;
+            moveDelta.z += inputDelta.z;
+
+            ChangeAnimation(true, false, 1.0f);
+        }
+        else
+        {
+            var inputDelta = new Vector3(Character.InputterState.Inputter.Horizontal, 0, Character.InputterState.Inputter.Vertical).normalized * Character.WALKSPEED;
+
+            if (inputDelta.z == 0)
+            {
+                ChangeAnimation(false, false, 0f);
+            }
+            else if (inputDelta.z > 0)
+            {
+                inputDelta.z *= Character.RUMMULTIPLIER;
+
+                ChangeAnimation(false, true, 1.0f);
+            }
+            else
+            {
+                ChangeAnimation(true, false, -1.0f);
+            }
+
+            inputDelta = transform.TransformDirection(inputDelta);
+
+            moveDelta.x += inputDelta.x;
+            moveDelta.z += inputDelta.z;
+        }
+
+        // 斜面のスライド
+        if (isSlide && newIsGround)
+        {
+            Vector3 reactionForce = slideHits[0].normal * Character.SLIDINGFORCE;
+
+            moveDelta.x += reactionForce.x;
+            moveDelta.y -= reactionForce.y;
+            moveDelta.z += reactionForce.z;
+        }
+
+        CharacterController.Move(moveDelta * Time.deltaTime);
+        Character.SetState(Character.State.SetMoveDelta(moveDelta));
+    }
+
+    private void UpdateLook()
+    {
         Vector3 rotate = _mouseSensitivity * Time.deltaTime * new Vector3(Character.InputterState.Inputter.MouseY, Character.InputterState.Inputter.MouseX, 0);
         gameObject.transform.Rotate(0, rotate.y, 0);
 
         _currentXAngle = Mathf.Clamp(_currentXAngle + rotate.x, -_maxAngle, _maxAngle);
         FpsCameraAnchor.transform.localEulerAngles = new Vector3(_currentXAngle, 0, 0);
+    }
 
-        // 腕の角度の制御
+    private void UpdateArm()
+    {
         if (Character.State.IsArmLookAtMode)
         {
             Vector3 direction = Target.transform.position - ArmBase.position;
@@ -376,11 +472,11 @@ public class CharacterContainer : MonoBehaviour
         bullet.OnHit.Subscribe(t => { onHitAction(t.Item2); }).AddTo((MonoBehaviour)bullet);
     }
 
-    private void ChangeAnimation(System.Tuple<bool, bool, float> tuple)
+    private void ChangeAnimation(bool isWaik, bool isRun, float factor)
     {
-        _characterAnimator.SetBool(_animatorParamIsWalk, tuple.Item1);
-        _characterAnimator.SetBool(_animatorParamIsRun, tuple.Item2);
-        _characterAnimator.SetFloat(_animatorParamFactor, tuple.Item3);
+        _characterAnimator.SetBool(_animatorParamIsWalk, isWaik);
+        _characterAnimator.SetBool(_animatorParamIsRun, isRun);
+        _characterAnimator.SetFloat(_animatorParamFactor, factor);
     }
 
     private static readonly float _mouseSensitivity = 150;

@@ -101,8 +101,6 @@ public class Character
 
     public IObservable<Unit> OnDropWeapon => _onDropWeaponSubject;
 
-    public IObservable<Tuple<bool, bool, float>> OnAnimation => _onAnimationSubject;
-
     public void SetState(CharacterState characterState)
     {
         State = characterState;
@@ -233,48 +231,21 @@ public class Character
         ZombieLoading();
     }
 
-    public void Update(Vector3 position, bool newIsGround, RaycastHit[] slideHits, bool isSlide, Func<Vector3, Vector3> transformDirectionFunction, Func<Vector3, CollisionFlags> MoveFunction)
+    public void Update(Vector3 position, bool newIsGround)
     {
         Position = position;
 
         if (State.IsDied) Kill();
         if (Position.y < KILLHEIGHT) Kill();
 
-        Vector3 moveDelta = State.MoveDelta;
+        WeaponUpdate();
 
-        moveDelta.x = 0;
-        moveDelta.z = 0;
+        // 接地フラグを更新
+        SetState(State.SetIsGround(newIsGround));
+    }
 
-        // 着地判定
-        if (!State.IsGround && newIsGround)
-        {
-            // 落下ダメージ
-            if (moveDelta.y < -8)
-            {
-                TakeDamage((moveDelta.y + 7) * -50, Vector3.zero);
-            }
-
-            moveDelta.y = 0;
-        }
-
-        // 地に足ついている時の処理
-        if (newIsGround)
-        {
-            if (!isSlide && InputterState.Inputter.JumpEnter)
-            {
-                moveDelta.y = JUMPPOWER;
-                SetState(State.SetIsGround(false));
-            }
-            else
-            {
-                moveDelta.y = -GRAVITY * Time.deltaTime;
-            }
-        }
-        else
-        {
-            moveDelta.y -= GRAVITY * Time.deltaTime;
-        }
-
+    private void WeaponUpdate()
+    {
         if (!State.CurrentWeapon.Spec.IsNone)
         {
             if (InputterState.Inputter.DropWeaponEnter && !State.CurrentWeapon.IsReloading && !State.IsSwitching)
@@ -287,7 +258,7 @@ public class Character
             }
             else if (State.CurrentWeapon.Spec.CanChangeFireMode && InputterState.Inputter.FireModeEnter)
             {
-                State.CurrentWeapon.ChangeFireMode();
+                SetState(State.SetCurrentWeaponState(State.CurrentWeapon.ChangeFireMode()));
             }
             else
             {
@@ -310,55 +281,6 @@ public class Character
             _switchWeaponSubscriber = Observable.FromCoroutine(SwitchWeapon).Subscribe();
         }
 
-        if (InputterState.Inputter.Walk)
-        {
-            var inputDelta = Vector3.forward * WALKSPEED;
-            inputDelta = transformDirectionFunction(inputDelta);
-
-            moveDelta.x += inputDelta.x;
-            moveDelta.z += inputDelta.z;
-
-            _onAnimationSubject.OnNext(new Tuple<bool, bool, float>(true, false, 1.0f));
-        }
-        else
-        {
-            var inputDelta = new Vector3(InputterState.Inputter.Horizontal, 0, InputterState.Inputter.Vertical).normalized * WALKSPEED;
-
-            if (inputDelta.z == 0)
-            {
-                _onAnimationSubject.OnNext(new Tuple<bool, bool, float>(false, false, 0f));
-            }
-            else if (inputDelta.z > 0)
-            {
-                inputDelta.z *= RUMMULTIPLIER;
-
-                _onAnimationSubject.OnNext(new Tuple<bool, bool, float>(false, true, 1.0f));
-            }
-            else
-            {
-                _onAnimationSubject.OnNext(new Tuple<bool, bool, float>(true, false, -1.0f));
-            }
-
-            inputDelta = transformDirectionFunction(inputDelta);
-
-            moveDelta.x += inputDelta.x;
-            moveDelta.z += inputDelta.z;
-        }
-
-        // 斜面のスライド
-        if (isSlide && newIsGround)
-        {
-            Vector3 reactionForce = slideHits[0].normal * Character.SLIDINGFORCE;
-
-            moveDelta.x += reactionForce.x;
-            moveDelta.y -= reactionForce.y;
-            moveDelta.z += reactionForce.z;
-        }
-
-        MoveFunction(moveDelta * Time.deltaTime);
-        SetState(State.SetMoveDelta(moveDelta));
-
-        // 武器系統
         if (IsZombie)
         {
             if (State.CurrentWeapon.IsTriggerPulled && !State.CurrentWeapon.IsLoading)
@@ -380,9 +302,6 @@ public class Character
 
             SetState(State.SetAccuracyRatio(Mathf.Clamp(State.AccuracyRatio - 1f * Time.deltaTime, State.CurrentWeapon.Spec.GetCorrectedMinAccuracyRatio(State.IsZoom), 1)));
         }
-
-        // 接地フラグを更新
-        SetState(State.SetIsGround(newIsGround));
     }
 
     private void RaiseOnHit(BulletHitInfo bulletHitInfo)
@@ -431,8 +350,6 @@ public class Character
 
         _onWeaponVisualUpdatedSubject.OnNext(Unit.Default);
 
-        SetState(State.ChangeSwitting(false));
-
         _switchWeaponSubscriber.Dispose();
         _switchWeaponSubscriber = null;
     }
@@ -460,6 +377,4 @@ public class Character
     private Subject<float> _onCameraMuzzleJumpSubject { get; } = new Subject<float>();
 
     private Subject<Unit> _onDropWeaponSubject { get; } = new Subject<Unit>();
-
-    private Subject<Tuple<bool, bool, float>> _onAnimationSubject = new Subject<Tuple<bool, bool, float>>();
 }

@@ -102,7 +102,7 @@ public readonly struct CharacterState
 
     public CharacterState SwitchWeapon()
     {
-        return new CharacterState(HitPoint, Team, Weapon1, Weapon2, !_isWeapon1, IsSwitching, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
+        return new CharacterState(HitPoint, Team, Weapon1, Weapon2, !_isWeapon1, false, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
     }
 
     public CharacterState SetArmTargetAngle(float angle)
