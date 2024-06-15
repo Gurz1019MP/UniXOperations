@@ -10,8 +10,7 @@ public class ChangeToWalkingEvent : AbstractMissionEvent
     public override void BeginEvent(MissionEvents missionEvents)
     {
         Debug.Log($"イベントチェーン変更 [{Id}]歩きに変更");
-        SinglePath path = _paths.GetPath(Data).Path as SinglePath;
-        if (path != null)
+        if (_paths.GetPath(Data) is SinglePath path)
         {
             path.ChangeKindToWalk();
         }

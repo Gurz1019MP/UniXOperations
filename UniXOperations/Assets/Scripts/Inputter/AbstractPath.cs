@@ -1,14 +1,21 @@
 ﻿using System;
+using UnityEngine;
 
 [Serializable]
 public abstract class AbstractPath
 {
-    public AbstractPath(short id)
+    public Vector3 Position => _pointData.Position;
+
+    public Vector3 Forward => _pointData.Rotation * Vector3.forward;
+
+    public AbstractPath(PointData pointData)
     {
-        Id = id;
+        _pointData = pointData;
     }
 
-    public short Id { get; }
+    public short Id => _pointData.Data4;
 
-    public abstract PathContainer GetNextPathContainer(Paths paths);
+    public abstract short GetNextPathId();
+
+    protected PointData _pointData;
 }

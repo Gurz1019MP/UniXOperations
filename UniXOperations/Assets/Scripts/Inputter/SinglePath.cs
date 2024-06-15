@@ -3,18 +3,17 @@
 [Serializable]
 public class SinglePath : AbstractPath
 {
-    public short NextId;
-    public PathKind Kind;
+    public short NextId => _pointData.Data3;
+    public PathKind Kind { get; private set; }
 
-    public SinglePath(short id, short nextId, PathKind kind) : base(id)
+    public SinglePath(PointData pointData) : base(pointData)
     {
-        NextId = nextId;
-        Kind = kind;
+        Kind = (PathKind)pointData.Data2;
     }
 
-    public override PathContainer GetNextPathContainer(Paths paths)
+    public override short GetNextPathId()
     {
-        return paths.GetPath(NextId);
+        return NextId;
     }
 
     public void ChangeKindToWalk()

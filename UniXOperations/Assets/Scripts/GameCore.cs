@@ -25,7 +25,7 @@ public class GameCore
 
         var characterInformations = CreateCharacterInfomations(pointDatas);
         _paths = CreatePaths(pointDatas);
-        _characters = CreateCharacters(pointDatas, characterInformations, _paths);
+        _characters = CreateCharacters(pointDatas, characterInformations);
         _articles = CreateArticles(pointDatas);
         _missionEvents = CreateMissionEvents(pointDatas, _articles, _characters, _paths);
         CreateWeapons(pointDatas);
@@ -33,7 +33,7 @@ public class GameCore
         EventMessages.Initialize(msgLoader.LoadEventMessage(missionInformation.PointPath));
         missionEventManager?.InitEvents(new(_missionEvents.ToArray()), _characters);
 
-        _characters.CreateCharacterContainer(CreateCharacterContainerAction, characterInformations, new Paths(_paths.ToArray()));
+        _characters.CreateCharacterContainer(CreateCharacterContainerAction, characterInformations, _paths);
     }
 
     #endregion
@@ -62,33 +62,26 @@ public class GameCore
             .ToArray());
     }
 
-    private IReadOnlyList<PathContainer> CreatePaths(IEnumerable<PointData> pointDatas)
+    private Paths CreatePaths(IEnumerable<PointData> pointDatas)
     {
-        List<PathContainer> paths = new List<PathContainer>();
+        List<AbstractPath> paths = new List<AbstractPath>();
 
         foreach (PointData pointData in pointDatas.Where(p => p.Data1 == 3 || p.Data1 == 8))
         {
-            GameObject instance = Object.Instantiate(MissionPrefabProvider.Instance.PrefabPathContainer, pointData.Position * _stage.transform.localScale.x, pointData.Rotation, _stage.transform);
-            var pathContainer = instance.GetComponent<PathContainer>();
-
             if (pointData.Data1 == 3)
             {
-                pathContainer.Path = new SinglePath(pointData.Data4, pointData.Data3, (SinglePath.PathKind)pointData.Data2);
+                paths.Add(new SinglePath(pointData));
             }
             else if (pointData.Data1 == 8)
             {
-                pathContainer.Path = new RandomPath(pointData.Data4, pointData.Data2, pointData.Data3);
+                paths.Add(new RandomPath(pointData));
             }
-
-            instance.GetComponentInChildren<PointVisualizer>(true).PointData = pointData;
-
-            paths.Add(pathContainer);
         }
 
-        return paths;
+        return new Paths(paths.ToArray());
     }
 
-    private Characters CreateCharacters(IEnumerable<PointData> pointDatas, CharacterInformations characterInfomations, IReadOnlyList<PathContainer> paths)
+    private Characters CreateCharacters(IEnumerable<PointData> pointDatas, CharacterInformations characterInfomations)
     {
         List<Character> characters = new List<Character>();
 
@@ -164,7 +157,7 @@ public class GameCore
         return state;
     }
 
-    private IReadOnlyList<MissionEventContainer> CreateMissionEvents(PointData[] pointDatas, IReadOnlyList<ArticleContainer> articles, Characters characters, IReadOnlyList<PathContainer> paths)
+    private IReadOnlyList<MissionEventContainer> CreateMissionEvents(PointData[] pointDatas, IReadOnlyList<ArticleContainer> articles, Characters characters, Paths paths)
     {
         List<MissionEventContainer> missionEvents = new List<MissionEventContainer>();
 
@@ -193,7 +186,7 @@ public class GameCore
             }
             else if (pointData.Data1 == 14)
             {
-                missionEventContainer.MissionEvent = new ChangeToWalkingEvent(new(paths.ToArray())) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEventContainer.MissionEvent = new ChangeToWalkingEvent(paths) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
             }
             else if (pointData.Data1 == 15)
             {
@@ -230,7 +223,7 @@ public class GameCore
     #endregion
 
     public readonly GameObject _stage;
-    public readonly IReadOnlyList<PathContainer> _paths;
+    public readonly Paths _paths;
     public readonly Characters _characters;
     public readonly IReadOnlyList<ArticleContainer> _articles;
     public readonly IReadOnlyList<MissionEventContainer> _missionEvents;

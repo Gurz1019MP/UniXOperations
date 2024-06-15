@@ -3,17 +3,15 @@
 [Serializable]
 public class RandomPath : AbstractPath
 {
-    public short NextId1;
-    public short NextId2;
+    private short NextId1 => _pointData.Data2;
+    private short NextId2 => _pointData.Data3;
 
-    public RandomPath(short id, short nextId1, short nextId2) : base(id)
+    public RandomPath(PointData pointData) : base(pointData)
     {
-        NextId1 = nextId1;
-        NextId2 = nextId2;
     }
 
-    public override PathContainer GetNextPathContainer(Paths paths)
+    public override short GetNextPathId()
     {
-        return paths.GetPath(UnityEngine.Random.Range(0, 2) == 0 ? NextId1 : NextId2);
+        return UnityEngine.Random.Range(0, 2) == 0 ? NextId1 : NextId2;
     }
 }

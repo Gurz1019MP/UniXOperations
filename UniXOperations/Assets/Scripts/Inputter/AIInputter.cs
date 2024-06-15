@@ -79,16 +79,16 @@ public class AIInputter : InputterBase
         }
     }
 
-    private bool IsPriorityRunning => _currentPath != null && (_currentPath.Path is SinglePath singlePath) && singlePath.Kind == SinglePath.PathKind.PriorityRunning;
+    private bool IsPriorityRunning => _currentPath != null && (_currentPath is SinglePath singlePath) && singlePath.Kind == SinglePath.PathKind.PriorityRunning;
 
     #endregion
 
     #region フィールド
 
     private CharacterContainer _characterContainer;
-    private PathContainer _firstPath;
+    private AbstractPath _firstPath;
     private AISpec _aISkill;
-    private PathContainer _currentPath;
+    private AbstractPath _currentPath;
     private Vector3 _targetPosition;
     private float _movingAngle = 10f;
     private float _movingDistance = 0.3f;
@@ -120,15 +120,15 @@ public class AIInputter : InputterBase
         {
             if (_currentPath != null)
             {
-                if (_currentPath.Path is SinglePath path)
+                if (_currentPath is SinglePath path)
                 {
                     if (path.Kind == SinglePath.PathKind.Walking)
                     {
-                        Moving(_currentPath.transform.position, false, false, ChangeNextPathContainer);
+                        Moving(_currentPath.Position, false, false, ChangeNextPathContainer);
                     }
                     else if (path.Kind == SinglePath.PathKind.Running)
                     {
-                        Moving(_currentPath.transform.position, true, false, ChangeNextPathContainer);
+                        Moving(_currentPath.Position, true, false, ChangeNextPathContainer);
                     }
                     else if (path.Kind == SinglePath.PathKind.Waiting)
                     {
@@ -148,21 +148,21 @@ public class AIInputter : InputterBase
                     }
                     else if (path.Kind == SinglePath.PathKind.ThrowingGrenade)
                     {
-                        ThrowingGrenade(_currentPath.transform.position);
+                        ThrowingGrenade(_currentPath.Position);
                     }
                     else if (path.Kind == SinglePath.PathKind.PriorityRunning)
                     {
                         if (TargetEnemy == null)
                         {
-                            Moving(_currentPath.transform.position, true, false, ChangeNextPathContainer);
+                            Moving(_currentPath.Position, true, false, ChangeNextPathContainer);
                         }
                         else
                         {
-                            CombatAndMoving(_currentPath.transform.position, ChangeNextPathContainer);
+                            CombatAndMoving(_currentPath.Position, ChangeNextPathContainer);
                         }
                     }
                 }
-                else if (_currentPath.Path is RandomPath)
+                else if (_currentPath is RandomPath)
                 {
                     ChangeNextPathContainer();
                 }
@@ -522,11 +522,11 @@ public class AIInputter : InputterBase
         {
             if (isTimeWaiting)
             {
-                Moving(_currentPath.transform.position, false, false, () => BeginChangeNextPathContainerWaitTimeAndLookDirection());
+                Moving(_currentPath.Position, false, false, () => BeginChangeNextPathContainerWaitTimeAndLookDirection());
             }
             else
             {
-                Moving(_currentPath.transform.position, false, false, () => BeginWaitLookAround(isAlertWaiting));
+                Moving(_currentPath.Position, false, false, () => BeginWaitLookAround(isAlertWaiting));
             }
         }
         else
@@ -590,7 +590,7 @@ public class AIInputter : InputterBase
         EndWaitLook();
         _wasAlert = false;
 
-        var nextPath = _currentPath.Path.GetNextPathContainer(_paths);
+        var nextPath = _paths.GetPath(_currentPath.GetNextPathId());
 
         _currentPath = nextPath;
     }
@@ -656,7 +656,7 @@ public class AIInputter : InputterBase
     {
         while (true)
         {
-            var angleXZ = Vector3.SignedAngle(_characterTransform.forward, _currentPath.transform.forward, _characterTransform.up);
+            var angleXZ = Vector3.SignedAngle(_characterTransform.forward, _currentPath.Forward, _characterTransform.up);
             MouseX = _aISkill.GetCorrectionOperatingVolume(angleXZ);
             yield return null;
         }
