@@ -52,6 +52,10 @@ public struct WeaponSpec : IEquatable<WeaponSpec>
         MuzzlePosition = muzzlePosition;
         IsGrenade = isGrenade;
         MuzzleJump = muzzleJump;
+
+        Accuracy = new AnimationCurve();
+        Accuracy.AddKey(0, AccuracyMin);
+        Accuracy.AddKey(1, AccuracyMax);
     }
 
     public short Id;
@@ -77,6 +81,8 @@ public struct WeaponSpec : IEquatable<WeaponSpec>
     public Vector3 MuzzlePosition;
     public bool IsGrenade;
     public float MuzzleJump;
+
+    public AnimationCurve Accuracy { get; }
 
     public readonly bool IsNone => this == None;
 
@@ -138,15 +144,6 @@ public struct WeaponSpec : IEquatable<WeaponSpec>
             ratio = 1f;
         }
         return ratio;
-    }
-
-    public readonly AnimationCurve GetAccuracyAnimationCurve()
-    {
-        AnimationCurve curve = new AnimationCurve();
-        curve.AddKey(0, AccuracyMin);
-        curve.AddKey(1, AccuracyMax);
-
-        return curve;
     }
 
     public readonly void SetBullet(IBullet bullet, Team team)

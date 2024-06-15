@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using UniRx;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class Characters
 {
     #region .ctor
 
-    public Characters(CharacterContainer[] characters)
+    public Characters(Character[] characters)
     {
         _characters = characters.ToList();
 
@@ -18,19 +19,19 @@ public class Characters
             {
                 _characters.Remove(sender);
 
-                if (sender.Inputter is PlayerInputter)
+                if (sender.InputterState.Inputter is PlayerInputter)
                 {
                     _onPlayerDiedSubject.OnNext(Unit.Default);
                     _onPlayerDiedSubject.OnCompleted();
                     _diedPlayerCombatStatistics = sender.CombatStatistics;
                 }
 
-                if (_characters.Select(p => p.Team).Distinct().Count() == 1)
+                if (_characters.Select(p => p.State.Team).Distinct().Count() == 1)
                 {
                     _onAllEnemyEliminatedSubject.OnNext(Unit.Default);
                     _onAllEnemyEliminatedSubject.OnCompleted();
                 }
-            }).AddTo(character.gameObject);
+            });
         }
     }
 
@@ -38,10 +39,10 @@ public class Characters
 
     #region Property
 
-    public CharacterContainer Player => _characters.SingleOrDefault(c => c.ID == 0);
+    public Character Player => _characters.SingleOrDefault(c => c.ID == 0);
 
     public CombatStatistics PlayerCombatStatistics => _diedPlayerCombatStatistics == null ?
-        _characters.Single(c => c.ID == 0).CombatStatistics : _diedPlayerCombatStatistics;
+        Player.CombatStatistics : _diedPlayerCombatStatistics;
 
     public IObservable<Unit> OnPlayerDied => _onPlayerDiedSubject;
 
@@ -51,26 +52,20 @@ public class Characters
 
     #region Method
 
-    public void AppendAIInputter(CharacterInformations characterInformations, Paths paths)
+    public void CreateCharacterContainer(UnityAction<Character, CharacterInformations, Paths, Characters> CreateCharacterContainerAction, CharacterInformations characterInformations, Paths paths)
     {
-        foreach(CharacterContainer character in _characters)
+        foreach (Character character in _characters)
         {
-            CharacterInformation info = characterInformations.Find(character.Point2);
-
-            //AIInputterの生成
-            var aiInputter = new AIInputter(character, CharacterSpec.GetAISkill(info.GetKind()), paths, this);
-
-            // 各種コンポーネントの初期化
-            character.InputterContainer.Initialize(aiInputter);
+            CreateCharacterContainerAction(character, characterInformations, paths, this);
         }
     }
 
-    public IReadOnlyList<CharacterContainer> WhereId(short id)
+    public IReadOnlyList<Character> WhereId(short id)
     {
         return _characters.Where(c => c.ID == id).ToArray();
     }
 
-    public CharacterContainer GetCharacter(short id)
+    public Character GetCharacter(short id)
     {
         return WhereId(id).SingleOrDefault();
     }
@@ -90,17 +85,17 @@ public class Characters
         return !WhereId(id).Any();
     }
 
-    public IEnumerable<CharacterContainer> Enemies(Team team)
+    public IEnumerable<Character> Enemies(Team team)
     {
-        return _characters.Where(c => c.Team != team).Where(c => c.gameObject != null);
+        return _characters.Where(c => c.State.Team != team).Where(c => !c.State.IsDied);
     }
 
-    public int GetIndex(CharacterContainer character)
+    public int GetIndex(Character character)
     {
         return _characters.IndexOf(character);
     }
 
-    public CharacterContainer GetCharacterAtIndex(int index)
+    public Character GetCharacterAtIndex(int index)
     {
         return _characters[index];
     }
@@ -109,7 +104,7 @@ public class Characters
 
     #region Field
 
-    private readonly List<CharacterContainer> _characters;
+    private readonly List<Character> _characters;
     private CombatStatistics _diedPlayerCombatStatistics;
     private Subject<Unit> _onPlayerDiedSubject = new Subject<Unit>();
     private Subject<Unit> _onAllEnemyEliminatedSubject = new Subject<Unit>();

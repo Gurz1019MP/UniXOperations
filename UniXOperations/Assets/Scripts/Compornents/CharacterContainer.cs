@@ -3,88 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.InputSystem.Users;
 
-[RequireComponent(typeof(CharacterInputterContainer))]
+[RequireComponent(typeof(CharacterController))]
 public class CharacterContainer : MonoBehaviour
 {
-    public int ID = -1;
-    public float HitPoint = 100;
-    public Team Team = Team.Empty;
-    public WeaponState Weapon1 = WeaponState.None;
-    public WeaponState Weapon2 = WeaponState.None;
-    public float KillHeight;
+    #region Field
+
     public TextMesh DebugText;
-    public float WalkSpeed;        // 一般的な成人の歩行スピード
-    public float RunMultiplier;    // 走ったときの速度係数
-    public float Gravity;          // 重力
-    public float JumpPower;        // ジャンプ力
-    public float SlidingForce;     // スライディング力
-    public float GroundThreshold = 0.01f;
-    public float ArmRotateSpeed;
-    public float ArmLookAtSpeed;
-
-    #region Readonlyフィールド
-
-    [ReadOnly]
-    public bool IsWeapon1;
-
-    [ReadOnly]
-    public bool IsSwitching;
-
-    [ReadOnly]
-    public bool IsZombie;
-
-    [ReadOnly]
-    public float ArmTargetAngle;
-
-    [ReadOnly]
-    public bool IsArmLookAtMode;
-
-    [ReadOnly]
-    public bool IsTriggerPulled;
-
-    [ReadOnly]
-    public bool IsSemiFired;
-
-    [ReadOnly]
-    public bool IsLoading;
-
-    [ReadOnly]
-    public bool IsReloading;
-
-    [ReadOnly]
-    public float AccuracyRatio = 0;
-
-    [ReadOnly]
-    public bool IsZoom;
-
-    [ReadOnly]
-    public Vector3 MoveDelta;
-    #endregion
-
-    #region privateフィールド
-
-    private GameObject[] _arms;                         // 各持ち方用の腕オブジェクト
-    private VarialbeVisual _visual;
-    private float _currentXAngle;
-    private Animator _characterAnimator;
-    private float _animatorFactor = 0.0f;
-    private float _currentArmAngle;
-    private AnimationCurve Accuracy;
-
-    #endregion
-
-    #region コンポーネント
-
-    public CharacterInputterContainer InputterContainer { get; private set; }
-
-    public CharacterController CharacterController { get; private set; }
-
-    public InputterBase Inputter => InputterContainer.Inputter;
 
     #endregion
 
     #region プロパティ
+
+    public Character Character { get; private set; }
+
+    public CharacterController CharacterController { get; private set; }
 
     public Transform FpsCameraAnchor { get; private set; }
 
@@ -100,138 +35,56 @@ public class CharacterContainer : MonoBehaviour
 
     public Transform CurrentHand { get; private set; }
 
-    public short Point2 {  get; private set; }
-
-    public short Point3 {  get; private set; }
-
-
-    public WeaponState CurrentWeaponState
-    {
-        get
-        {
-            return IsWeapon1 ? Weapon1 : Weapon2;
-        }
-        set
-        {
-            if (IsWeapon1)
-            {
-                Weapon1 = value;
-            }
-            else
-            {
-                Weapon2 = value;
-            }
-        }
-    }
-
-    public WeaponState DisableWeaponState => IsWeapon1 ? Weapon2 : Weapon1;
-
-    public bool IsGround { get; private set; }
-
-    public float MinAccuracyRatio { get; set; }
-
-    public float ShootingErrorGroundFactorMax => IsGround ? 0 : 3;
-
-    public float ShootingErrorMoveFactorMax => Mathf.Abs(Inputter.Horizontal) > 0 || Mathf.Abs(Inputter.Vertical) > 0 ? 1.5f : 0;
-
-    public float ShootingErrorWalkFactorMax => Inputter.Walk ? 1f : 0;
-
-    public float ShootingErrorHealthFactorMax => (100 - Mathf.Clamp(HitPoint, 0, 100)) / 100 * 1f;
-
-    public float MaxShootingError
-    {
-        get
-        {
-            return ShootingErrorGroundFactorMax +
-                   ShootingErrorMoveFactorMax +
-                   ShootingErrorWalkFactorMax +
-                   ShootingErrorHealthFactorMax +
-                   Accuracy.Evaluate(AccuracyRatio);
-        }
-    }
-
-    public CombatStatistics CombatStatistics { get; private set; }
-
     #endregion
 
     #region イベント
 
-    public System.IObservable<CharacterContainer> OnDied => _onDiedSubject;
-
-    public System.IObservable<Vector3> OnDamaged => _onDamagedSubject;
-
-    public System.IObservable<Vector3> OnClosed => _onClosedSubject;
-
-    public System.IObservable<Vector3> OnGunSound => _onGunSoundSubject;
-
-    public System.IObservable<Unit> OnChangeZoom => _onChangeZoomSubject;
-
-    public System.IObservable<Unit> OnWeaponVisualUpdated => _onWeaponVisualUpdated;
-
-    public System.IObservable<Unit> OnFire => _onFireSubject;
-
-    public System.IObservable<BulletHitInfo> OnHit => _onHitSubject;
+    public System.IObservable<Unit> OnWeaponVisualUpdated => _onWeaponVisualUpdatedSubject;
 
     #endregion
 
-    public void InitCharacterState(PointData pointData, CharacterInformation info, bool equipWeapon2)
+    public void InitCharacterContainer(Character character)
     {
-        // 初期化
-        // コンポーネントの取得
-        InputterContainer = GetComponent<CharacterInputterContainer>();
+        Character = character;
+
         CharacterController = GetComponent<CharacterController>();
         _characterAnimator = GetComponentInChildren<Animator>();
 
         InitHierarchyObject();
 
-        // パラメータの設定
-        ID = pointData.Data4;
-        Point2 = pointData.Data2;
-        Point3 = pointData.Data3;
-        HitPoint = CharacterSpec.GetHitpoint(info.GetKind());
-        Team = info.GetTeam();
-        IsZombie = CharacterSpec.GetAISkill(info.GetKind()).IsZombie();
-        Weapon1 = WeaponState.EquipWeapon(WeaponSpec.GetWeaponSpec(CharacterSpec.GetWeapon1(info.GetKind())));
-        if (equipWeapon2)
-        {
-            Weapon2 = WeaponState.EquipWeapon(WeaponSpec.GetWeaponSpec(CharacterSpec.GetWeapon2(info.GetKind())));
-        }
-
-        // 初期武器を装備（WeaponSystemの初期化）
         UpdateWeaponVisual();
 
         // モデルの読み込み
         try
         {
-            // ビジュアル用オブジェクトを取得
-            var arms = GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsManager.TagArmHolding)).Select(t => t.gameObject).ToArray();
-            var up = GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsManager.TagUp)).Select(t => t.gameObject).Single();
-            var leg = GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsManager.TagLeg)).Select(t => t.gameObject).Single();
-
-            _visual = new VarialbeVisual(CharacterSpec.GetMesh(info.GetKind()),
-                                         CharacterSpec.GetMaterial(),
-                                         CharacterSpec.GetTexture(info.GetKind()));
+            _visual = new VarialbeVisual(Character.Spec);
 
             // メッシュの読み込み
-            _visual.ChangeMesh(up);
+            _visual.ChangeMesh(UpBase.gameObject);
 
             // マテリアルの読み込み
-            foreach (var target in arms.Concat(new GameObject[] { up, leg }))
+            foreach (var target in _arms.Concat(new GameObject[] { UpBase.gameObject, LegBase.gameObject }))
             {
                 _visual.ChangeMaterial(target);
             }
         }
         catch
         {
-
+            throw new System.InvalidOperationException("CharacterContainerのビジュアルの初期化で例外が発生しました");
         }
 
         _currentXAngle = FpsCameraAnchor.transform.localEulerAngles.x;
 
-        // 武器系統の初期化
-        CombatStatistics = new CombatStatistics();
-        OnFire.Subscribe(CombatStatistics.OnFire).AddTo(gameObject);
-        OnHit.Subscribe(CombatStatistics.OnHit).AddTo(gameObject);
+        Character.OnDied.Subscribe((_) => Kill()).AddTo(gameObject);
+        Character.OnFire.Subscribe(Character.CombatStatistics.OnFire).AddTo(gameObject);
+        Character.OnHit.Subscribe(Character.CombatStatistics.OnHit).AddTo(gameObject);
+        Character.OnWeaponVisualUpdated.Subscribe((_) => UpdateWeaponVisual()).AddTo(gameObject);
+        Character.OnGrenadeFire.Subscribe(GrenadeFire).AddTo(gameObject);
+        Character.OnGunFire.Subscribe(GunFire).AddTo(gameObject);
+        Character.OnZombieFire.Subscribe(ZombieFire).AddTo(gameObject);
+        Character.OnCameraMuzzleJump.Subscribe(CameraMuzzleJump).AddTo(gameObject);
+        Character.OnDropWeapon.Subscribe((_) => DropWeapon(Character.State.CurrentWeapon)).AddTo(gameObject);
+        Character.OnAnimation.Subscribe(t => ChangeAnimation(t)).AddTo(gameObject);
     }
 
     private void InitHierarchyObject()
@@ -276,233 +129,55 @@ public class CharacterContainer : MonoBehaviour
 
     void Update()
     {
-        if (HitPoint <= 0) Kill();
-        if (transform.position.y < KillHeight) HitPoint = 0;
-
-        MoveDelta.x = 0;
-        MoveDelta.z = 0;
-
         Vector3 rayPoint = transform.position + CharacterController.center + Vector3.up * (-CharacterController.height * 0.5F + CharacterController.radius);
         bool newIsGround = GetIsGround(rayPoint);
-        RaycastHit[] slideHits = Physics.RaycastAll(rayPoint, Vector3.down, float.MaxValue, LayerMask.GetMask("Stage"));
+        RaycastHit[] slideHits = Physics.RaycastAll(rayPoint, Vector3.down, float.MaxValue, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
         float tilt = slideHits.Length == 1 && newIsGround ? Mathf.Acos(Vector3.Dot(slideHits[0].normal, Vector3.up)) : 0;
         bool isSlide = tilt > CharacterController.slopeLimit / 180F * Mathf.PI;
 
-        // 着地判定
-        if (!IsGround && newIsGround)
-        {
-            // 落下ダメージ
-            if (MoveDelta.y < -8)
-            {
-                TakeDamage((MoveDelta.y + 7) * -50, Vector3.zero);
-            }
-
-            MoveDelta.y = 0;
-        }
-
-        // 設置フラグを更新
-        IsGround = newIsGround;
-
-        // 地に足ついている時の処理
-        if (IsGround)
-        {
-            if (!isSlide && Inputter.JumpEnter)
-            {
-                MoveDelta.y = JumpPower;
-                IsGround = false;
-            }
-            else
-            {
-                MoveDelta.y = -Gravity * Time.deltaTime;
-            }
-        }
-        else
-        {
-            MoveDelta.y -= Gravity * Time.deltaTime;
-        }
-
-        if (Inputter != null)
-        {
-            if (!CurrentWeaponState.Spec.IsNone)
-            {
-                if (Inputter.DropWeaponEnter && !IsReloading && !IsSwitching)
-                {
-                    DropWeapon(CurrentWeaponState);
-                }
-                else if (CurrentWeaponState.HasAmmo && Inputter.ReloadEnter && !IsReloading && !IsSwitching)
-                {
-                    Reload();
-                }
-                else if (CurrentWeaponState.Spec.CanChangeFireMode && Inputter.FireModeEnter)
-                {
-                    CurrentWeaponState.ChangeFireMode();
-                }
-                else
-                {
-                    IsTriggerPulled = Inputter.Fire;
-                }
-
-                if (CurrentWeaponState.Spec.HasScope && Inputter.ZoomEnter)
-                {
-                    ChangeZoom();
-                }
-            }
-
-            if (IsZombie)
-            {
-                IsTriggerPulled = Inputter.Fire;
-            }
-
-            if (Inputter.SwitchWeaponEnter && !IsReloading && !IsSwitching)
-            {
-                //Debug.Log("SwitchWeapon");
-                StartCoroutine(SwitchWeapon());
-            }
-
-            if (Inputter.Walk)
-            {
-                var inputDelta = Vector3.forward * WalkSpeed;
-                inputDelta = transform.TransformDirection(inputDelta);
-
-                MoveDelta.x += inputDelta.x;
-                MoveDelta.z += inputDelta.z;
-
-                _characterAnimator.SetBool(_animatorParamIsWalk, true);
-                _characterAnimator.SetBool(_animatorParamIsRun, false);
-                _animatorFactor = 1.0f;
-            }
-            else
-            {
-                var inputDelta = new Vector3(Inputter.Horizontal, 0, Inputter.Vertical).normalized * WalkSpeed;
-
-                if (inputDelta.z == 0)
-                {
-                    _characterAnimator.SetBool(_animatorParamIsWalk, false);
-                    _characterAnimator.SetBool(_animatorParamIsRun, false);
-                    _animatorFactor = 0;
-                }
-                else if (inputDelta.z > 0)
-                {
-                    inputDelta.z *= RunMultiplier;
-
-                    _characterAnimator.SetBool(_animatorParamIsWalk, false);
-                    _characterAnimator.SetBool(_animatorParamIsRun, true);
-                    _animatorFactor = 1.0f;
-                }
-                else
-                {
-                    _characterAnimator.SetBool(_animatorParamIsWalk, true);
-                    _characterAnimator.SetBool(_animatorParamIsRun, false);
-                    _animatorFactor = -1.0f;
-                }
-
-
-                inputDelta = transform.TransformDirection(inputDelta);
-
-                MoveDelta.x += inputDelta.x;
-                MoveDelta.z += inputDelta.z;
-            }
-
-            _characterAnimator.SetFloat(_animatorParamFactor, _animatorFactor);
-        }
-
-        // 斜面のスライド
-        if (isSlide && IsGround)
-        {
-            Vector3 reactionForce = slideHits[0].normal * SlidingForce;
-
-            MoveDelta.x += reactionForce.x;
-            MoveDelta.y -= reactionForce.y;
-            MoveDelta.z += reactionForce.z;
-        }
-
-        CharacterController.Move(MoveDelta * Time.deltaTime);
+        Character.Update(transform.position, newIsGround, slideHits, isSlide, transform.TransformDirection, CharacterController.Move);
 
         // 視点移動
-        Vector3 rotate = new Vector3(Inputter.MouseY, Inputter.MouseX, 0) * _mouseSensitivity * Time.deltaTime;
+        Vector3 rotate = _mouseSensitivity * Time.deltaTime * new Vector3(Character.InputterState.Inputter.MouseY, Character.InputterState.Inputter.MouseX, 0);
         gameObject.transform.Rotate(0, rotate.y, 0);
 
         _currentXAngle = Mathf.Clamp(_currentXAngle + rotate.x, -_maxAngle, _maxAngle);
         FpsCameraAnchor.transform.localEulerAngles = new Vector3(_currentXAngle, 0, 0);
 
         // 腕の角度の制御
-        if (IsArmLookAtMode)
+        if (Character.State.IsArmLookAtMode)
         {
             Vector3 direction = Target.transform.position - ArmBase.position;
             float YZAngle = Vector3.SignedAngle(ArmBase.forward, direction, ArmBase.right);
-            _currentArmAngle += YZAngle * ArmLookAtSpeed * Time.deltaTime;
+            _currentArmAngle += YZAngle * Character.ARMLOOKATSPEED * Time.deltaTime;
             ArmBase.localEulerAngles = new Vector3(_currentArmAngle, 0, 0);
         }
         else
         {
-            if (Mathf.Abs(_currentArmAngle - ArmTargetAngle) > 1f)
+            if (Mathf.Abs(_currentArmAngle - Character.State.ArmTargetAngle) > 1f)
             {
-                float direction = _currentArmAngle < ArmTargetAngle ? 1 : -1;
-                float rotateSpeed = ArmRotateSpeed * direction * Time.deltaTime;
-                if (rotateSpeed > Mathf.Abs(ArmTargetAngle - _currentArmAngle))
+                float direction = _currentArmAngle < Character.State.ArmTargetAngle ? 1 : -1;
+                float rotateSpeed = Character.ARMROTATIONSPEED * direction * Time.deltaTime;
+                if (rotateSpeed > Mathf.Abs(Character.State.ArmTargetAngle - _currentArmAngle))
                 {
-                    rotateSpeed = ArmTargetAngle - _currentArmAngle;
+                    rotateSpeed = Character.State.ArmTargetAngle - _currentArmAngle;
                 }
                 _currentArmAngle += rotateSpeed;
                 ArmBase.localEulerAngles = new Vector3(_currentArmAngle, 0, 0);
             }
         }
-
-        // 武器系統
-        if (IsZombie)
-        {
-            if (IsTriggerPulled && !IsLoading)
-            {
-                ZombieFire();
-            }
-        }
-        else
-        {
-            if (IsTriggerPulled && !IsLoading && !CurrentWeaponState.OutOfMagazine && !IsReloading && !IsSemiFired)
-            {
-                Fire();
-            }
-
-            if (IsSemiFired && !IsTriggerPulled)
-            {
-                IsSemiFired = false;
-            }
-
-            AccuracyRatio = Mathf.Clamp(AccuracyRatio - 1f * Time.deltaTime, CurrentWeaponState.Spec.GetCorrectedMinAccuracyRatio(IsZoom), 1);
-        }
     }
 
     private void Kill()
     {
-        HitPoint = 0;
-        DropWeapon(Weapon1, true);
-        DropWeapon(Weapon2, true);
+        DropWeapon(Character.State.Weapon1, true);
+        DropWeapon(Character.State.Weapon2, true);
 
         var instance = Instantiate(CharacterPrefabProvider.Instance.PrefabDiedCharacter, transform.position + Vector3.up * -0.558f, transform.rotation);
         var diedCharacter = instance.GetComponent<DiedCharacter>();
         diedCharacter.Initialize(_visual, false);
 
-        _onDiedSubject.OnNext(this);
-        _onDiedSubject.OnCompleted();
-
         Destroy(gameObject);
-        //Debug.Log(string.Format("ID:{0}は死亡しました", ID));
-    }
-
-    /// <summary>
-    /// 武器の切り替え
-    /// </summary>
-    private IEnumerator SwitchWeapon()
-    {
-        IsSwitching = true;
-
-        if (IsZoom) ChangeZoom();
-        yield return new WaitForSeconds(0.2f);
-
-        IsWeapon1 = !IsWeapon1;
-        UpdateWeaponVisual();
-
-        IsSwitching = false;
     }
 
     /// <summary>
@@ -511,9 +186,10 @@ public class CharacterContainer : MonoBehaviour
     /// <param name="pickedWeapon">拾った武器</param>
     public bool PickupWeapon(WeaponState pickedWeapon)
     {
-        if (CurrentWeaponState.Spec.IsNone && !IsZombie)
+        if (Character.State.CurrentWeapon.Spec.IsNone && !Character.IsZombie)
         {
-            ChangeWeapon(pickedWeapon);
+            Character.SetState(Character.State.SetCurrentWeaponState(pickedWeapon));
+            UpdateWeaponVisual();
             return true;
         }
         else
@@ -522,18 +198,12 @@ public class CharacterContainer : MonoBehaviour
         }
     }
 
-    public void ChangeWeapon(WeaponState pickedWeapon)
-    {
-        CurrentWeaponState = pickedWeapon;
-        UpdateWeaponVisual();
-    }
-
     /// <summary>
     /// 武器を捨てる
     /// </summary>
     private void DropWeapon(WeaponState weapon, bool isRandom = false)
     {
-        if (IsZoom) ChangeZoom();
+        if (Character.State.IsZoom) Character.ChangeZoom();
 
         // ピックアップの生成位置を調整
         Vector3 instantinateVector = transform.forward;
@@ -559,30 +229,19 @@ public class CharacterContainer : MonoBehaviour
         pickup.Initialize(weapon);
 
         // WeaponStateを変更
-        CurrentWeaponState = WeaponState.None;
+        Character.SetState(Character.State.SetCurrentWeaponState(WeaponState.None));
         UpdateWeaponVisual();
-    }
-
-    private void ChangeZoom()
-    {
-        IsZoom = !IsZoom;
-        _onChangeZoomSubject.OnNext(Unit.Default);
     }
 
     /// <summary>
     /// 武器の見た目の更新（腕含む）
     /// </summary>
-    private void UpdateWeaponVisual()
+    private void UpdateWeaponVisual() 
     {
-        // フィールドの更新
-        IsSemiFired = false;
-        IsLoading = false;
-
-        // 射撃精度のカーブ
-        Accuracy = CurrentWeaponState.Spec.GetAccuracyAnimationCurve();
+        Character.SetState(Character.State.SetCurrentWeaponState(Character.State.CurrentWeapon.StandBy()));
 
         // モデルの更新
-        string holdingName = $"Arm_{CurrentWeaponState.Spec.Holding}";
+        string holdingName = $"Arm_{Character.State.CurrentWeapon.Spec.Holding}";
         foreach (var arm in _arms)
         {
             // 全腕共通処理
@@ -598,105 +257,28 @@ public class CharacterContainer : MonoBehaviour
 
             if (active) // 可視化された腕の処理
             {
-                handlingWeapon.Initialize(CurrentWeaponState);
+                handlingWeapon.Initialize(Character.State.CurrentWeapon);
                 CurrentHand = hand.transform;
             }
         }
 
         // 腕の更新
-        if (CurrentWeaponState.Spec.IsHoldingBody)
+        if (Character.State.CurrentWeapon.Spec.IsHoldingBody)
         {
             ArmTargetAngleMode();
-            ArmTargetAngle = 90;
+            Character.SetState(Character.State.SetArmTargetAngle(90));
         }
         else
         {
-            ArmLookAtMode();
+            Character.SetState(Character.State.SetIsArmLookAtMode(true));
         }
 
-        _onWeaponVisualUpdated.OnNext(Unit.Default);
-    }
-
-    public BulletHitInfo TakeDamage(float baseDamage, RaycastHit hit, Vector3 direction)
-    {
-        BulletHitInfo.HitPartEnum hitPart = CheckHitPart(hit);
-        float damage = baseDamage * getDamageCoefficient(hitPart);
-
-        return TakeDamage(damage, direction, hitPart);
-    }
-
-    public BulletHitInfo TakeDamage(float damage, Vector3 direction, BulletHitInfo.HitPartEnum hitPart = BulletHitInfo.HitPartEnum.None)
-    {
-        HitPoint -= damage;
-        _onDamagedSubject.OnNext(direction);
-
-        return new BulletHitInfo(hitPart, HitPoint <= 0);
+        _onWeaponVisualUpdatedSubject.OnNext(Unit.Default);
     }
 
     public void KnockBack(Vector3 vector, float magnitude)
     {
         CharacterController.Move(vector * magnitude);
-    }
-
-    private BulletHitInfo.HitPartEnum CheckHitPart(RaycastHit hit)
-    {
-        if (hit.collider.CompareTag(ConstantsManager.TagUp))
-        {
-            if (hit.point.y - hit.transform.position.y > 1.0f)
-            {
-                //Debug.Log("Head shot");
-                return BulletHitInfo.HitPartEnum.Head;
-            }
-            else
-            {
-                return BulletHitInfo.HitPartEnum.Body;
-            }
-        }
-        else if (hit.collider.CompareTag(ConstantsManager.TagLeg))
-        {
-            return BulletHitInfo.HitPartEnum.Leg;
-        }
-        else if (hit.collider.CompareTag(ConstantsManager.TagArmHolding))
-        {
-            return BulletHitInfo.HitPartEnum.Arm;
-        }
-        else
-        {
-            return BulletHitInfo.HitPartEnum.None;
-        }
-    }
-
-    private float getDamageCoefficient(BulletHitInfo.HitPartEnum hitPart)
-    {
-        switch (hitPart)
-        {
-            case BulletHitInfo.HitPartEnum.Body:
-                return 1;
-            case BulletHitInfo.HitPartEnum.Head:
-                return 2;
-            case BulletHitInfo.HitPartEnum.Leg:
-                return 0.6f;
-            case BulletHitInfo.HitPartEnum.Arm:
-                return 0.4f;
-            case BulletHitInfo.HitPartEnum.None:
-            default:
-                return 1;
-        }
-    }
-
-    public void RaiseOnClose(Vector3 direction)
-    {
-        _onClosedSubject.OnNext(direction);
-    }
-
-    public void RaiseOnGunSound(Vector3 direction)
-    {
-        _onGunSoundSubject.OnNext(direction);
-    }
-
-    public void ResetMoveDeltaY()
-    {
-        MoveDelta.y = 0.0f;
     }
 
     private bool GetIsGround(Vector3 rayPoint)
@@ -710,7 +292,7 @@ public class CharacterContainer : MonoBehaviour
             RaycastHit[] hits = Physics.SphereCastAll(rayPoint, CharacterController.radius, Vector3.down, float.MaxValue, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
             if (hits.Length == 1)
             {
-                return Mathf.Abs(hits[0].distance - CharacterController.skinWidth) < GroundThreshold;
+                return Mathf.Abs(hits[0].distance - CharacterController.skinWidth) < Character.GROUNDTHRETHOLD;
             }
             else
             {
@@ -729,14 +311,9 @@ public class CharacterContainer : MonoBehaviour
         FpsCameraAnchor.transform.localEulerAngles = new Vector3(_currentXAngle, 0, 0);
     }
 
-    private void ArmLookAtMode()
-    {
-        IsArmLookAtMode = true;
-    }
-
     public void ArmTargetAngleMode()
     {
-        IsArmLookAtMode = false;
+        Character.SetState(Character.State.SetIsArmLookAtMode(false));
         _currentArmAngle = ArmBase.localEulerAngles.x;
         if (_currentArmAngle > 180)
         {
@@ -750,115 +327,42 @@ public class CharacterContainer : MonoBehaviour
         _currentArmAngle = ArmBase.localEulerAngles.x;
     }
 
-    private void Fire()
+    private void GrenadeFire(UnityAction<BulletHitInfo> onHitAction)
     {
-        if (CurrentWeaponState.Spec.IsGrenade)
+        var instance = Instantiate(
+            CharacterPrefabProvider.Instance.PrefabGrenade,
+            FpsCameraAnchor.position + FpsCameraAnchor.forward * 0.5f,
+            FpsCameraAnchor.rotation * Quaternion.Euler(0, 0, Random.Range(0, 360)));
+        var bullet = instance.GetComponent<IBullet>();
+        Character.State.CurrentWeapon.Spec.SetBullet(bullet, Team.Empty);
+        bullet.OnHit.Subscribe(t => { onHitAction(t.Item2); }).AddTo((MonoBehaviour)bullet);
+    }
+
+    private void GunFire(System.Tuple<UnityAction<BulletHitInfo>, float> onHitAction)
+    {
+        for (short i = 0; i < Character.State.CurrentWeapon.Spec.BulletCount; i++)
         {
+            float shootingError = Character.GetShootingError();
+
             var instance = Instantiate(
-                CharacterPrefabProvider.Instance.PrefabGrenade,
-                FpsCameraAnchor.position + FpsCameraAnchor.forward * 0.5f,
-                FpsCameraAnchor.rotation * Quaternion.Euler(0, 0, Random.Range(0, 360)));
+                CharacterPrefabProvider.Instance.PrefabBullet,
+                FpsCameraAnchor.position,
+                FpsCameraAnchor.rotation * Quaternion.Euler(0, 0, Random.Range(0, 360)) * Quaternion.Euler(shootingError, 0, 0));
             var bullet = instance.GetComponent<IBullet>();
-            CurrentWeaponState.Spec.SetBullet(bullet, Team.Empty);
-            bullet.OnHit.Subscribe(t =>
-            {
-                _onHitSubject.OnNext(t.Item2);
-            }).AddTo((MonoBehaviour)bullet);
-
-            _onFireSubject.OnNext(Unit.Default);
-
-            StartCoroutine(Loading());
-
-            if (CurrentWeaponState.HasAmmo)
-            {
-                Reload();
-            }
-
-            if (CurrentWeaponState.OutOfAmmo)
-            {
-                CurrentWeaponState.LostWeapon();
-                UpdateWeaponVisual();
-            }
+            Character.State.CurrentWeapon.Spec.SetBullet(bullet, Character.State.Team);
+            bullet.OnHit.Subscribe(t => { onHitAction.Item1(t.Item2); }).AddTo((MonoBehaviour)bullet);
         }
-        else
-        {
-            for (short i = 0; i < CurrentWeaponState.Spec.BulletCount; i++)
-            {
-                float shootingError = GetShootingError();
 
-                var instance = Instantiate(
-                    CharacterPrefabProvider.Instance.PrefabBullet,
-                    FpsCameraAnchor.position,
-                    FpsCameraAnchor.rotation * Quaternion.Euler(0, 0, Random.Range(0, 360)) * Quaternion.Euler(shootingError, 0, 0));
-                var bullet = instance.GetComponent<IBullet>();
-                CurrentWeaponState.Spec.SetBullet(bullet, Team);
-                bullet.OnHit.Subscribe(t =>
-                {
-                    _onHitSubject.OnNext(t.Item2);
-                }).AddTo((MonoBehaviour)bullet);
-            }
+        var mfInstance = Instantiate(CharacterPrefabProvider.Instance.PrefabMuzzleFlash, CurrentHand.TransformPoint(-Character.State.CurrentWeapon.Spec.HandlingPosition + Character.State.CurrentWeapon.Spec.MuzzlePosition), CurrentHand.rotation * Quaternion.Euler(0, 180, 0));
+        var muzzleFlash = mfInstance.GetComponent<MuzzleFlash>();
+        muzzleFlash.FireAudio = CharacterPrefabProvider.Instance.FireAudioClips[$"Assets/Audio/{Character.State.CurrentWeapon.Spec.FireAudio}.wav"];
 
-            _onFireSubject.OnNext(Unit.Default);
+        Instantiate(CharacterPrefabProvider.Instance.PrefabCartridge, CurrentHand.position, CurrentHand.rotation);
 
-            if (IsZoom)
-            {
-                CameraMuzzleJump(CurrentWeaponState.Spec.GetCameraMuzzleJump);
-            }
-
-            ArmMuzzleJump(CurrentWeaponState.Spec.MuzzleJump);
-
-            var mfInstance = Instantiate(CharacterPrefabProvider.Instance.PrefabMuzzleFlash, CurrentHand.TransformPoint(-CurrentWeaponState.Spec.HandlingPosition + CurrentWeaponState.Spec.MuzzlePosition), CurrentHand.rotation * Quaternion.Euler(0, 180, 0));
-            var muzzleFlash = mfInstance.GetComponent<MuzzleFlash>();
-            muzzleFlash.FireAudio = CharacterPrefabProvider.Instance.FireAudioClips[$"Assets/Audio/{CurrentWeaponState.Spec.FireAudio}.wav"];
-
-            Instantiate(CharacterPrefabProvider.Instance.PrefabCartridge, CurrentHand.position, CurrentHand.rotation);
-
-            // 射撃誤差を増加
-            if (AccuracyRatio < 1)
-            {
-                AccuracyRatio = Mathf.Clamp(AccuracyRatio + 0.2f, MinAccuracyRatio, 1);
-            }
-
-            StartCoroutine(Loading());
-
-            if (!CurrentWeaponState.Spec.FullAuto)
-            {
-                IsSemiFired = true;
-            }
-        }
+        ArmMuzzleJump(onHitAction.Item2);
     }
 
-    private float GetShootingError()
-    {
-        return Random.Range(0, ShootingErrorGroundFactorMax) +
-               Random.Range(0, ShootingErrorMoveFactorMax) +
-               Random.Range(0, ShootingErrorWalkFactorMax) +
-               Random.Range(0, ShootingErrorHealthFactorMax) +
-               Accuracy.Evaluate(Random.Range(0, AccuracyRatio));
-    }
-
-    private IEnumerator Loading()
-    {
-        CurrentWeaponState = CurrentWeaponState.Loading();
-        IsLoading = true;
-        yield return CurrentWeaponState.Spec.WaitForFireInterval;
-        IsLoading = false;
-    }
-
-    private void Reload()
-    {
-        StartCoroutine(Reloading());
-    }
-
-    private IEnumerator Reloading()
-    {
-        IsReloading = true;
-        yield return CurrentWeaponState.Spec.WaitForReloadTime;
-        CurrentWeaponState = CurrentWeaponState.Reload();
-        IsReloading = false;
-    }
-
-    private void ZombieFire()
+    private void ZombieFire(UnityAction<BulletHitInfo> onHitAction)
     {
         var instance = Instantiate(
             CharacterPrefabProvider.Instance.PrefabZombieAttack,
@@ -868,22 +372,15 @@ public class CharacterContainer : MonoBehaviour
         bullet.Damage = 10;
         bullet.Penetration = 0;
         bullet.Speed = 0;
-        bullet.Team = Team;
-        bullet.OnHit.Subscribe(t =>
-        {
-            _onHitSubject.OnNext(t.Item2);
-        }).AddTo((MonoBehaviour)bullet);
-
-        _onFireSubject.OnNext(Unit.Default);
-
-        StartCoroutine(ZombieLoading());
+        bullet.Team = Character.State.Team;
+        bullet.OnHit.Subscribe(t => { onHitAction(t.Item2); }).AddTo((MonoBehaviour)bullet);
     }
 
-    private IEnumerator ZombieLoading()
+    private void ChangeAnimation(System.Tuple<bool, bool, float> tuple)
     {
-        IsLoading = true;
-        yield return new WaitForSeconds(1);
-        IsLoading = false;
+        _characterAnimator.SetBool(_animatorParamIsWalk, tuple.Item1);
+        _characterAnimator.SetBool(_animatorParamIsRun, tuple.Item2);
+        _characterAnimator.SetFloat(_animatorParamFactor, tuple.Item3);
     }
 
     private static readonly float _mouseSensitivity = 150;
@@ -891,12 +388,10 @@ public class CharacterContainer : MonoBehaviour
     private static readonly string _animatorParamIsWalk = "IsWalk";
     private static readonly string _animatorParamIsRun = "IsRun";
     private static readonly string _animatorParamFactor = "Factor";
-    private Subject<CharacterContainer> _onDiedSubject = new Subject<CharacterContainer>();
-    private Subject<Vector3> _onDamagedSubject = new Subject<Vector3>();
-    private Subject<Vector3> _onClosedSubject = new Subject<Vector3>();
-    private Subject<Vector3> _onGunSoundSubject = new Subject<Vector3>();
-    private Subject<Unit> _onChangeZoomSubject = new Subject<Unit>();
-    private Subject<Unit> _onWeaponVisualUpdated = new Subject<Unit>();
-    private Subject<Unit> _onFireSubject = new Subject<Unit>();
-    private Subject<BulletHitInfo> _onHitSubject = new Subject<BulletHitInfo>();
+    private GameObject[] _arms;
+    private VarialbeVisual _visual;
+    private Animator _characterAnimator;
+    private float _currentXAngle;
+    private float _currentArmAngle;
+    private Subject<Unit> _onWeaponVisualUpdatedSubject { get; } = new Subject<Unit>();
 }

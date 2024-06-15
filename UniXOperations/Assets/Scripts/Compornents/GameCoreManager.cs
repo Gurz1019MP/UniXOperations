@@ -2,12 +2,10 @@
 using System.Linq;
 using UniRx;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using XOPS;
 
-public class GameCoreManager : MonoBehaviour
+public class GameCoreManager : GameCoreContainer
 {
     public void Start()
     {
@@ -17,9 +15,9 @@ public class GameCoreManager : MonoBehaviour
         }
     }
 
-    public void Initialize(MissionInformation missionInformation)
+    public override void Initialize(MissionInformation missionInformation)
     {
-        _gameCore = new GameCore(GameObject.Find("Stage"), LoadBlock, missionInformation, GetComponent<MissionEventManager>());
+        base.Initialize(missionInformation);
 
         _playerInputter = new InputSystem();
 
@@ -35,10 +33,9 @@ public class GameCoreManager : MonoBehaviour
             }
         }
 
-        _characters = new Characters(_gameCore._characters.ToArray());
-        var playerCharacter = _characters.Player;
-        _currentCharacterIndex = _characters.GetIndex(playerCharacter);
-        playerCharacter.InputterContainer.EnterPlayer(_playerInputter);
+        var playerCharacter = _gameCore._characters.Player;
+        _currentCharacterIndex = _gameCore._characters.GetIndex(playerCharacter);
+        playerCharacter.SetInputterState(playerCharacter.InputterState.EnterPlayer(new PlayerInputter(gameObject, _playerInputter)));
 
         _playerInputter.Menu.Exit.performed += (_) => TransitionToMenu();
 
@@ -60,36 +57,28 @@ public class GameCoreManager : MonoBehaviour
         RenderSettings.skybox = missionInformation.GetSkybox();
     }
 
-    private void LoadBlock(BlockData blockData)
-    {
-        GameObject stage = GameObject.Find("Stage") ?? throw new InvalidOperationException("ヒエラルキーにゲームオブジェクト\"Stage\"が見つかりません。");
-
-        stage.GetComponent<MeshFilter>().mesh = blockData.Mesh;
-        stage.GetComponent<MeshCollider>().sharedMesh = blockData.Mesh;
-        stage.GetComponent<MeshRenderer>().materials = blockData.Materials;
-    }
-
     private void Update()
     {
         if (_playerInputter.Player.MoveUp.IsPressed())
         {
             Debug.Log("MoveUp");
-            CharacterContainer character = _characters.GetCharacterAtIndex(_currentCharacterIndex);
-            character.transform.position = new Vector3(character.transform.position.x, character.transform.position.y + 10 * Time.deltaTime, character.transform.position.z);
-            character.ResetMoveDeltaY();
+            Character character = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
+            CharacterContainer characterContainer = FindCharacterContainer(character);
+            characterContainer.transform.position = new Vector3(characterContainer.transform.position.x, characterContainer.transform.position.y + 10 * Time.deltaTime, characterContainer.transform.position.z);
+            character.SetState(character.State.SetMoveDelta(Vector3.zero));
         }
     }
 
-    public void OnChangeCharacter(CharacterContainer character, InputSystem inputSystem)
+    public void OnChangeCharacter(Character character, InputSystem inputSystem)
     {
-        _gameCameraController.ChangeCharacter(character);
+        _gameCameraController.ChangeCharacter(FindCharacterContainer(character));
         _gameCameraController.SetPlayerInputter(inputSystem);
     }
 
     public void TransitionToResult(bool result)
     {
         _playerInputter.Dispose();
-        _result = new ResultInformation(result, DateTime.Now - _startTime, _characters.PlayerCombatStatistics);
+        _result = new ResultInformation(result, DateTime.Now - _startTime, _gameCore._characters.PlayerCombatStatistics);
 
         Cursor.lockState = CursorLockMode.None;
         SceneManager.sceneLoaded += ResultLoaded;
@@ -114,50 +103,48 @@ public class GameCoreManager : MonoBehaviour
 
     private void NextCharacter(InputAction.CallbackContext obj)
     {
-        CharacterContainer oldCharacter = _characters.GetCharacterAtIndex(_currentCharacterIndex);
+        Character oldCharacter = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
 
-        oldCharacter.InputterContainer.LeavePlayer();
+        oldCharacter.SetInputterState(oldCharacter.InputterState.LeavePlayer());
 
-        _currentCharacterIndex = _characters.NextCharacter(_currentCharacterIndex);
+        _currentCharacterIndex = _gameCore._characters.NextCharacter(_currentCharacterIndex);
 
-        CharacterContainer newCharacter = _characters.GetCharacterAtIndex(_currentCharacterIndex);
+        Character newCharacter = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
 
-        newCharacter.InputterContainer.EnterPlayer(_playerInputter);
+        newCharacter.SetInputterState(newCharacter.InputterState.EnterPlayer(new PlayerInputter(gameObject, _playerInputter)));
         OnChangeCharacter(newCharacter, _playerInputter);
     }
 
     private void PreCharacter(InputAction.CallbackContext obj)
     {
-        CharacterContainer oldCharacter = _characters.GetCharacterAtIndex(_currentCharacterIndex);
+        Character oldCharacter = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
 
-        oldCharacter.InputterContainer.LeavePlayer();
+        oldCharacter.SetInputterState(oldCharacter.InputterState.LeavePlayer());
 
-        _currentCharacterIndex = _characters.PreCharacter(_currentCharacterIndex);
+        _currentCharacterIndex = _gameCore._characters.PreCharacter(_currentCharacterIndex);
 
-        CharacterContainer newCharacter = _characters.GetCharacterAtIndex(_currentCharacterIndex);
+        Character newCharacter = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
 
-        newCharacter.InputterContainer.EnterPlayer(_playerInputter);
+        newCharacter.SetInputterState(newCharacter.InputterState.EnterPlayer(new PlayerInputter(gameObject, _playerInputter)));
         OnChangeCharacter(newCharacter, _playerInputter);
     }
 
     private void NextWeapon(InputAction.CallbackContext obj)
     {
-        CharacterContainer character = _characters.GetCharacterAtIndex(_currentCharacterIndex);
-        character.CurrentWeaponState = character.CurrentWeaponState.NextWeapon();
-        character.ChangeWeapon(character.CurrentWeaponState);
+        Character character = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
+        character.SetState(character.State.SetCurrentWeaponState(character.State.CurrentWeapon.NextWeapon()));
     }
 
     private void PreWeapon(InputAction.CallbackContext obj)
     {
-        CharacterContainer character = _characters.GetCharacterAtIndex(_currentCharacterIndex);
-        character.CurrentWeaponState = character.CurrentWeaponState.PreWeapon();
-        character.ChangeWeapon(character.CurrentWeaponState);
+        Character character = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
+        character.SetState(character.State.SetCurrentWeaponState(character.State.CurrentWeapon.PreWeapon()));
     }
 
     private void AddAmmo(InputAction.CallbackContext obj)
     {
-        CharacterContainer character = _characters.GetCharacterAtIndex(_currentCharacterIndex);
-        character.CurrentWeaponState = character.CurrentWeaponState.AddAmmo();
+        Character character = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
+        character.SetState(character.State.SetCurrentWeaponState(character.State.CurrentWeapon.AddAmmo()));
     }
 
     private void ResultLoaded(Scene scene, LoadSceneMode loadSceneMode)
@@ -168,8 +155,6 @@ public class GameCoreManager : MonoBehaviour
         resultManager.Initialize(_missionInformation, _result);
     }
 
-    private GameCore _gameCore;
-    private Characters _characters;
     private GameCameraController _gameCameraController;
     private InputSystem _playerInputter;
     private MissionInformation _missionInformation;

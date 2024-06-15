@@ -4,30 +4,32 @@ using System.Linq;
 using UnityEngine.Events;
 using System.Collections;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 public class AIInputter : InputterBase
 {
     #region .ctor
 
-    public AIInputter(CharacterContainer characterState, AISkill aISkill, Paths paths, Characters characters) : base(characterState.gameObject)
+    public AIInputter(CharacterContainer characterContainer, AISpec aISkill, Paths paths, Characters characters, System.Func<Character, CharacterContainer> findCharacterContainerFunction) : base(characterContainer.gameObject)
     {
         // フィールドの初期化
-        _character = characterState;
-        _firstPath = paths.GetPath(characterState.Point3);
+        _characterContainer = characterContainer;
+        _firstPath = paths.GetPath(characterContainer.Character.PointData.Data3);
         _aISkill = aISkill;
         _currentPath = _firstPath;
-        _characterTransform = _character.transform;
-        _headTransform = _character.FpsCameraAnchor;
+        _characterTransform = characterContainer.transform;
+        _headTransform = _characterContainer.FpsCameraAnchor;
         _paths = paths;
         _characters = characters;
+        _findCharacterContainerFunction = findCharacterContainerFunction;
 
-        _character.OnDamaged.Subscribe(DangerDetected).AddTo(_character.gameObject);
-        _character.OnClosed.Subscribe(DangerDetected).AddTo(_character.gameObject);
-        _character.OnGunSound.Subscribe(DangerDetected).AddTo(_character.gameObject);
+        _characterContainer.Character.OnDamaged.Subscribe(DangerDetected).AddTo(characterContainer.gameObject);
+        _characterContainer.Character.OnClosed.Subscribe(DangerDetected).AddTo(characterContainer.gameObject);
+        _characterContainer.Character.OnGunSound.Subscribe(DangerDetected).AddTo(characterContainer.gameObject);
 
-        Observable.FromCoroutine(JumpChance).Subscribe().AddTo(_character);
-        Observable.FromCoroutine(DetectEnemy).Subscribe().AddTo(_character);
-        Observable.FromCoroutine(UpdateTargetPosition).Subscribe().AddTo(_character);
+        Observable.FromCoroutine(JumpChance).Subscribe();
+        Observable.FromCoroutine(DetectEnemy).Subscribe();
+        Observable.FromCoroutine(UpdateTargetPosition).Subscribe();
 
         EnterState(StateMode);
     }
@@ -71,7 +73,7 @@ public class AIInputter : InputterBase
 
             if (value == null) return;
 
-            _targetDiedSubscriver = value.OnDied.Subscribe(_ => BeginAlert(Vector3.zero)).AddTo(value);
+            _targetDiedSubscriver = value.Character.OnDied.Subscribe(_ => BeginAlert(Vector3.zero)).AddTo(value);
 
             _targetEnemy = value;
         }
@@ -83,9 +85,9 @@ public class AIInputter : InputterBase
 
     #region フィールド
 
-    private CharacterContainer _character;
+    private CharacterContainer _characterContainer;
     private PathContainer _firstPath;
-    private AISkill _aISkill;
+    private AISpec _aISkill;
     private PathContainer _currentPath;
     private Vector3 _targetPosition;
     private float _movingAngle = 10f;
@@ -108,6 +110,7 @@ public class AIInputter : InputterBase
     private System.IDisposable _evideSubscriver;
     private readonly Paths _paths;
     private readonly Characters _characters;
+    private System.Func<Character, CharacterContainer> _findCharacterContainerFunction;
 
     #endregion
 
@@ -173,11 +176,11 @@ public class AIInputter : InputterBase
             MouseX = _rollValue * _rollSign;
             MouseY = _aISkill.GetCorrectionOperatingVolume(angleYZ);
 
-            if (_character.CurrentWeaponState.Spec.IsNone &&
-                !_character.DisableWeaponState.Spec.IsNone &&
-                !_character.IsSwitching)
+            if (_characterContainer.Character.State.CurrentWeapon.Spec.IsNone &&
+                !_characterContainer.Character.State.DisableWeapon.Spec.IsNone &&
+                !_characterContainer.Character.State.IsSwitching)
             {
-                Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_character);
+                Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_characterContainer);
             }
         }
         else if (StateMode == StateKind.Combat)
@@ -194,7 +197,7 @@ public class AIInputter : InputterBase
                 {
                     Combat();
 
-                    _evideSubscriver ??= Observable.FromCoroutine(EvideChance).Subscribe().AddTo(_character);
+                    _evideSubscriver ??= Observable.FromCoroutine(EvideChance).Subscribe().AddTo(_characterContainer);
                     Walk = false;
                 }
             }
@@ -205,7 +208,7 @@ public class AIInputter : InputterBase
         }
 
 #if UNITY_EDITOR
-        _character.DebugText.text = $"State : {_stateMode}\r\nHP : {_character.HitPoint}";
+        _characterContainer.DebugText.text = $"State : {_stateMode}\r\nHP : {_characterContainer.Character.State.HitPoint}";
 #else
 #endif
     }
@@ -262,7 +265,7 @@ public class AIInputter : InputterBase
         {
             if (_aISkill.IsZombie())
             {
-                _character.ArmTargetAngle = 0;
+                _characterContainer.Character.SetState(_characterContainer.Character.State.SetArmTargetAngle(0));
             }
         }
     }
@@ -292,11 +295,11 @@ public class AIInputter : InputterBase
         {
             if (_aISkill.IsZombie())
             {
-                _character.ArmTargetAngle = 90;
+                _characterContainer.Character.SetState(_characterContainer.Character.State.SetArmTargetAngle(90));
             }
             else
             {
-                _character.ArmTargetAngle = 90;
+                _characterContainer.Character.SetState(_characterContainer.Character.State.SetArmTargetAngle(90));
             }
         }
     }
@@ -315,7 +318,7 @@ public class AIInputter : InputterBase
                 if (jumpDetactCount == 3)
                 {
                     // 動きたいのに動けてない状態
-                    Observable.FromCoroutine(_ => PushOne(v => Jump = v)).Subscribe().AddTo(_character);
+                    Observable.FromCoroutine(_ => PushOne(v => Jump = v)).Subscribe().AddTo(_characterContainer);
                     jumpDetactCount = 0;
                 }
             }
@@ -335,7 +338,7 @@ public class AIInputter : InputterBase
         {
             // 検出範囲内の敵をすべて抽出
             // 遅延実行のためパフォーマンスへの影響はそれほど高くないことを期待
-            var allEnemies = _characters.Enemies(_character.Team);
+            var allEnemies = _characters.Enemies(_characterContainer.Character.State.Team).Select(c => _findCharacterContainerFunction(c));
 
             var detectedEnemies = allEnemies
                 .Where(c =>
@@ -354,7 +357,7 @@ public class AIInputter : InputterBase
                     Vector3 enemyDirection = c.FpsCameraAnchor.position - _headTransform.position;
 
                     return _aISkill.IsInRunningRange(enemyDirection.magnitude) &&
-                            (Mathf.Abs(c.Inputter.Horizontal) > 0 || Mathf.Abs(c.Inputter.Vertical) > 0);
+                            (Mathf.Abs(c.Character.InputterState.Inputter.Horizontal) > 0 || Mathf.Abs(c.Character.InputterState.Inputter.Vertical) > 0);
                 });
 
             if (StateMode == StateKind.Safe ||
@@ -410,7 +413,7 @@ public class AIInputter : InputterBase
                     else
                     {
                         // しばらく記憶してから警戒状態に移行
-                        _stateModeSubscriver ??= Observable.FromCoroutine(CombatToAlert).Subscribe().AddTo(_character);
+                        _stateModeSubscriver ??= Observable.FromCoroutine(CombatToAlert).Subscribe().AddTo(_characterContainer);
                     }
                 }
             }
@@ -433,7 +436,7 @@ public class AIInputter : InputterBase
                 float error = _aISkill.GetError((TargetEnemy.transform.position - _characterTransform.position).magnitude);
                 _targetPosition = TargetEnemy.transform.position +
                                   _aISkill.AimHeightOffsetVector(TargetEnemy.transform.up) +
-                                  TargetEnemy.MoveDelta * distanceScale * 2;
+                                  TargetEnemy.Character.State.MoveDelta * distanceScale * 2;
                                   new Vector3(Random.Range(-error, error), Random.Range(-error, error), Random.Range(-error, error));
             }
 
@@ -456,7 +459,7 @@ public class AIInputter : InputterBase
         _attackedDirection = direction;
 
         StateMode = StateKind.Alert;
-        _stateModeSubscriver = Observable.FromCoroutine(AlertToSafe).Subscribe().AddTo(_character);
+        _stateModeSubscriver = Observable.FromCoroutine(AlertToSafe).Subscribe().AddTo(_characterContainer);
     }
 
     private IEnumerator AlertToSafe()
@@ -537,11 +540,11 @@ public class AIInputter : InputterBase
     {
         try
         {
-            _trackingPosition = _characters.GetCharacter(targetId).transform.position;
+            _trackingPosition = _characters.GetCharacter(targetId).Position;
         }
         catch
         {
-            _trackingPosition = _character.transform.position;
+            _trackingPosition = _characterContainer.transform.position;
             Debug.Log("追尾対象の取得に失敗");
         }
 
@@ -552,7 +555,7 @@ public class AIInputter : InputterBase
     {
         Stop();
 
-        if (_character.CurrentWeaponState.Spec.IsGrenade)
+        if (_characterContainer.Character.State.CurrentWeapon.Spec.IsGrenade)
         {
             var enemyDir = targetPoint - _headTransform.position;         // 現在地から敵へのベクトル
             var enemyDirXZPlane = Vector3.ProjectOnPlane(enemyDir, _headTransform.up);              // 上記ベクトルをXY平面に射影
@@ -565,15 +568,15 @@ public class AIInputter : InputterBase
 
             if (angleXZ < 0.1 && angleYZ < 0.1)
             {
-                Observable.FromCoroutine(FireSemi).Subscribe().AddTo(_character);
+                Observable.FromCoroutine(FireSemi).Subscribe().AddTo(_characterContainer);
                 ChangeNextPathContainer();
             }
         }
-        else if (_character.DisableWeaponState.Spec.IsGrenade)
+        else if (_characterContainer.Character.State.DisableWeapon.Spec.IsGrenade)
         {
-            if (!_character.IsSwitching)
+            if (!_characterContainer.Character.State.IsSwitching)
             {
-                Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_character);
+                Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_characterContainer);
             }
         }
         else
@@ -602,7 +605,7 @@ public class AIInputter : InputterBase
     {
         if (_waitPathSubscriver != null) return;
 
-        _waitPathSubscriver = Observable.FromCoroutine(ChangeNextPathContainerWaitTime).Subscribe().AddTo(_character);
+        _waitPathSubscriver = Observable.FromCoroutine(ChangeNextPathContainerWaitTime).Subscribe().AddTo(_characterContainer);
     }
 
     private IEnumerator ChangeNextPathContainerWaitTime()
@@ -618,7 +621,7 @@ public class AIInputter : InputterBase
     {
         if (_lookSubscriver != null) return;
 
-        _lookSubscriver = Observable.FromCoroutine(_ => WaitLookAround(isAlertWaiting)).Subscribe().AddTo(_character);
+        _lookSubscriver = Observable.FromCoroutine(_ => WaitLookAround(isAlertWaiting)).Subscribe().AddTo(_characterContainer);
     }
 
     private void EndWaitLook()
@@ -646,7 +649,7 @@ public class AIInputter : InputterBase
     {
         if (_lookSubscriver != null) return;
 
-        _lookSubscriver = Observable.FromCoroutine(_ => LookDirection()).Subscribe().AddTo(_character);
+        _lookSubscriver = Observable.FromCoroutine(_ => LookDirection()).Subscribe().AddTo(_characterContainer);
     }
 
     private IEnumerator LookDirection()
@@ -675,13 +678,13 @@ public class AIInputter : InputterBase
         {
             if (_fireSubscriver == null)
             {
-                if (_character.CurrentWeaponState.Spec.FullAuto)
+                if (_characterContainer.Character.State.CurrentWeapon.Spec.FullAuto)
                 {
-                    _fireSubscriver = Observable.FromCoroutine(FireFull).Subscribe().AddTo(_character);
+                    _fireSubscriver = Observable.FromCoroutine(FireFull).Subscribe().AddTo(_characterContainer);
                 }
                 else
                 {
-                    _fireSubscriver = Observable.FromCoroutine(FireSemi).Subscribe().AddTo(_character);
+                    _fireSubscriver = Observable.FromCoroutine(FireSemi).Subscribe().AddTo(_characterContainer);
                 }
             }
         }
@@ -691,40 +694,40 @@ public class AIInputter : InputterBase
     {
         Shooting();
 
-        if (!_character.CurrentWeaponState.Spec.IsNone &&
-            _character.CurrentWeaponState.OutOfMagazine)
+        if (!_characterContainer.Character.State.CurrentWeapon.Spec.IsNone &&
+            _characterContainer.Character.State.CurrentWeapon.OutOfMagazine)
         {
-            if (_character.CurrentWeaponState.OutOfAmmo)
+            if (_characterContainer.Character.State.CurrentWeapon.OutOfAmmo)
             {
-                Observable.FromCoroutine(_ => PushOne(v => DropWeapon = v)).Subscribe().AddTo(_character);
+                Observable.FromCoroutine(_ => PushOne(v => DropWeapon = v)).Subscribe().AddTo(_characterContainer);
             }
-            else if (_character.CurrentWeaponState.HasAmmo &&
-                     !_character.IsReloading)
+            else if (_characterContainer.Character.State.CurrentWeapon.HasAmmo &&
+                     !_characterContainer.Character.State.CurrentWeapon.IsReloading)
             {
-                Observable.FromCoroutine(_ => PushOne(v => Reload = v)).Subscribe().AddTo(_character);
+                Observable.FromCoroutine(_ => PushOne(v => Reload = v)).Subscribe().AddTo(_characterContainer);
             }
         }
 
-        if (_character.CurrentWeaponState.Spec.IsNone &&
-            !_character.DisableWeaponState.Spec.IsNone &&
-            !_character.IsSwitching)
+        if (_characterContainer.Character.State.CurrentWeapon.Spec.IsNone &&
+            !_characterContainer.Character.State.DisableWeapon.Spec.IsNone &&
+            !_characterContainer.Character.State.IsSwitching)
         {
-            Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_character);
+            Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_characterContainer);
         }
 
-        if (_character.CurrentWeaponState.Spec.HasScope &&
-            !_character.IsZoom)
+        if (_characterContainer.Character.State.CurrentWeapon.Spec.HasScope &&
+            !_characterContainer.Character.State.IsZoom)
         {
-            Observable.FromCoroutine(_ => PushOne(v => Zoom = v)).Subscribe().AddTo(_character);
+            Observable.FromCoroutine(_ => PushOne(v => Zoom = v)).Subscribe().AddTo(_characterContainer);
         }
 
-        if (_character.CurrentWeaponState.Spec.IsNone &&
-            _character.DisableWeaponState.Spec.IsNone)
+        if (_characterContainer.Character.State.CurrentWeapon.Spec.IsNone &&
+            _characterContainer.Character.State.DisableWeapon.Spec.IsNone)
         {
-            _character.ArmTargetAngle = -90;
-            if (_character.IsArmLookAtMode)
+            _characterContainer.Character.SetState(_characterContainer.Character.State.SetArmTargetAngle(-90));
+            if (_characterContainer.Character.State.IsArmLookAtMode)
             {
-                _character.ArmTargetAngleMode();
+                _characterContainer.ArmTargetAngleMode();
             }
         }
     }

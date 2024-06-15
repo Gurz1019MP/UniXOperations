@@ -48,18 +48,18 @@ public class Grenade : MonoBehaviour, IBullet
             {
                 //Debug.Log($"hit {hit.collider.gameObject.name}");
                 var distance = (hit.transform.position - transform.position).magnitude;
-                var characterState = hit.collider.gameObject.GetComponentInParent<CharacterContainer>();
+                var characterContainer = hit.collider.gameObject.GetComponentInParent<CharacterContainer>();
                 var articleState = hit.collider.gameObject.GetComponentInParent<ArticleContainer>();
 
-                if (characterState != null)
+                if (characterContainer != null)
                 {
-                    if (!Physics.Linecast(transform.position, characterState.transform.position, LayerMask.GetMask("Stage")))
+                    if (!Physics.Linecast(transform.position, characterContainer.transform.position, LayerMask.GetMask("Stage")))
                     {
                         var damage = (BlastRadius - distance) / BlastRadius * Damage;
                         Debug.Log($"Character Hit, distance : {distance}, damage : {damage}");
-                        var direction = (characterState.transform.position - transform.position).normalized;
-                        var bulletHitInfo = characterState.TakeDamage(damage, direction);
-                        characterState.KnockBack(direction, (damage / Damage) * 0.5f);
+                        var direction = (characterContainer.transform.position - transform.position).normalized;
+                        var bulletHitInfo = characterContainer.Character.TakeDamage(damage, direction);
+                        characterContainer.KnockBack(direction, (damage / Damage) * 0.5f);
 
                         _onHitSubject.OnNext(new Tuple<IBullet, BulletHitInfo>(this, bulletHitInfo));
                         _onHitSubject.OnCompleted();

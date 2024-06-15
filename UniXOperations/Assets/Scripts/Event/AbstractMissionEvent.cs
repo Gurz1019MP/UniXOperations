@@ -40,15 +40,15 @@ public abstract class AbstractMissionEvent
         _onShowMessageSubject.OnCompleted();
     }
 
-    protected IEnumerator WaitForPerson(CharacterContainer character, MissionEventContainer missionEventContainer, bool withCase)
+    protected IEnumerator WaitForPerson(Character character, MissionEventContainer missionEventContainer, bool withCase)
     {
         while (true)
         {
-            if ((character.transform.position - missionEventContainer.transform.position).magnitude < 1f)
+            if ((character.Position - missionEventContainer.transform.position).magnitude < 1f)
             {
                 if (withCase)
                 {
-                    if (character.Weapon1.Spec.IsCase || character.Weapon2.Spec.IsCase)
+                    if (character.State.Weapon1.Spec.IsCase || character.State.Weapon2.Spec.IsCase)
                     {
                         break;
                     }

@@ -13,6 +13,8 @@ public readonly struct VarialbeVisual
         _texture = texture;
     }
 
+    public VarialbeVisual(CharacterSpec characterSpec) : this(characterSpec.GetMesh(), CharacterSpec.GetMaterial(), characterSpec.GetTexture()) { }
+
     #endregion
 
     #region Method

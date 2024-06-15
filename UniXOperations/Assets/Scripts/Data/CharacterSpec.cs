@@ -5,61 +5,56 @@ using UnityEngine;
 using UnityEngine.Purchasing;
 
 [Serializable]
-public class CharacterSpec
+public struct CharacterSpec : IEquatable<CharacterSpec>
 {
+    static CharacterSpec()
+    {
+        _empty = new CharacterSpec(string.Empty, 0, 0f, 0, 0, string.Empty, string.Empty, true);
+    }
+ 
     private CharacterSpec(string name,
                          short aiSkill,
                          float hitpoint,
                          short weapon1,
                          short weapon2,
                          string upperModel,
-                         string texture)
+                         string texture,
+                         bool isEmpty = false)
     {
         this.Name = name;
-        this.AISkill = AISkill.GetAISkill(aiSkill);
+        this.AISkill = AISpec.GetAISkill(aiSkill);
         this.Hitpoint = hitpoint;
         this.Weapon1 = weapon1;
         this.Weapon2 = weapon2;
         this._upperModel = upperModel;
         this._texture = texture;
+        this._isEmpty = isEmpty;
     }
+
     public string Name { get; }
-    public AISkill AISkill { get; }
+    public AISpec AISkill { get; }
     public float Hitpoint { get; }
     public short Weapon1 { get; }
     public short Weapon2 { get; }
 
-    public static string GetName(CharacterKind kind)
+    public static CharacterSpec GetCharacterSpec(CharacterKind kind)
     {
-        return GetCharacterSpec(kind).Name;
+        try
+        {
+            return CharacterSpecMapper[kind];
+        }
+        catch
+        {
+            Debug.LogError($"CharacterSpecの読み込みで定義されていないIdを読み込みました(Id:{kind})");
+            return _empty;
+        }
     }
 
-    public static AISkill GetAISkill(CharacterKind kind)
+    public Mesh GetMesh()
     {
-        return GetCharacterSpec(kind).AISkill;
-    }
+        if (string.IsNullOrEmpty(_upperModel)) throw new ArgumentException("人情報に上半身メッシュ情報が登録されていません");
 
-    public static float GetHitpoint(CharacterKind kind)
-    {
-        return GetCharacterSpec(kind).Hitpoint;
-    }
-
-    public static short GetWeapon1(CharacterKind kind)
-    {
-        return GetCharacterSpec(kind).Weapon1;
-    }
-
-    public static short GetWeapon2(CharacterKind kind)
-    {
-        return GetCharacterSpec(kind).Weapon2;
-    }
-
-    public static Mesh GetMesh(CharacterKind kind)
-    {
-        string modelName = GetCharacterSpec(kind)._upperModel;
-        if (string.IsNullOrEmpty(modelName)) throw new ArgumentException("人情報に上半身メッシュ情報が登録されていません");
-
-        return AssetLoader.LoadAsset<Mesh>(string.Format(_characterMeshResourceFormat, modelName));
+        return AssetLoader.LoadAsset<Mesh>(string.Format(_characterMeshResourceFormat, _upperModel));
     }
 
     public static Material GetMaterial()
@@ -70,26 +65,26 @@ public class CharacterSpec
         return material;
     }
 
-    public static Texture2D GetTexture(CharacterKind kind)
+    public Texture2D GetTexture()
     {
-        string texture = GetCharacterSpec(kind)._texture;
-        if (string.IsNullOrEmpty(texture)) throw new ArgumentException("人情報に上半身テクスチャ情報が登録されていません");
+        if (string.IsNullOrEmpty(_texture)) throw new ArgumentException("人情報に上半身テクスチャ情報が登録されていません");
 
-        return AssetLoader.LoadAsset<Texture2D>(string.Format(_characterTextureResourceFormat, texture));
+        return AssetLoader.LoadAsset<Texture2D>(string.Format(_characterTextureResourceFormat, _texture));
     }
 
-    private static CharacterSpec GetCharacterSpec(CharacterKind kind)
-    {
-        try
-        {
-            return CharacterSpecMapper[kind];
-        }
-        catch
-        {
-            Debug.LogError($"CharacterSpecの読み込みで定義されていないIdを読み込みました(Id:{kind})");
-            return null;
-        }
-    }
+    #region IEquatable
+
+    public override bool Equals(object obj) => obj is CharacterSpec other && this.Equals(other);
+
+    public bool Equals(CharacterSpec p) => Name == p.Name && AISkill == p.AISkill && Hitpoint == p.Hitpoint && Weapon1 == p.Weapon1 && Weapon2 == p.Weapon2;
+
+    public override int GetHashCode() => (Name, AISkill, Hitpoint, Weapon1, Weapon2).GetHashCode();
+
+    public static bool operator ==(CharacterSpec lhs, CharacterSpec rhs) => lhs.Equals(rhs);
+
+    public static bool operator !=(CharacterSpec lhs, CharacterSpec rhs) => !(lhs == rhs);
+
+    #endregion
 
     private static readonly Dictionary<CharacterKind, CharacterSpec> CharacterSpecMapper = new Dictionary<CharacterKind, CharacterSpec>()
     {
@@ -144,6 +139,9 @@ public class CharacterSpec
 
     private static readonly string _characterTextureResourceFormat = "Assets/Models/Character/{0}.bmp";
 
-    private string _upperModel;
-    private string _texture;
+    private static readonly CharacterSpec _empty;
+
+    private readonly bool _isEmpty;
+    private readonly string _upperModel;
+    private readonly string _texture;
 }

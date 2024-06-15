@@ -15,7 +15,7 @@ public class GameCore
 {
     #region .ctor
 
-    public GameCore(GameObject stage, UnityAction<BlockData> loadBlockAction, MissionInformation missionInformation, MissionEventManager missionEventManager = null)
+    public GameCore(GameObject stage, UnityAction<BlockData> loadBlockAction, MissionInformation missionInformation, UnityAction<Character, CharacterInformations, Paths, Characters> CreateCharacterContainerAction, MissionEventManager missionEventManager = null)
     {
         _stage = stage;
 
@@ -31,9 +31,9 @@ public class GameCore
         CreateWeapons(pointDatas);
 
         EventMessages.Initialize(msgLoader.LoadEventMessage(missionInformation.PointPath));
-        missionEventManager?.InitEvents(new(_missionEvents.ToArray()), new(_characters.ToArray()));
+        missionEventManager?.InitEvents(new(_missionEvents.ToArray()), _characters);
 
-        new Characters(_characters.ToArray()).AppendAIInputter(characterInformations, new(_paths.ToArray()));
+        _characters.CreateCharacterContainer(CreateCharacterContainerAction, characterInformations, new Paths(_paths.ToArray()));
     }
 
     #endregion
@@ -88,23 +88,17 @@ public class GameCore
         return paths;
     }
 
-    private IReadOnlyList<CharacterContainer> CreateCharacters(IEnumerable<PointData> pointDatas, CharacterInformations characterInfomations, IReadOnlyList<PathContainer> paths)
+    private Characters CreateCharacters(IEnumerable<PointData> pointDatas, CharacterInformations characterInfomations, IReadOnlyList<PathContainer> paths)
     {
-        List<CharacterContainer> characters = new List<CharacterContainer>();
+        List<Character> characters = new List<Character>();
 
         foreach (PointData pointData in pointDatas)
         {
-            if (pointData.Data1 == 1)
-            {
-                characters.Add(PlaceCharacter(pointData, characterInfomations, paths, true));
-            }
-            else if (pointData.Data1 == 6)
-            {
-                characters.Add(PlaceCharacter(pointData, characterInfomations, paths, false));
-            }
+            CharacterInformation info = characterInfomations.Find(pointData.Data2);
+            characters.Add(new Character(pointData, info, pointData.Data1 == 1));
         }
 
-        return characters;
+        return new Characters(characters.ToArray());
     }
 
     private void CreateWeapons(IEnumerable<PointData> pointDatas)
@@ -137,17 +131,6 @@ public class GameCore
         return articles;
     }
 
-    private CharacterContainer PlaceCharacter(PointData pointData, CharacterInformations characterInfomations, IReadOnlyList<PathContainer> paths, bool equipWeapon2)
-    {
-        GameObject character = Object.Instantiate(MissionPrefabProvider.Instance.PrefabCharacter, pointData.Position * _stage.transform.localScale.x + Vector3.up * 0.6f, pointData.Rotation);
-        CharacterContainer state = character.GetComponent<CharacterContainer>();
-        CharacterInformation info = characterInfomations.Find(pointData.Data2);
-
-        state.InitCharacterState(pointData, info, equipWeapon2);
-
-        return state;
-    }
-
     private void PlaceWeapon(PointData pointData, bool isRandom)
     {
         GameObject instance = Object.Instantiate(MissionPrefabProvider.Instance.PrefabWeaponPickup, pointData.Position * _stage.transform.localScale.x, pointData.Rotation * Quaternion.Euler(0, 180, -90));
@@ -157,14 +140,15 @@ public class GameCore
         {
             short kind = Random.Range(0, 2) == 0 ? pointData.Data2 : pointData.Data3;
             WeaponSpec spec = WeaponSpec.GetWeaponSpec(kind);
-            weapon = new WeaponState(spec, spec.MagazineSize * 2, spec.MagazineSize);
+            weapon = new WeaponState(spec, spec.MagazineSize * 2, spec.MagazineSize, false, false, false, false);
         }
         else
         {
             WeaponSpec spec = WeaponSpec.GetWeaponSpec(pointData.Data2);
             weapon = new WeaponState(spec,
                                      pointData.Data3 - spec.MagazineSize,
-                                     pointData.Data3 > spec.MagazineSize ? spec.MagazineSize : pointData.Data3);
+                                     pointData.Data3 > spec.MagazineSize ? spec.MagazineSize : pointData.Data3,
+                                     false, false, false, false);
         }
 
         instance.GetComponent<WeaponPickup>().Initialize(weapon);
@@ -180,7 +164,7 @@ public class GameCore
         return state;
     }
 
-    private IReadOnlyList<MissionEventContainer> CreateMissionEvents(PointData[] pointDatas, IReadOnlyList<ArticleContainer> articles, IReadOnlyList<CharacterContainer> characters, IReadOnlyList<PathContainer> paths)
+    private IReadOnlyList<MissionEventContainer> CreateMissionEvents(PointData[] pointDatas, IReadOnlyList<ArticleContainer> articles, Characters characters, IReadOnlyList<PathContainer> paths)
     {
         List<MissionEventContainer> missionEvents = new List<MissionEventContainer>();
 
@@ -201,11 +185,11 @@ public class GameCore
             }
             else if (pointData.Data1 == 12)
             {
-                missionEventContainer.MissionEvent = new WaitForDeathEvent(new(characters.ToArray())) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEventContainer.MissionEvent = new WaitForDeathEvent(characters) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
             }
             else if (pointData.Data1 == 13)
             {
-                missionEventContainer.MissionEvent = new WaitForArrivalEvent(new(characters.ToArray())) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEventContainer.MissionEvent = new WaitForArrivalEvent(characters) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
             }
             else if (pointData.Data1 == 14)
             {
@@ -217,7 +201,7 @@ public class GameCore
             }
             else if (pointData.Data1 == 16)
             {
-                missionEventContainer.MissionEvent = new WaitForCaseEvent(new(characters.ToArray())) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEventContainer.MissionEvent = new WaitForCaseEvent(characters) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
             }
             else if (pointData.Data1 == 17)
             {
@@ -229,7 +213,7 @@ public class GameCore
             }
             else if (pointData.Data1 == 19)
             {
-                missionEventContainer.MissionEvent = new ChangeTeamEvent(new(characters.ToArray())) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEventContainer.MissionEvent = new ChangeTeamEvent(characters) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
             }
             else
             {
@@ -247,7 +231,7 @@ public class GameCore
 
     public readonly GameObject _stage;
     public readonly IReadOnlyList<PathContainer> _paths;
-    public readonly IReadOnlyList<CharacterContainer> _characters;
+    public readonly Characters _characters;
     public readonly IReadOnlyList<ArticleContainer> _articles;
     public readonly IReadOnlyList<MissionEventContainer> _missionEvents;
 }

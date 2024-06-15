@@ -46,7 +46,7 @@ public class PointData
             case 3:
                 return string.Format(_formatMapper[Data1], Data4, _pathKindMapper[Data2], Data3);
             case 4:
-                return string.Format(_formatMapper[Data1], Data4, CharacterSpec.GetName(new CharacterKind(Data2)), Data3);
+                return string.Format(_formatMapper[Data1], Data4, CharacterSpec.GetCharacterSpec(new CharacterKind(Data2)).Name, Data3);
             case 5:
                 return string.Format(_formatMapper[Data1], Data4, _objectKindMapper[Data2], Data3);
             case 7:

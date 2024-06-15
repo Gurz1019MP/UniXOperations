@@ -72,10 +72,10 @@ public class WeaponPickup : MonoBehaviour
             RaycastHit[] hits = Physics.SphereCastAll(transform.position, PickCheckRadius, transform.up, 0, LayerMask.GetMask("Character_Root"));
             if (hits.Any())
             {
-                var characterState = hits.First().collider.GetComponent<CharacterContainer>();
-                if (characterState != null)
+                var characterContainer = hits.First().collider.GetComponent<CharacterContainer>();
+                if (characterContainer != null)
                 {
-                    bool isPicked = characterState.PickupWeapon(Weapon);
+                    bool isPicked = characterContainer.PickupWeapon(Weapon);
                     if (isPicked)
                     {
                         Destroy(gameObject);

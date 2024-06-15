@@ -30,13 +30,13 @@ public class ZombieAttack : MonoBehaviour, IBullet
             foreach (RaycastHit hit in hits.OrderBy(h => h.distance))
             {
                 //Debug.Log($"hit {hit.collider.gameObject.name}");
-                var characterState = hit.collider.gameObject.GetComponentInParent<CharacterContainer>();
+                var characterContainer = hit.collider.gameObject.GetComponentInParent<CharacterContainer>();
                 var articleState = hit.collider.gameObject.GetComponentInParent<ArticleContainer>();
 
-                if (characterState != null && characterState.Team != Team)
+                if (characterContainer != null && characterContainer.Character.State.Team != Team)
                 {
                     // キャラクターに命中した場合
-                    var bulletHitInfo = characterState.TakeDamage(Damage, hit, transform.forward);
+                    var bulletHitInfo = characterContainer.Character.TakeBaseDamage(Damage, hit, transform.forward);
 
                     _onHitSubject.OnNext(new Tuple<IBullet, BulletHitInfo>(this, bulletHitInfo));
                     _onHitSubject.OnCompleted();

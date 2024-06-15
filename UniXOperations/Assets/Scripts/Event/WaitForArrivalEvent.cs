@@ -15,7 +15,7 @@ public class WaitForArrivalEvent : AbstractMissionEvent
         var missionEventContainer = missionEvents.GetMissionEventContainer(Id);
         var character = _characters.GetCharacter(Data);
 
-        Observable.FromCoroutine(() => WaitForPerson(character, missionEventContainer, false)).Subscribe().AddTo(character.gameObject);
+        Observable.FromCoroutine(() => WaitForPerson(character, missionEventContainer, false)).Subscribe();
     }
 
     private readonly Characters _characters;

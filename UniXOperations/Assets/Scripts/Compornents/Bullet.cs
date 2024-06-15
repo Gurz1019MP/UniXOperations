@@ -33,9 +33,9 @@ public class Bullet : MonoBehaviour, IBullet
         RaycastHit[] sounds = Physics.SphereCastAll(transform.position, Sound, Vector3.up, 0f, LayerMask.GetMask(ConstantsManager.LayerMask_Character_Root));
         if (sounds.Any())
         {
-            foreach (CharacterContainer characterState in sounds.Select(c => c.collider.gameObject.GetComponent<CharacterContainer>()).Where(cs => cs != null).Where(cs => cs.Team == Team))
+            foreach (CharacterContainer characterContainer in sounds.Select(c => c.collider.gameObject.GetComponent<CharacterContainer>()).Where(cs => cs != null).Where(cs => cs.Character.State.Team == Team))
             {
-                characterState.RaiseOnGunSound(characterState.transform.position - transform.position);
+                characterContainer.Character.RaiseOnGunSound(characterContainer.transform.position - transform.position);
                 //Debug.Log("Sound");
             }
         }
@@ -52,9 +52,9 @@ public class Bullet : MonoBehaviour, IBullet
         RaycastHit[] closes = Physics.SphereCastAll(_lastPosition, 0.3f, displacementSinceLastFrame.normalized, displacementSinceLastFrame.magnitude, LayerMask.GetMask("Character_Root"));
         if (closes.Any())
         {
-            foreach (CharacterContainer characterState in closes.Select(c => c.collider.gameObject.GetComponent<CharacterContainer>()).Where(cs => cs != null))
+            foreach (CharacterContainer characterContainer in closes.Select(c => c.collider.gameObject.GetComponent<CharacterContainer>()).Where(cs => cs != null))
             {
-                characterState.RaiseOnClose(displacementSinceLastFrame.normalized);
+                characterContainer.Character.RaiseOnClose(displacementSinceLastFrame.normalized);
             }
         }
 
@@ -64,10 +64,10 @@ public class Bullet : MonoBehaviour, IBullet
             foreach (RaycastHit hit in hits.OrderBy(h => h.distance))
             {
                 //Debug.Log($"hit {hit.collider.gameObject.name}");
-                var character = hit.collider.gameObject.GetComponentInParent<CharacterContainer>();
+                var characterContainer = hit.collider.gameObject.GetComponentInParent<CharacterContainer>();
                 var articleState = hit.collider.gameObject.GetComponentInParent<ArticleContainer>();
 
-                if (character == null && articleState == null)
+                if (characterContainer == null && articleState == null)
                 {
                     // ステージに命中した場合
                     Vector3 penetrationEndPoint = hit.point + displacementSinceLastFrame.normalized * Penetration;
@@ -85,11 +85,11 @@ public class Bullet : MonoBehaviour, IBullet
 
                     Instantiate(BulletHole, hit.point, Quaternion.FromToRotation(BulletHole.transform.up * -1f, hit.normal));
                 }
-                if (character != null && character.Team != Team)
+                if (characterContainer != null && characterContainer.Character.State.Team != Team)
                 {
                     // キャラクターに命中した場合
-                    var bulletHitInfo = character.TakeDamage(Damage, hit, displacementSinceLastFrame.normalized);
-                    character.KnockBack(_bulletMoveDelta.normalized, 0.1f);
+                    var bulletHitInfo = characterContainer.Character.TakeBaseDamage(Damage, hit, displacementSinceLastFrame.normalized);
+                    characterContainer.KnockBack(_bulletMoveDelta.normalized, 0.1f);
 
                     _onHitSubject.OnNext(new Tuple<IBullet, BulletHitInfo>(this, bulletHitInfo));
                     _onHitSubject.OnCompleted();

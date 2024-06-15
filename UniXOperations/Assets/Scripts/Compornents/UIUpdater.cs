@@ -24,7 +24,7 @@ public class UIUpdater : MonoBehaviour
     public UnityEngine.UI.Image StatePanel;
     public GameObject WeaponPreviewContainer;
 
-    private CharacterContainer CharacterState;
+    private CharacterContainer CharacterContainer;
     private GameObject WeaponPreviewModel;
     private IDisposable _onChangeZoomSubscriber;
     private IDisposable _onDamagedSubscriber;
@@ -37,32 +37,32 @@ public class UIUpdater : MonoBehaviour
 
     void Update()
     {
-        if (CharacterState != null)
+        if (CharacterContainer != null)
         {
-            CurrentWeaponName.text = (CharacterState.IsWeapon1 ? CharacterState.Weapon1 : CharacterState.Weapon2).Spec.WeaponName;
-            DisableWeaponName.text = (CharacterState.IsWeapon1 ? CharacterState.Weapon2 : CharacterState.Weapon1).Spec.WeaponName;
+            CurrentWeaponName.text = CharacterContainer.Character.State.CurrentWeapon.Spec.WeaponName;
+            DisableWeaponName.text = CharacterContainer.Character.State.DisableWeapon.Spec.WeaponName;
 
-            Ammo.text = CharacterState.CurrentWeaponState.Ammo.ToString();
-            MagazineAmmo.text = CharacterState.CurrentWeaponState.Magazine.ToString();
+            Ammo.text = CharacterContainer.Character.State.CurrentWeapon.Ammo.ToString();
+            MagazineAmmo.text = CharacterContainer.Character.State.CurrentWeapon.Magazine.ToString();
 
-            if (CharacterState.HitPoint > 90) { HP.text = "健康"; }
-            else if (CharacterState.HitPoint > 50) { HP.text = "軽傷"; }
-            else if (CharacterState.HitPoint > 0) { HP.text = "重症"; }
+            if (CharacterContainer.Character.State.HitPoint > 90) { HP.text = "健康"; }
+            else if (CharacterContainer.Character.State.HitPoint > 50) { HP.text = "軽傷"; }
+            else if (CharacterContainer.Character.State.HitPoint > 0) { HP.text = "重症"; }
             else { HP.text = "死亡"; }
 
-            StatePanel.color = HealthGradient.Evaluate(1 - Mathf.Clamp(CharacterState.HitPoint / 100, 0, 1));
+            StatePanel.color = HealthGradient.Evaluate(1 - Mathf.Clamp(CharacterContainer.Character.State.HitPoint / 100, 0, 1));
 
-            if (CharacterState.IsSwitching) { Overlay.text = "Switching..."; }
-            else if (CharacterState.IsReloading) { Overlay.text = "Reloading..."; }
+            if (CharacterContainer.Character.State.IsSwitching) { Overlay.text = "Switching..."; }
+            else if (CharacterContainer.Character.State.CurrentWeapon.IsReloading) { Overlay.text = "Reloading..."; }
             else { Overlay.text = string.Empty; }
 
-            var fpsCameraTransform = CharacterState.FpsCameraAnchor;
+            var fpsCameraTransform = CharacterContainer.FpsCameraAnchor;
             var frontPoint = RectTransformUtility.WorldToScreenPoint(
                 GameCameraController.Camera,
                 fpsCameraTransform.position + fpsCameraTransform.forward);
             var errorPoint = RectTransformUtility.WorldToScreenPoint(
                 GameCameraController.Camera,
-                fpsCameraTransform.position + Quaternion.AngleAxis(CharacterState.MaxShootingError, fpsCameraTransform.up) * fpsCameraTransform.forward);
+                fpsCameraTransform.position + Quaternion.AngleAxis(CharacterContainer.Character.MaxShootingError, fpsCameraTransform.up) * fpsCameraTransform.forward);
             var reticle = (errorPoint - frontPoint).x + 25;
 
             ReticleLeft.localPosition = new Vector3(-reticle, 0, 0);
@@ -90,21 +90,21 @@ public class UIUpdater : MonoBehaviour
         _onWeaponVisualUpdatedSubscriber?.Dispose();
         _onWeaponVisualUpdatedSubscriber = null;
 
-        CharacterState = newCharacter;
-        if (CharacterState != null)
+        CharacterContainer = newCharacter;
+        if (CharacterContainer != null)
         {
-            Debug.Log($"ChangeCharacter ID:{CharacterState.ID}");
+            Debug.Log($"ChangeCharacter ID:{CharacterContainer.Character.ID}");
 
-            _onChangeZoomSubscriber = CharacterState.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom()).AddTo(CharacterState);
-            _onDamagedSubscriber = CharacterState.OnDamaged.Subscribe(CharacterState_OnDamage).AddTo(CharacterState.gameObject);
-            _onWeaponVisualUpdatedSubscriber = CharacterState.OnWeaponVisualUpdated.Subscribe(CharacterState_OnWeaponVisualUpdated).AddTo(CharacterState.gameObject);
+            _onChangeZoomSubscriber = CharacterContainer.Character.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom()).AddTo(CharacterContainer);
+            _onDamagedSubscriber = CharacterContainer.Character.OnDamaged.Subscribe(CharacterState_OnDamage).AddTo(CharacterContainer.gameObject);
+            _onWeaponVisualUpdatedSubscriber = CharacterContainer.OnWeaponVisualUpdated.Subscribe(CharacterState_OnWeaponVisualUpdated).AddTo(CharacterContainer.gameObject);
             CharacterState_OnWeaponVisualUpdated(Unit.Default);
         }
     }
 
     private void CharacterState_OnChangeZoom()
     {
-        bool isZoom = CharacterState.IsZoom;
+        bool isZoom = CharacterContainer.Character.State.IsZoom;
 
         NormalSight.SetActive(!isZoom);
         ScopeSight.SetActive(isZoom);
@@ -123,9 +123,9 @@ public class UIUpdater : MonoBehaviour
     {
         Destroy(WeaponPreviewModel);
 
-        if (!CharacterState.CurrentWeaponState.Spec.CanGetResourceWeaponModel) return;
+        if (!CharacterContainer.Character.State.CurrentWeapon.Spec.CanGetResourceWeaponModel) return;
 
-        var model = AssetLoader.LoadAsset<GameObject>(CharacterState.CurrentWeaponState.Spec.GetResourceWeaponModel);
+        var model = AssetLoader.LoadAsset<GameObject>(CharacterContainer.Character.State.CurrentWeapon.Spec.GetResourceWeaponModel);
         if (model == null)
         {
             Debug.Log($"ピックアップに使用する武器モデルが見つかりませんでした");
