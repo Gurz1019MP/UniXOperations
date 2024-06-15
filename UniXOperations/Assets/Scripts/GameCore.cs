@@ -27,11 +27,11 @@ public class GameCore
         _paths = CreatePaths(pointDatas);
         _characters = CreateCharacters(pointDatas, characterInformations);
         _articles = CreateArticles(pointDatas);
-        _missionEvents = CreateMissionEvents(pointDatas, _articles, _characters, _paths);
+        _eventMessages = new EventMessages(msgLoader.LoadEventMessage(missionInformation.PointPath));
+        _missionEvents = CreateMissionEvents(pointDatas, _articles, _characters, _paths, _eventMessages);
         CreateWeapons(pointDatas);
 
-        EventMessages.Initialize(msgLoader.LoadEventMessage(missionInformation.PointPath));
-        missionEventManager?.InitEvents(new(_missionEvents.ToArray()), _characters);
+        missionEventManager?.InitEvents(_missionEvents, _characters);
 
         _characters.CreateCharacterContainer(CreateCharacterContainerAction, characterInformations, _paths);
     }
@@ -109,115 +109,99 @@ public class GameCore
         }
     }
 
-    private IReadOnlyList<ArticleContainer> CreateArticles(IEnumerable<PointData> pointDatas)
+    private Articles CreateArticles(IEnumerable<PointData> pointDatas)
     {
-        List<ArticleContainer> articles = new List<ArticleContainer>();
+        List<Article> articles = new List<Article>();
 
         foreach (PointData pointData in pointDatas)
         {
             if (pointData.Data1 == 5)
             {
-                articles.Add(PlaceArticle(pointData));
+                articles.Add(new Article(pointData));
             }
         }
 
-        return articles;
+        return new Articles(articles.ToArray());
     }
 
     private void PlaceWeapon(PointData pointData, bool isRandom)
     {
         GameObject instance = Object.Instantiate(MissionPrefabProvider.Instance.PrefabWeaponPickup, pointData.Position * _stage.transform.localScale.x, pointData.Rotation * Quaternion.Euler(0, 180, -90));
-        WeaponState weapon;
+        Weapon weapon;
 
         if (isRandom)
         {
             short kind = Random.Range(0, 2) == 0 ? pointData.Data2 : pointData.Data3;
             WeaponSpec spec = WeaponSpec.GetWeaponSpec(kind);
-            weapon = new WeaponState(spec, spec.MagazineSize * 2, spec.MagazineSize, false, false, false, false);
+            weapon = new Weapon(spec, WeaponState.EquipWeapon(spec));
         }
         else
         {
             WeaponSpec spec = WeaponSpec.GetWeaponSpec(pointData.Data2);
-            weapon = new WeaponState(spec,
-                                     pointData.Data3 - spec.MagazineSize,
-                                     pointData.Data3 > spec.MagazineSize ? spec.MagazineSize : pointData.Data3,
-                                     false, false, false, false);
+            weapon = new Weapon(spec, new WeaponState(pointData.Data3 - spec.MagazineSize, pointData.Data3 > spec.MagazineSize ? spec.MagazineSize : pointData.Data3));
         }
 
         instance.GetComponent<WeaponPickup>().Initialize(weapon);
     }
 
-    private ArticleContainer PlaceArticle(PointData pointData)
+    private MissionEvents CreateMissionEvents(PointData[] pointDatas, Articles articles, Characters characters, Paths paths, EventMessages eventMessages)
     {
-        GameObject instance = Object.Instantiate(MissionPrefabProvider.Instance.PrefabArticle, pointData.Position * _stage.transform.localScale.x, pointData.Rotation);
-        ArticleContainer state = instance.GetComponent<ArticleContainer>();
-
-        state.InitArticleSpec(pointData);
-
-        return state;
-    }
-
-    private IReadOnlyList<MissionEventContainer> CreateMissionEvents(PointData[] pointDatas, IReadOnlyList<ArticleContainer> articles, Characters characters, Paths paths)
-    {
-        List<MissionEventContainer> missionEvents = new List<MissionEventContainer>();
+        List<AbstractMissionEvent> missionEvents = new List<AbstractMissionEvent>();
 
         foreach (PointData pointData in pointDatas.Where(p => p.Data1 >= 10 && p.Data1 <= 19))
         {
-            GameObject instance = Object.Instantiate(MissionPrefabProvider.Instance.PrefabMissionEventContainer, pointData.Position * _stage.transform.localScale.x, pointData.Rotation, _stage.transform);
-            var missionEventContainer = instance.GetComponent<MissionEventContainer>();
-
-            instance.GetComponentInChildren<PointVisualizer>(true).PointData = pointData;
+            AbstractMissionEvent missionEvent = null;
 
             if (pointData.Data1 == 10)
             {
-                missionEventContainer.MissionEvent = new ObjectiveComplateEvent() { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEvent = new ObjectiveComplateEvent(pointData);
             }
             else if (pointData.Data1 == 11)
             {
-                missionEventContainer.MissionEvent = new MissionFailureEvent() { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEvent = new MissionFailureEvent(pointData);
             }
             else if (pointData.Data1 == 12)
             {
-                missionEventContainer.MissionEvent = new WaitForDeathEvent(characters) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEvent = new WaitForDeathEvent(pointData, characters);
             }
             else if (pointData.Data1 == 13)
             {
-                missionEventContainer.MissionEvent = new WaitForArrivalEvent(characters) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEvent = new WaitForArrivalEvent(pointData, characters);
             }
             else if (pointData.Data1 == 14)
             {
-                missionEventContainer.MissionEvent = new ChangeToWalkingEvent(paths) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEvent = new ChangeToWalkingEvent(pointData, paths);
             }
             else if (pointData.Data1 == 15)
             {
-                missionEventContainer.MissionEvent = new WaitForDestroyEvent(new(articles.ToArray())) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEvent = new WaitForDestroyEvent(pointData, articles);
             }
             else if (pointData.Data1 == 16)
             {
-                missionEventContainer.MissionEvent = new WaitForCaseEvent(characters) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEvent = new WaitForCaseEvent(pointData, characters);
             }
             else if (pointData.Data1 == 17)
             {
-                missionEventContainer.MissionEvent = new WaitForTimerEvent() { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEvent = new WaitForTimerEvent(pointData);
             }
             else if (pointData.Data1 == 18)
             {
-                missionEventContainer.MissionEvent = new ShowMessageEvent() { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEvent = new ShowMessageEvent(pointData, eventMessages);
             }
             else if (pointData.Data1 == 19)
             {
-                missionEventContainer.MissionEvent = new ChangeTeamEvent(characters) { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEvent = new ChangeTeamEvent(pointData, characters);
             }
             else
             {
-                missionEventContainer.MissionEvent = new DummyEvent() { Id = pointData.Data4, Data = pointData.Data2, Next = pointData.Data3 };
+                missionEvent = new DummyEvent(pointData);
             }
 
 
-            missionEvents.Add(missionEventContainer);
+            missionEvents.Add(missionEvent);
         }
 
-        return missionEvents;
+        return new MissionEvents(missionEvents.ToArray());
     }
 
     #endregion
@@ -225,6 +209,7 @@ public class GameCore
     public readonly GameObject _stage;
     public readonly Paths _paths;
     public readonly Characters _characters;
-    public readonly IReadOnlyList<ArticleContainer> _articles;
-    public readonly IReadOnlyList<MissionEventContainer> _missionEvents;
+    public readonly Articles _articles;
+    public readonly MissionEvents _missionEvents;
+    public readonly EventMessages _eventMessages;
 }

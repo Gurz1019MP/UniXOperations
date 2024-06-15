@@ -2,7 +2,7 @@
 
 public class ChangeToWalkingEvent : AbstractMissionEvent
 {
-    public ChangeToWalkingEvent(Paths paths)
+    public ChangeToWalkingEvent(PointData pointData, Paths paths) : base(pointData)
     {
         _paths = paths;
     }

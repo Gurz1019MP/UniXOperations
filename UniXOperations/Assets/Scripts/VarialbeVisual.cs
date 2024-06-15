@@ -15,6 +15,8 @@ public readonly struct VarialbeVisual
 
     public VarialbeVisual(CharacterSpec characterSpec) : this(characterSpec.GetMesh(), CharacterSpec.GetMaterial(), characterSpec.GetTexture()) { }
 
+    public VarialbeVisual(ArticleSpec articleSpec) : this(articleSpec.Mesh, articleSpec.Material, articleSpec.Texture2D) { }
+
     #endregion
 
     #region Method

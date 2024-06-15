@@ -42,8 +42,8 @@ public class UIUpdater : MonoBehaviour
             CurrentWeaponName.text = CharacterContainer.Character.State.CurrentWeapon.Spec.WeaponName;
             DisableWeaponName.text = CharacterContainer.Character.State.DisableWeapon.Spec.WeaponName;
 
-            Ammo.text = CharacterContainer.Character.State.CurrentWeapon.Ammo.ToString();
-            MagazineAmmo.text = CharacterContainer.Character.State.CurrentWeapon.Magazine.ToString();
+            Ammo.text = CharacterContainer.Character.State.CurrentWeapon.State.Ammo.ToString();
+            MagazineAmmo.text = CharacterContainer.Character.State.CurrentWeapon.State.Magazine.ToString();
 
             if (CharacterContainer.Character.State.HitPoint > 90) { HP.text = "健康"; }
             else if (CharacterContainer.Character.State.HitPoint > 50) { HP.text = "軽傷"; }

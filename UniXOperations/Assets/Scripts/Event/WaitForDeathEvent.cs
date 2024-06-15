@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class WaitForDeathEvent : AbstractMissionEvent
 {
-    public WaitForDeathEvent(Characters characters)
+    public WaitForDeathEvent(PointData pointData, Characters characters) : base(pointData)
     {
         _characters = characters;
     }

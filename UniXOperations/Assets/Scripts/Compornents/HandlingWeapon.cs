@@ -9,14 +9,14 @@ public class HandlingWeapon : MonoBehaviour
 
     private GameObject _model;
 
-    public void Initialize(WeaponState weaponState)
+    public void Initialize(Weapon weapon)
     {
-        if (weaponState.Spec.CanGetResourceWeaponModel)
+        if (weapon.Spec.CanGetResourceWeaponModel)
         {
-            HandlingPosition.transform.localPosition = weaponState.Spec.HandlingPosition;
-            MuzzlePosition.transform.localPosition = weaponState.Spec.MuzzlePosition;
+            HandlingPosition.transform.localPosition = weapon.Spec.HandlingPosition;
+            MuzzlePosition.transform.localPosition = weapon.Spec.MuzzlePosition;
 
-            var model = AssetLoader.LoadAsset<GameObject>(weaponState.Spec.GetResourceWeaponModel);
+            var model = AssetLoader.LoadAsset<GameObject>(weapon.Spec.GetResourceWeaponModel);
             if (model == null)
             {
                 Debug.Log("ピックアップに使用する武器モデルが見つかりませんでした");

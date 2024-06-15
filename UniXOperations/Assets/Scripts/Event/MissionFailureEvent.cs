@@ -2,6 +2,8 @@
 
 public class MissionFailureEvent : AbstractMissionEvent
 {
+    public MissionFailureEvent(PointData pointData) : base(pointData) { }
+
     public override void BeginEvent(MissionEvents missionEvents)
     {
         Debug.Log($"イベントチェーン変更 [{Id}]任務失敗");

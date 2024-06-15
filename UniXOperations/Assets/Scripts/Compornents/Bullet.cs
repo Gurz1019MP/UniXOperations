@@ -65,9 +65,9 @@ public class Bullet : MonoBehaviour, IBullet
             {
                 //Debug.Log($"hit {hit.collider.gameObject.name}");
                 var characterContainer = hit.collider.gameObject.GetComponentInParent<CharacterContainer>();
-                var articleState = hit.collider.gameObject.GetComponentInParent<ArticleContainer>();
+                var articleContainer = hit.collider.gameObject.GetComponentInParent<ArticleContainer>();
 
-                if (characterContainer == null && articleState == null)
+                if (characterContainer == null && articleContainer == null)
                 {
                     // ステージに命中した場合
                     Vector3 penetrationEndPoint = hit.point + displacementSinceLastFrame.normalized * Penetration;
@@ -96,9 +96,9 @@ public class Bullet : MonoBehaviour, IBullet
 
                     Destroy(gameObject);
                 }
-                else if (articleState != null)
+                else if (articleContainer != null)
                 {
-                    articleState.Article.TakeDamage(Damage);
+                    articleContainer.Article.State.TakeDamage(Damage);
                 }
             }
         }

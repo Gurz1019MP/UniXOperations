@@ -11,8 +11,8 @@ public readonly struct CharacterState
 {
     private CharacterState(float hitPoint, 
                           Team team, 
-                          WeaponState weapon1, 
-                          WeaponState weapon2, 
+                          Weapon weapon1, 
+                          Weapon weapon2, 
                           bool isWeapon1, 
                           bool isSwitching, 
                           float armTargetAngle,
@@ -40,9 +40,9 @@ public readonly struct CharacterState
 
     public Team Team { get; }
 
-    public WeaponState Weapon1 { get; }
+    public Weapon Weapon1 { get; }
 
-    public WeaponState Weapon2 { get; }
+    public Weapon Weapon2 { get; }
 
     public bool IsSwitching { get; }
 
@@ -60,16 +60,19 @@ public readonly struct CharacterState
 
     public bool IsDied => HitPoint <= 0;
 
-    public WeaponState CurrentWeapon => _isWeapon1 ? Weapon1 : Weapon2;
+    public Weapon CurrentWeapon => _isWeapon1 ? Weapon1 : Weapon2;
 
-    public WeaponState DisableWeapon => _isWeapon1 ? Weapon2 : Weapon1;
+    public Weapon DisableWeapon => _isWeapon1 ? Weapon2 : Weapon1;
 
     public static CharacterState Initialize(CharacterInformation info, bool equipWeapon2)
     {
+        CharacterSpec characterSpec = CharacterSpec.GetCharacterSpec(info.Kind);
+        WeaponSpec weapon1 = WeaponSpec.GetWeaponSpec(characterSpec.Weapon1);
+        WeaponSpec weapon2 = WeaponSpec.GetWeaponSpec(characterSpec.Weapon2);
         return new CharacterState(CharacterSpec.GetCharacterSpec(info.Kind).Hitpoint,
                                   info.Team,
-                                  WeaponState.EquipWeapon(WeaponSpec.GetWeaponSpec(CharacterSpec.GetCharacterSpec(info.Kind).Weapon1)),
-                                  equipWeapon2 ? WeaponState.EquipWeapon(WeaponSpec.GetWeaponSpec(CharacterSpec.GetCharacterSpec(info.Kind).Weapon2)) : WeaponState.None,
+                                  new Weapon(weapon1, WeaponState.EquipWeapon(weapon1)),
+                                  equipWeapon2 ? new Weapon(weapon2, WeaponState.EquipWeapon(weapon2)) : new Weapon(WeaponSpec.None, new WeaponState(0, 0)),
                                   false,
                                   false,
                                   0,
@@ -115,15 +118,15 @@ public readonly struct CharacterState
         return new CharacterState(HitPoint, Team, Weapon1, Weapon2, _isWeapon1, IsSwitching, ArmTargetAngle, mode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
     }
 
-    public CharacterState SetCurrentWeaponState(WeaponState weaponState)
+    public CharacterState SetCurrentWeapon(Weapon weapon)
     {
         if (_isWeapon1)
         {
-            return new CharacterState(HitPoint, Team, weaponState, Weapon2, _isWeapon1, IsSwitching, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
+            return new CharacterState(HitPoint, Team, weapon, Weapon2, _isWeapon1, IsSwitching, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
         }
         else
         {
-            return new CharacterState(HitPoint, Team, Weapon1, weaponState, _isWeapon1, IsSwitching, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
+            return new CharacterState(HitPoint, Team, Weapon1, weapon, _isWeapon1, IsSwitching, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
         }
     }
 

@@ -185,14 +185,14 @@ public class Character
 
             Loading();
 
-            if (State.CurrentWeapon.HasAmmo)
+            if (State.CurrentWeapon.State.HasAmmo)
             {
                 Reloading();
             }
 
-            if (State.CurrentWeapon.OutOfAmmo)
+            if (State.CurrentWeapon.State.OutOfAmmo)
             {
-                SetState(State.SetCurrentWeaponState(WeaponState.None));
+                State.CurrentWeapon.LostWeapon();
                 _onWeaponVisualUpdatedSubject.OnNext(Unit.Default);
             }
         }
@@ -217,7 +217,7 @@ public class Character
 
             if (!State.CurrentWeapon.Spec.FullAuto)
             {
-                SetState(State.SetCurrentWeaponState(State.CurrentWeapon.SetIsSemiFired(true)));
+                State.CurrentWeapon.SetFlags(false, true, false, false);
             }
         }
     }
@@ -252,17 +252,17 @@ public class Character
             {
                 _onDropWeaponSubject.OnNext(Unit.Default);
             }
-            else if (State.CurrentWeapon.HasAmmo && InputterState.Inputter.ReloadEnter && !State.CurrentWeapon.IsReloading && !State.IsSwitching)
+            else if (State.CurrentWeapon.State.HasAmmo && InputterState.Inputter.ReloadEnter && !State.CurrentWeapon.IsReloading && !State.IsSwitching)
             {
                 Reloading();
             }
             else if (State.CurrentWeapon.Spec.CanChangeFireMode && InputterState.Inputter.FireModeEnter)
             {
-                SetState(State.SetCurrentWeaponState(State.CurrentWeapon.ChangeFireMode()));
+                State.CurrentWeapon.ChangeFireMode();
             }
             else
             {
-                SetState(State.SetCurrentWeaponState(State.CurrentWeapon.SetIsTriggerPulled(InputterState.Inputter.Fire)));
+                State.CurrentWeapon.SetFlags(false, false, InputterState.Inputter.Fire, false);
             }
 
             if (State.CurrentWeapon.Spec.HasScope && InputterState.Inputter.ZoomEnter)
@@ -273,7 +273,7 @@ public class Character
 
         if (IsZombie)
         {
-            SetState(State.SetCurrentWeaponState(State.CurrentWeapon.SetIsTriggerPulled(InputterState.Inputter.Fire)));
+            State.CurrentWeapon.SetFlags(false, false, InputterState.Inputter.Fire, false);
         }
 
         if (InputterState.Inputter.SwitchWeaponEnter && !State.CurrentWeapon.IsReloading && !State.IsSwitching)
@@ -290,14 +290,14 @@ public class Character
         }
         else
         {
-            if (State.CurrentWeapon.IsTriggerPulled && !State.CurrentWeapon.IsLoading && !State.CurrentWeapon.OutOfMagazine && !State.CurrentWeapon.IsReloading && !State.CurrentWeapon.IsSemiFired)
+            if (State.CurrentWeapon.IsTriggerPulled && !State.CurrentWeapon.IsLoading && !State.CurrentWeapon.State.OutOfMagazine && !State.CurrentWeapon.IsReloading && !State.CurrentWeapon.IsSemiFired)
             {
                 Fire();
             }
 
             if (State.CurrentWeapon.IsSemiFired && !State.CurrentWeapon.IsTriggerPulled)
             {
-                SetState(State.SetCurrentWeaponState(State.CurrentWeapon.SetIsSemiFired(false)));
+                State.CurrentWeapon.SetFlags(false, false, false, false);
             }
 
             SetState(State.SetAccuracyRatio(Mathf.Clamp(State.AccuracyRatio - 1f * Time.deltaTime, State.CurrentWeapon.Spec.GetCorrectedMinAccuracyRatio(State.IsZoom), 1)));
@@ -311,9 +311,10 @@ public class Character
 
     private IEnumerator Load()
     {
-        SetState(State.SetCurrentWeaponState(State.CurrentWeapon.StartLoading()));
+        State.CurrentWeapon.SetFlags(false, false, true, false);
+        State.CurrentWeapon.State.Load();
         yield return State.CurrentWeapon.Spec.WaitForFireInterval;
-        SetState(State.SetCurrentWeaponState(State.CurrentWeapon.SetIsLoading(false)));
+        State.CurrentWeapon.SetFlags(false, false, false, false);
 
         _loadingSubscriber.Dispose();
         _loadingSubscriber = null;
@@ -321,9 +322,10 @@ public class Character
 
     private IEnumerator Reload()
     {
-        SetState(State.SetCurrentWeaponState(State.CurrentWeapon.SetIsReloading(true)));
+        State.CurrentWeapon.SetFlags(false, false, false, true);
         yield return State.CurrentWeapon.Spec.WaitForReloadTime;
-        SetState(State.SetCurrentWeaponState(State.CurrentWeapon.EndReloading()));
+        State.CurrentWeapon.Reload();
+        State.CurrentWeapon.SetFlags(false, false, false, false);
 
         _reloadingSubscriber.Dispose();
         _reloadingSubscriber = null;
@@ -331,9 +333,9 @@ public class Character
 
     private IEnumerator ZombieLoad()
     {
-        SetState(State.SetCurrentWeaponState(State.CurrentWeapon.SetIsLoading(true)));
+        State.CurrentWeapon.SetFlags(false, false, true, false);
         yield return new WaitForSeconds(1);
-        SetState(State.SetCurrentWeaponState(State.CurrentWeapon.SetIsLoading(false)));
+        State.CurrentWeapon.SetFlags(false, false, false, false);
 
         _zombieLoadingSubscriber.Dispose();
         _zombieLoadingSubscriber = null;

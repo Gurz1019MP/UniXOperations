@@ -49,7 +49,7 @@ public class Grenade : MonoBehaviour, IBullet
                 //Debug.Log($"hit {hit.collider.gameObject.name}");
                 var distance = (hit.transform.position - transform.position).magnitude;
                 var characterContainer = hit.collider.gameObject.GetComponentInParent<CharacterContainer>();
-                var articleState = hit.collider.gameObject.GetComponentInParent<ArticleContainer>();
+                var articleContainer = hit.collider.gameObject.GetComponentInParent<ArticleContainer>();
 
                 if (characterContainer != null)
                 {
@@ -65,13 +65,13 @@ public class Grenade : MonoBehaviour, IBullet
                         _onHitSubject.OnCompleted();
                     }
                 }
-                else if (articleState != null)
+                else if (articleContainer != null)
                 {
-                    if (!Physics.Linecast(transform.position, articleState.transform.position, LayerMask.GetMask("Stage")))
+                    if (!Physics.Linecast(transform.position, articleContainer.transform.position, LayerMask.GetMask("Stage")))
                     {
                         var damage = (BlastRadius - distance) / BlastRadius * Damage;
                         Debug.Log($"Article Hit, distance : {distance}, damage : {damage}");
-                        articleState.Article.TakeDamage(damage);
+                        articleContainer.Article.State.TakeDamage(damage);
                     }
                 }
             }

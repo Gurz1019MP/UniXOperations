@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class WaitForArrivalEvent : AbstractMissionEvent
 {
-    public WaitForArrivalEvent(Characters characters)
+    public WaitForArrivalEvent(PointData pointData, Characters characters) : base(pointData)
     {
         _characters = characters;
     }
@@ -12,10 +12,10 @@ public class WaitForArrivalEvent : AbstractMissionEvent
     public override void BeginEvent(MissionEvents missionEvents)
     {
         Debug.Log($"イベントチェーン変更 [{Id}]到着待ち");
-        var missionEventContainer = missionEvents.GetMissionEventContainer(Id);
+        var missionEvent = missionEvents.GetMissionEvent(Id);
         var character = _characters.GetCharacter(Data);
 
-        Observable.FromCoroutine(() => WaitForPerson(character, missionEventContainer, false)).Subscribe();
+        Observable.FromCoroutine(() => WaitForPerson(character, missionEvent.Position, false)).Subscribe();
     }
 
     private readonly Characters _characters;

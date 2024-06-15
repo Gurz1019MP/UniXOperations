@@ -1,32 +1,23 @@
-﻿using System;
-using UniRx;
+﻿using UnityEngine;
 
-public class ArticleState
+public readonly struct ArticleState
 {
-    public ArticleState(short id,
-                        ArticleSpec spec)
+    public ArticleState(float hitPoint)
     {
-        Id = id;
-        _spec = spec;
-        _hitPoint = _spec.HitPoint;
+        _hitPoint = hitPoint;
     }
 
-    public short Id { get; }
-    public IObservable<Unit> OnDestroyed => _onDestroyedSubject;
+    public bool IsDestroyed => _hitPoint <= 0;
 
-    public void TakeDamage(float baseDamage)
+    public static ArticleState Initialize(ArticleSpec spec)
     {
-        _hitPoint -= baseDamage;
-        if (_hitPoint < 0)
-        {
-            _onDestroyedSubject.OnNext(Unit.Default);
-            _onDestroyedSubject.OnCompleted();
-        }
-
-        // Debug.Log($"Article TakeDamage (Id:{ID}, HitPoint:{HitPoint})");
+        return new ArticleState(spec.HitPoint);
     }
 
-    private float _hitPoint;
-    private readonly ArticleSpec _spec;
-    private readonly Subject<Unit> _onDestroyedSubject = new Subject<Unit>();
+    public readonly ArticleState TakeDamage(float baseDamage)
+    {
+        return new ArticleState(Mathf.Clamp(_hitPoint - baseDamage, 0, _hitPoint));
+    }
+
+    private readonly float _hitPoint;
 }

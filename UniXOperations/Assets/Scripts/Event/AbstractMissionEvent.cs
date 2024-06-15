@@ -5,11 +5,18 @@ using UnityEngine;
 
 public abstract class AbstractMissionEvent
 {
-    public short Id { get; set; }
+    public AbstractMissionEvent(PointData pointData)
+    {
+        _pointData = pointData;
+    }
 
-    public short Data { get; set; }
+    public short Id => _pointData.Data4;
 
-    public short Next { get; set; }
+    public short Data => _pointData.Data2;
+
+    public short Next => _pointData.Data3;
+
+    public Vector3 Position => _pointData.Position;
 
     public IObservable<Unit> OnChangeEventChain => _onChangeEventChainSubject;
 
@@ -40,11 +47,11 @@ public abstract class AbstractMissionEvent
         _onShowMessageSubject.OnCompleted();
     }
 
-    protected IEnumerator WaitForPerson(Character character, MissionEventContainer missionEventContainer, bool withCase)
+    protected IEnumerator WaitForPerson(Character character, Vector3 eventPosition, bool withCase)
     {
         while (true)
         {
-            if ((character.Position - missionEventContainer.transform.position).magnitude < 1f)
+            if ((character.Position - eventPosition).magnitude < 1f)
             {
                 if (withCase)
                 {
@@ -65,6 +72,7 @@ public abstract class AbstractMissionEvent
         RaiseChangeEventChain();
     }
 
+    private PointData _pointData;
     private Subject<Unit> _onChangeEventChainSubject = new Subject<Unit>();
     private Subject<bool> _onEndEventChainSubject = new Subject<bool>();
     private Subject<string> _onShowMessageSubject = new Subject<string>();

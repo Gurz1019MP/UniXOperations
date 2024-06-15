@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class WeaponPickup : MonoBehaviour
 {
-    public WeaponState Weapon;
+    public Weapon Weapon;
     public float Gravity;
     public LayerMask Mask;
     public float UnlockPickupDelay = 0.5f;
@@ -38,7 +38,7 @@ public class WeaponPickup : MonoBehaviour
     /// <summary>
     /// 初期化
     /// </summary>
-    public void Initialize(WeaponState weapon)
+    public void Initialize(Weapon weapon)
     {
         Weapon = weapon;
 

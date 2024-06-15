@@ -280,11 +280,11 @@ public class CharacterContainer : MonoBehaviour
     /// 武器を拾う
     /// </summary>
     /// <param name="pickedWeapon">拾った武器</param>
-    public bool PickupWeapon(WeaponState pickedWeapon)
+    public bool PickupWeapon(Weapon pickedWeapon)
     {
         if (Character.State.CurrentWeapon.Spec.IsNone && !Character.IsZombie)
         {
-            Character.SetState(Character.State.SetCurrentWeaponState(pickedWeapon));
+            Character.SetState(Character.State.SetCurrentWeapon(pickedWeapon));
             UpdateWeaponVisual();
             return true;
         }
@@ -297,7 +297,7 @@ public class CharacterContainer : MonoBehaviour
     /// <summary>
     /// 武器を捨てる
     /// </summary>
-    private void DropWeapon(WeaponState weapon, bool isRandom = false)
+    private void DropWeapon(Weapon weapon, bool isRandom = false)
     {
         if (Character.State.IsZoom) Character.ChangeZoom();
 
@@ -322,10 +322,10 @@ public class CharacterContainer : MonoBehaviour
 
         // ピックアップを初期化
         var pickup = instance.GetComponent<WeaponPickup>();
-        pickup.Initialize(weapon);
+        pickup.Initialize(new Weapon(weapon.Spec, weapon.State));
 
         // WeaponStateを変更
-        Character.SetState(Character.State.SetCurrentWeaponState(WeaponState.None));
+        weapon.LostWeapon();
         UpdateWeaponVisual();
     }
 
@@ -334,8 +334,6 @@ public class CharacterContainer : MonoBehaviour
     /// </summary>
     private void UpdateWeaponVisual() 
     {
-        Character.SetState(Character.State.SetCurrentWeaponState(Character.State.CurrentWeapon.StandBy()));
-
         // モデルの更新
         string holdingName = $"Arm_{Character.State.CurrentWeapon.Spec.Holding}";
         foreach (var arm in _arms)

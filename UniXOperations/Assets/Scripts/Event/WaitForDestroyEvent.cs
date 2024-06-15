@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class WaitForDestroyEvent : AbstractMissionEvent
 {
-    public WaitForDestroyEvent(Articles articles)
+    public WaitForDestroyEvent(PointData pointData, Articles articles) : base(pointData)
     {
         _articles = articles;
     }

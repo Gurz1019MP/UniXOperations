@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class WaitForTimerEvent : AbstractMissionEvent
 {
+    public WaitForTimerEvent(PointData pointData) : base(pointData) { }
+
     public override void BeginEvent(MissionEvents missionEvents)
     {
         Debug.Log($"イベントチェーン変更 [{Id}]時間待ち");

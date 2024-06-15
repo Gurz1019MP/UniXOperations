@@ -6,26 +6,26 @@ using UniRx;
 [RequireComponent(typeof(Fallable))]
 public class ArticleContainer : MonoBehaviour
 {
+    public Article Article { get; private set; }
+
     public IObservable<ArticleContainer> OnDestroyed => _onDestroyedSubject;
 
-    public ArticleState Article => _article;
-
-    public void InitArticleSpec(PointData pointData)
+    public void InitArticleSpec(Article article)
     {
+        Article = article;
+
         transform.position += new Vector3(0, 0.1f, 0);
         var fallable = GetComponent<Fallable>();
-        _spec = ArticleSpec.GetArticleSpec(pointData.Data2);
 
         // パラメータの設定
-        _article = new ArticleState(pointData.Data4, _spec);
         _broken = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabBrokenArticle);
-        fallable.IsGround = pointData.Data3 == 0;
-        fallable.BottomTransfrom.localPosition = _spec.BottomPosition;
+        fallable.IsGround = Article.IsGroundFlag;
+        fallable.BottomTransfrom.localPosition = Article.Spec.BottomPosition;
 
         // モデルの読み込み
-        if (!string.IsNullOrEmpty(_spec.ModelName) && !string.IsNullOrEmpty(_spec.Texture))
+        if (!string.IsNullOrEmpty(Article.Spec.ModelName) && !string.IsNullOrEmpty(Article.Spec.Texture))
         {
-            _visual = new VarialbeVisual(_spec.Mesh, _spec.Material, _spec.Texture2D);
+            _visual = new VarialbeVisual(Article.Spec);
             _visual.ChangeMesh(gameObject);
             _visual.ChangeMaterial(gameObject);
         }
@@ -38,7 +38,7 @@ public class ArticleContainer : MonoBehaviour
         {
             var instance = Instantiate(_broken, transform.position, transform.rotation);
             var broken = instance.GetComponent<BrokenArticle>();
-            broken.Initialize(_visual, _spec.JumpPower);
+            broken.Initialize(_visual, Article.Spec.JumpPower);
 
             _onDestroyedSubject.OnNext(this);
             _onDestroyedSubject.OnCompleted();
@@ -47,8 +47,6 @@ public class ArticleContainer : MonoBehaviour
     }
 
     [SerializeField]
-    private ArticleState _article;
-    private ArticleSpec _spec;
     private GameObject _broken;
     private VarialbeVisual _visual;
     private Subject<ArticleContainer> _onDestroyedSubject = new Subject<ArticleContainer>();

@@ -3,20 +3,15 @@ using System.Linq;
 
 public class MissionEvents
 {
-    public MissionEvents(MissionEventContainer[] missionEvents)
+    public MissionEvents(AbstractMissionEvent[] missionEvents)
     {
         _missionEvents = missionEvents;
     }
 
-    public MissionEventContainer GetMissionEventContainer(short id)
-    {
-        return _missionEvents.Single(me => me.MissionEvent.Id == id);
-    }
-
     public AbstractMissionEvent GetMissionEvent(short id)
     {
-        return GetMissionEventContainer(id).MissionEvent;
+        return _missionEvents.Single(me => me.Id == id);
     }
 
-    private MissionEventContainer[] _missionEvents;
+    private AbstractMissionEvent[] _missionEvents;
 }

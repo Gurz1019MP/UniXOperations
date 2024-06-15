@@ -132,19 +132,19 @@ public class GameCoreManager : GameCoreContainer
     private void NextWeapon(InputAction.CallbackContext obj)
     {
         Character character = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
-        character.SetState(character.State.SetCurrentWeaponState(character.State.CurrentWeapon.NextWeapon()));
+        character.State.CurrentWeapon.NextWeapon();
     }
 
     private void PreWeapon(InputAction.CallbackContext obj)
     {
         Character character = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
-        character.SetState(character.State.SetCurrentWeaponState(character.State.CurrentWeapon.PreWeapon()));
+        character.State.CurrentWeapon.PreWeapon();
     }
 
     private void AddAmmo(InputAction.CallbackContext obj)
     {
         Character character = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
-        character.SetState(character.State.SetCurrentWeaponState(character.State.CurrentWeapon.AddAmmo()));
+        character.State.CurrentWeapon.AddAmmo();
     }
 
     private void ResultLoaded(Scene scene, LoadSceneMode loadSceneMode)

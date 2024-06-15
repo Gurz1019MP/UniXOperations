@@ -4,7 +4,7 @@ using UniRx;
 
 public class Articles
 {
-    public Articles(ArticleContainer[] articles)
+    public Articles(Article[] articles)
     {
         _articles = articles.ToList();
 
@@ -12,15 +12,15 @@ public class Articles
         {
             article.OnDestroyed.Subscribe(sender =>
             {
-                _articles.Remove(sender);
-            }).AddTo(article.gameObject);
+                _articles.Remove(article);
+            });
         }
     }
 
     public bool NoOneId(short id)
     {
-        return !_articles.Where(a => a.Article.Id == id).Any();
+        return !_articles.Where(a => a.Id == id).Any();
     }
 
-    private List<ArticleContainer> _articles;
+    private List<Article> _articles;
 }

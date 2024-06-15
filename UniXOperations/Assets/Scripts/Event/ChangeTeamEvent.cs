@@ -6,7 +6,7 @@ using UnityEngine.Events;
 
 public class ChangeTeamEvent : AbstractMissionEvent
 {
-    public ChangeTeamEvent(Characters characters)
+    public ChangeTeamEvent(PointData pointData, Characters characters) : base(pointData)
     {
         _characters = characters;
     }

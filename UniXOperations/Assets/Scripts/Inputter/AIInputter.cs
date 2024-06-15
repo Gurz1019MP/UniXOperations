@@ -695,13 +695,13 @@ public class AIInputter : InputterBase
         Shooting();
 
         if (!_characterContainer.Character.State.CurrentWeapon.Spec.IsNone &&
-            _characterContainer.Character.State.CurrentWeapon.OutOfMagazine)
+            _characterContainer.Character.State.CurrentWeapon.State.OutOfMagazine)
         {
-            if (_characterContainer.Character.State.CurrentWeapon.OutOfAmmo)
+            if (_characterContainer.Character.State.CurrentWeapon.State.OutOfAmmo)
             {
                 Observable.FromCoroutine(_ => PushOne(v => DropWeapon = v)).Subscribe().AddTo(_characterContainer);
             }
-            else if (_characterContainer.Character.State.CurrentWeapon.HasAmmo &&
+            else if (_characterContainer.Character.State.CurrentWeapon.State.HasAmmo &&
                      !_characterContainer.Character.State.CurrentWeapon.IsReloading)
             {
                 Observable.FromCoroutine(_ => PushOne(v => Reload = v)).Subscribe().AddTo(_characterContainer);
