@@ -22,6 +22,11 @@ public class Article
 
     public IObservable<Article> OnDestroyed => _onDestroyedSubject;
 
+    public void TakeDamage(float damage)
+    {
+        SetState(State.TakeDamage(damage));
+    }
+
     public void SetState(ArticleState state)
     {
         State = state;

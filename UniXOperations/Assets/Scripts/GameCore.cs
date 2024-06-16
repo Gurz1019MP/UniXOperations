@@ -1,44 +1,42 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UniRx;
-using UnityEngine.InputSystem;
+using Unity.Profiling;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Events;
-using static UnityEngine.ParticleSystem;
-using UnityEngine.TextCore.Text;
 using XOPS;
 
 public class GameCore
 {
     #region .ctor
 
-    public GameCore(GameObject stage, UnityAction<BlockData> loadBlockAction, MissionInformation missionInformation, UnityAction<Character, CharacterInformations, Paths, Characters> CreateCharacterContainerAction, MissionEventManager missionEventManager = null)
+    public GameCore(MissionInformation missionInformation)
     {
-        _stage = stage;
-
-        loadBlockAction.Invoke(bd1loader.LoadBD1(missionInformation.BlockPath));
+        BlockData = bd1loader.LoadBD1(missionInformation.BlockPath);
 
         PointData[] pointDatas = pd1loader.LoadPD1(missionInformation.PointPath);
 
-        var characterInformations = CreateCharacterInfomations(pointDatas);
-        _paths = CreatePaths(pointDatas);
-        _characters = CreateCharacters(pointDatas, characterInformations);
-        _articles = CreateArticles(pointDatas);
-        _eventMessages = new EventMessages(msgLoader.LoadEventMessage(missionInformation.PointPath));
-        _missionEvents = CreateMissionEvents(pointDatas, _articles, _characters, _paths, _eventMessages);
-        CreateWeapons(pointDatas);
-
-        missionEventManager?.InitEvents(_missionEvents, _characters);
-
-        _characters.CreateCharacterContainer(CreateCharacterContainerAction, characterInformations, _paths);
+        CharacterInformations = CreateCharacterInfomations(pointDatas);
+        Paths = CreatePaths(pointDatas);
+        Characters = CreateCharacters(pointDatas, CharacterInformations);
+        Articles = CreateArticles(pointDatas);
+        EventMessages = new EventMessages(msgLoader.LoadEventMessage(missionInformation.PointPath));
+        MissionEvents = CreateMissionEvents(pointDatas, Articles, Characters, Paths, EventMessages);
+        Weapons = CreateWeapons(pointDatas);
     }
 
     #endregion
 
     #region Property
+
+    public BlockData BlockData { get; }
+    public CharacterInformations CharacterInformations { get; }
+    public Paths Paths { get; }
+    public Characters Characters { get; }
+    public Articles Articles { get; }
+    public MissionEvents MissionEvents { get; }
+    public EventMessages EventMessages { get; }
+    public Weapons Weapons { get; }
 
     #endregion
 
@@ -76,6 +74,10 @@ public class GameCore
             {
                 paths.Add(new RandomPath(pointData));
             }
+            else
+            {
+                paths.Add(NoPath.Instance);
+            }
         }
 
         return new Paths(paths.ToArray());
@@ -88,25 +90,36 @@ public class GameCore
         foreach (PointData pointData in pointDatas)
         {
             CharacterInformation info = characterInfomations.Find(pointData.Data2);
-            characters.Add(new Character(pointData, info, pointData.Data1 == 1));
+            if (pointData.Data1 == 1)
+            {
+                characters.Add(new Character(pointData, info, true));
+            }
+            else if (pointData.Data1 == 6)
+            {
+                characters.Add(new Character(pointData, info, false));
+            }
         }
 
         return new Characters(characters.ToArray());
     }
 
-    private void CreateWeapons(IEnumerable<PointData> pointDatas)
+    private Weapons CreateWeapons(IEnumerable<PointData> pointDatas)
     {
+        List<Weapon> weapons = new List<Weapon>();
+
         foreach (PointData pointData in pointDatas)
         {
             if (pointData.Data1 == 2)
             {
-                PlaceWeapon(pointData, false);
+                weapons.Add(PlaceWeapon(pointData, false));
             }
             else if (pointData.Data1 == 7)
             {
-                PlaceWeapon(pointData, true);
+                weapons.Add(PlaceWeapon(pointData, true));
             }
         }
+
+        return new Weapons(weapons.ToArray());
     }
 
     private Articles CreateArticles(IEnumerable<PointData> pointDatas)
@@ -124,24 +137,23 @@ public class GameCore
         return new Articles(articles.ToArray());
     }
 
-    private void PlaceWeapon(PointData pointData, bool isRandom)
+    private Weapon PlaceWeapon(PointData pointData, bool isRandom)
     {
-        GameObject instance = Object.Instantiate(MissionPrefabProvider.Instance.PrefabWeaponPickup, pointData.Position * _stage.transform.localScale.x, pointData.Rotation * Quaternion.Euler(0, 180, -90));
         Weapon weapon;
 
         if (isRandom)
         {
             short kind = Random.Range(0, 2) == 0 ? pointData.Data2 : pointData.Data3;
             WeaponSpec spec = WeaponSpec.GetWeaponSpec(kind);
-            weapon = new Weapon(spec, WeaponState.EquipWeapon(spec));
+            weapon = new Weapon(pointData, spec, WeaponState.EquipWeapon(spec));
         }
         else
         {
             WeaponSpec spec = WeaponSpec.GetWeaponSpec(pointData.Data2);
-            weapon = new Weapon(spec, new WeaponState(pointData.Data3 - spec.MagazineSize, pointData.Data3 > spec.MagazineSize ? spec.MagazineSize : pointData.Data3));
+            weapon = new Weapon(pointData, spec, new WeaponState(pointData.Data3 - spec.MagazineSize, pointData.Data3 > spec.MagazineSize ? spec.MagazineSize : pointData.Data3));
         }
 
-        instance.GetComponent<WeaponPickup>().Initialize(weapon);
+        return weapon;
     }
 
     private MissionEvents CreateMissionEvents(PointData[] pointDatas, Articles articles, Characters characters, Paths paths, EventMessages eventMessages)
@@ -205,11 +217,4 @@ public class GameCore
     }
 
     #endregion
-
-    public readonly GameObject _stage;
-    public readonly Paths _paths;
-    public readonly Characters _characters;
-    public readonly Articles _articles;
-    public readonly MissionEvents _missionEvents;
-    public readonly EventMessages _eventMessages;
 }

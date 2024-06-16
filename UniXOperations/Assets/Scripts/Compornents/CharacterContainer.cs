@@ -59,11 +59,14 @@ public class CharacterContainer : MonoBehaviour
         {
             _visual = new VarialbeVisual(Character.Spec);
 
+            GameObject up = UpBase.transform.GetChildrens().First(c => c.CompareTag(ConstantsManager.TagUp)).gameObject;
+            GameObject leg = LegBase.transform.GetChildrens().First(c => c.CompareTag(ConstantsManager.TagLeg)).gameObject;
+
             // メッシュの読み込み
-            _visual.ChangeMesh(UpBase.gameObject);
+            _visual.ChangeMesh(up);
 
             // マテリアルの読み込み
-            foreach (var target in _arms.Concat(new GameObject[] { UpBase.gameObject, LegBase.gameObject }))
+            foreach (var target in _arms.Concat(new GameObject[] { up, leg }))
             {
                 _visual.ChangeMaterial(target);
             }

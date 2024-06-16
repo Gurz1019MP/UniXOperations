@@ -33,8 +33,8 @@ public class GameCoreManager : GameCoreContainer
             }
         }
 
-        var playerCharacter = _gameCore._characters.Player;
-        _currentCharacterIndex = _gameCore._characters.GetIndex(playerCharacter);
+        var playerCharacter = _gameCore.Characters.Player;
+        _currentCharacterIndex = _gameCore.Characters.GetIndex(playerCharacter);
         playerCharacter.SetInputterState(playerCharacter.InputterState.EnterPlayer(new PlayerInputter(gameObject, _playerInputter)));
 
         _playerInputter.Menu.Exit.performed += (_) => TransitionToMenu();
@@ -62,7 +62,7 @@ public class GameCoreManager : GameCoreContainer
         if (_playerInputter.Player.MoveUp.IsPressed())
         {
             Debug.Log("MoveUp");
-            Character character = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
+            Character character = _gameCore.Characters.GetCharacterAtIndex(_currentCharacterIndex);
             CharacterContainer characterContainer = FindCharacterContainer(character);
             characterContainer.transform.position = new Vector3(characterContainer.transform.position.x, characterContainer.transform.position.y + 10 * Time.deltaTime, characterContainer.transform.position.z);
             character.SetState(character.State.SetMoveDelta(Vector3.zero));
@@ -78,7 +78,7 @@ public class GameCoreManager : GameCoreContainer
     public void TransitionToResult(bool result)
     {
         _playerInputter.Dispose();
-        _result = new ResultInformation(result, DateTime.Now - _startTime, _gameCore._characters.PlayerCombatStatistics);
+        _result = new ResultInformation(result, DateTime.Now - _startTime, _gameCore.Characters.PlayerCombatStatistics);
 
         Cursor.lockState = CursorLockMode.None;
         SceneManager.sceneLoaded += ResultLoaded;
@@ -103,13 +103,13 @@ public class GameCoreManager : GameCoreContainer
 
     private void NextCharacter(InputAction.CallbackContext obj)
     {
-        Character oldCharacter = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
+        Character oldCharacter = _gameCore.Characters.GetCharacterAtIndex(_currentCharacterIndex);
 
         oldCharacter.SetInputterState(oldCharacter.InputterState.LeavePlayer());
 
-        _currentCharacterIndex = _gameCore._characters.NextCharacter(_currentCharacterIndex);
+        _currentCharacterIndex = _gameCore.Characters.NextCharacter(_currentCharacterIndex);
 
-        Character newCharacter = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
+        Character newCharacter = _gameCore.Characters.GetCharacterAtIndex(_currentCharacterIndex);
 
         newCharacter.SetInputterState(newCharacter.InputterState.EnterPlayer(new PlayerInputter(gameObject, _playerInputter)));
         OnChangeCharacter(newCharacter, _playerInputter);
@@ -117,13 +117,13 @@ public class GameCoreManager : GameCoreContainer
 
     private void PreCharacter(InputAction.CallbackContext obj)
     {
-        Character oldCharacter = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
+        Character oldCharacter = _gameCore.Characters.GetCharacterAtIndex(_currentCharacterIndex);
 
         oldCharacter.SetInputterState(oldCharacter.InputterState.LeavePlayer());
 
-        _currentCharacterIndex = _gameCore._characters.PreCharacter(_currentCharacterIndex);
+        _currentCharacterIndex = _gameCore.Characters.PreCharacter(_currentCharacterIndex);
 
-        Character newCharacter = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
+        Character newCharacter = _gameCore.Characters.GetCharacterAtIndex(_currentCharacterIndex);
 
         newCharacter.SetInputterState(newCharacter.InputterState.EnterPlayer(new PlayerInputter(gameObject, _playerInputter)));
         OnChangeCharacter(newCharacter, _playerInputter);
@@ -131,19 +131,19 @@ public class GameCoreManager : GameCoreContainer
 
     private void NextWeapon(InputAction.CallbackContext obj)
     {
-        Character character = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
+        Character character = _gameCore.Characters.GetCharacterAtIndex(_currentCharacterIndex);
         character.State.CurrentWeapon.NextWeapon();
     }
 
     private void PreWeapon(InputAction.CallbackContext obj)
     {
-        Character character = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
+        Character character = _gameCore.Characters.GetCharacterAtIndex(_currentCharacterIndex);
         character.State.CurrentWeapon.PreWeapon();
     }
 
     private void AddAmmo(InputAction.CallbackContext obj)
     {
-        Character character = _gameCore._characters.GetCharacterAtIndex(_currentCharacterIndex);
+        Character character = _gameCore.Characters.GetCharacterAtIndex(_currentCharacterIndex);
         character.State.CurrentWeapon.AddAmmo();
     }
 

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Events;
+using UnityEngine.TextCore.Text;
 
 public class Paths
 {
@@ -17,9 +19,24 @@ public class Paths
         _paths = IdentifiedPath.ToDictionary(ip => ip.Id);
     }
 
+    public void ForEach(UnityAction<AbstractPath> action)
+    {
+        foreach (AbstractPath path in _paths.Values)
+        {
+            action(path);
+        }
+    }
+
     public AbstractPath GetPath(short id)
     {
-        return _paths[id];
+        if (_paths.ContainsKey(id))
+        {
+            return _paths[id];
+        }
+        else
+        {
+            return NoPath.Instance;
+        }
     }
 
     private Dictionary<short, AbstractPath> _paths;

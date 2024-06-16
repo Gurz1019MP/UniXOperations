@@ -32,7 +32,7 @@ public class UIUpdater : MonoBehaviour
 
     void Start()
     {
-        GameCameraController.Character.Subscribe(newCharacter => ChangeCharacter(newCharacter)).AddTo(GameCameraController);
+        GameCameraController.CharacterContainer.Subscribe(newCharacter => ChangeCharacter(newCharacter)).AddTo(GameCameraController);
     }
 
     void Update()

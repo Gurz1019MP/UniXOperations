@@ -4,19 +4,15 @@ using UniRx;
 
 public class MissionEventChain
 {
-    public MissionEventChain(MissionEvents missionEvents)
-    {
-        _missionEvents = missionEvents;
-    }
-
     public AbstractMissionEvent CurrentEvent { get; private set; }
 
     public IObservable<bool> OnEndEventChain => _onEndEventChainSubject;
 
     public IObservable<string> OnShowMessage => _onShowMessage;
 
-    public MissionEventChain(AbstractMissionEvent firstEvent)
+    public MissionEventChain(AbstractMissionEvent firstEvent, MissionEvents missionEvents)
     {
+        _missionEvents = missionEvents;
         ChangeEventChain(firstEvent);
     }
 

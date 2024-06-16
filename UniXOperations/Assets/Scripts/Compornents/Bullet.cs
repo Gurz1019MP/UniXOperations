@@ -98,7 +98,7 @@ public class Bullet : MonoBehaviour, IBullet
                 }
                 else if (articleContainer != null)
                 {
-                    articleContainer.Article.State.TakeDamage(Damage);
+                    articleContainer.Article.TakeDamage(Damage);
                 }
             }
         }

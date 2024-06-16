@@ -17,17 +17,17 @@ public class MissionEventManager : MonoBehaviour
         EventMessage.text = string.Empty;
 
         var chain1Container = missionEvents.GetMissionEvent(-100);
-        _eventChain1 = new MissionEventChain(chain1Container);
+        _eventChain1 = new MissionEventChain(chain1Container, missionEvents);
         _eventChain1.OnEndEventChain.Subscribe(OnEndEventChain).AddTo(gameObject);
         _eventChain1.OnShowMessage.Subscribe(OnShowMessage).AddTo(gameObject);
 
         var chain2Container = missionEvents.GetMissionEvent(-110);
-        _eventChain2 = new MissionEventChain(chain2Container);
+        _eventChain2 = new MissionEventChain(chain2Container, missionEvents);
         _eventChain2.OnEndEventChain.Subscribe(OnEndEventChain).AddTo(gameObject);
         _eventChain2.OnShowMessage.Subscribe(OnShowMessage).AddTo(gameObject);
 
         var chain3Container = missionEvents.GetMissionEvent(-120);
-        _eventChain3 = new MissionEventChain(chain3Container);
+        _eventChain3 = new MissionEventChain(chain3Container, missionEvents);
         _eventChain3.OnEndEventChain.Subscribe(OnEndEventChain).AddTo(gameObject);
         _eventChain3.OnShowMessage.Subscribe(OnShowMessage).AddTo(gameObject);
     }

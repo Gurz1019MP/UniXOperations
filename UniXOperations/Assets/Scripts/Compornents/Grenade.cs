@@ -71,7 +71,7 @@ public class Grenade : MonoBehaviour, IBullet
                     {
                         var damage = (BlastRadius - distance) / BlastRadius * Damage;
                         Debug.Log($"Article Hit, distance : {distance}, damage : {damage}");
-                        articleContainer.Article.State.TakeDamage(damage);
+                        articleContainer.Article.TakeDamage(damage);
                     }
                 }
             }

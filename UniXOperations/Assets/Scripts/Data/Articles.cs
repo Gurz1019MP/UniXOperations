@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UniRx;
+using UnityEngine.Events;
+using UnityEngine.TextCore.Text;
 
 public class Articles
 {
@@ -14,6 +16,14 @@ public class Articles
             {
                 _articles.Remove(article);
             });
+        }
+    }
+
+    public void ForEach(UnityAction<Article> action)
+    {
+        foreach (Article article in _articles)
+        {
+            action(article);
         }
     }
 

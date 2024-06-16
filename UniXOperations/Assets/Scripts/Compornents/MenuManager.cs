@@ -10,7 +10,7 @@ public class MenuManager : GameCoreContainer
         {
             base.Initialize(DefaultMissionInformation.GetDemo());
 
-            var playerCharacter = _gameCore._characters.Player;
+            var playerCharacter = _gameCore.Characters.Player;
             var playerCharacterContainer = FindCharacterContainer(playerCharacter);
             if (_menuCamera != null && playerCharacterContainer != null)
             {

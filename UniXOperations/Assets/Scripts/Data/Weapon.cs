@@ -1,10 +1,19 @@
 ﻿public class Weapon
 {
+    public Weapon(PointData pointData, WeaponSpec spec, WeaponState state)
+    {
+        PointData = pointData;
+        Spec = spec;
+        State = state;
+    }
+
     public Weapon(WeaponSpec spec, WeaponState state)
     {
         Spec = spec;
         State = state;
     }
+
+    public PointData PointData { get; }
 
     public WeaponSpec Spec { get; private set; }
 
@@ -54,11 +63,23 @@
         SetState(State.Reload(Spec));
     }
 
-    public void SetFlags(bool isTriggerPulled, bool isSemiFired, bool isLoading, bool isReloading)
+    public void SetIsTriggerPulled(bool isTriggerPulled)
     {
         IsTriggerPulled = isTriggerPulled;
+    }
+
+    public void SetIsSemiFired(bool isSemiFired)
+    {
         IsSemiFired = isSemiFired;
+    }
+
+    public void SetIsLoading(bool isLoading)
+    {
         IsLoading = isLoading;
+    }
+
+    public void SetIsReloading(bool isReloading)
+    {
         IsReloading = isReloading;
     }
 }

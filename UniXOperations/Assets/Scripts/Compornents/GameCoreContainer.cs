@@ -1,40 +1,81 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using UniRx;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 using XOPS;
 
-[RequireComponent(typeof(MeshFilter))]
-[RequireComponent(typeof(MeshCollider))]
-[RequireComponent(typeof(MeshRenderer))]
 public class GameCoreContainer : MonoBehaviour
 {
+    public GameObject stage;
+
     public virtual void Initialize(MissionInformation missionInformation)
     {
-        _gameCore = new GameCore(gameObject, LoadBlock, missionInformation, CreateCharacterContainer, GetComponent<MissionEventManager>());
+        if (stage == null) throw new InvalidOperationException("Stageが設定されていません");
+
+        _gameCore = new GameCore(missionInformation);
+        LoadBlock(_gameCore.BlockData);
+        _gameCore.Paths.ForEach(ScalePaths);
+        _gameCore.Characters.ForEach(CreateCharacterContainer);
+        _gameCore.Articles.ForEach(CreateArticleContainer);
+        _gameCore.MissionEvents.ForEach(ScaleMissionEvent);
+        _gameCore.Weapons.ForEach(CreateWeaponPickup);
+
+        MissionEventManager missionEventManager = GetComponent<MissionEventManager>();
+        if (missionEventManager != null)
+        {
+            missionEventManager.InitEvents(_gameCore.MissionEvents, _gameCore.Characters);
+        }
     }
 
     private void LoadBlock(BlockData blockData)
     {
-        gameObject.GetComponent<MeshFilter>().mesh = blockData.Mesh;
-        gameObject.GetComponent<MeshCollider>().sharedMesh = blockData.Mesh;
-        gameObject.GetComponent<MeshRenderer>().materials = blockData.Materials;
+        stage.GetComponent<MeshFilter>().mesh = blockData.Mesh;
+        stage.GetComponent<MeshCollider>().sharedMesh = blockData.Mesh;
+        stage.GetComponent<MeshRenderer>().materials = blockData.Materials;
     }
 
-    private void CreateCharacterContainer(Character character, CharacterInformations characterInformations, Paths paths, Characters characters)
+    private void ScalePaths(AbstractPath abstractPath)
     {
-        GameObject prefab = Instantiate(MissionPrefabProvider.Instance.PrefabCharacter, character.PointData.Position * transform.localScale.x + Vector3.up * 0.6f, character.PointData.Rotation);
-        CharacterContainer container = prefab.GetComponent<CharacterContainer>();
-        CharacterInformation info = characterInformations.Find(character.PointData.Data2);
+        abstractPath.ScalePosition(stage.transform.localScale.x);
+    }
 
-        AIInputter inputter = new AIInputter(container, CharacterSpec.GetCharacterSpec(info.Kind).AISkill, paths, characters, FindCharacterContainer);
-        character.SetInputterState(new InputterState(null, inputter));
+    private void CreateCharacterContainer(Character character)
+    {
+        GameObject prefab = Instantiate(MissionPrefabProvider.Instance.PrefabCharacter, character.PointData.Position * stage.transform.localScale.x + Vector3.up * 0.6f, character.PointData.Rotation);
+        CharacterContainer container = prefab.GetComponent<CharacterContainer>();
+        CharacterInformation info = _gameCore.CharacterInformations.Find(character.PointData.Data2);
 
         container.InitCharacterContainer(character);
 
+        AIInputter inputter = new AIInputter(container, CharacterSpec.GetCharacterSpec(info.Kind).AISkill, _gameCore.Paths, _gameCore.Characters, FindCharacterContainer);
+        character.SetInputterState(new InputterState(null, inputter));
+
         _characterContainers.Add(container);
+    }
+
+    private void CreateArticleContainer(Article article)
+    {
+        GameObject prefab = Instantiate(MissionPrefabProvider.Instance.PrefabArticle, article.PointData.Position * stage.transform.localScale.x + Vector3.up * 0.6f, article.PointData.Rotation);
+        ArticleContainer container = prefab.GetComponent<ArticleContainer>();
+
+        container.InitArticleSpec(article);
+
+        _articleContainers.Add(container);
+    }
+
+    private void ScaleMissionEvent(AbstractMissionEvent missionEvent)
+    {
+        missionEvent.ScalePosition(stage.transform.localScale.x);
+    }
+
+    private void CreateWeaponPickup(Weapon weapon)
+    {
+        GameObject prefab = Instantiate(MissionPrefabProvider.Instance.PrefabWeaponPickup, weapon.PointData.Position * stage.transform.localScale.x + Vector3.up * 0.6f, weapon.PointData.Rotation * Quaternion.Euler(0, 180, -90));
+        WeaponPickup container = prefab.GetComponent<WeaponPickup>();
+
+        container.Initialize(weapon);
     }
 
     protected CharacterContainer FindCharacterContainer(Character character)
@@ -44,4 +85,5 @@ public class GameCoreContainer : MonoBehaviour
 
     protected GameCore _gameCore;
     private List<CharacterContainer> _characterContainers = new List<CharacterContainer>();
+    private List<ArticleContainer> _articleContainers = new List<ArticleContainer>();
 }

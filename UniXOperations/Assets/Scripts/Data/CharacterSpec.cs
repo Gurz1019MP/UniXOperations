@@ -9,7 +9,7 @@ public struct CharacterSpec : IEquatable<CharacterSpec>
 {
     static CharacterSpec()
     {
-        _empty = new CharacterSpec(string.Empty, 0, 0f, 0, 0, string.Empty, string.Empty, true);
+        _empty = new CharacterSpec(string.Empty, 1, 0f, 0, 0, string.Empty, string.Empty, true);
     }
  
     private CharacterSpec(string name,

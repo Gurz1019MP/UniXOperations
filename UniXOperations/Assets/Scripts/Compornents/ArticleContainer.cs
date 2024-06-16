@@ -8,8 +8,6 @@ public class ArticleContainer : MonoBehaviour
 {
     public Article Article { get; private set; }
 
-    public IObservable<ArticleContainer> OnDestroyed => _onDestroyedSubject;
-
     public void InitArticleSpec(Article article)
     {
         Article = article;
@@ -40,8 +38,6 @@ public class ArticleContainer : MonoBehaviour
             var broken = instance.GetComponent<BrokenArticle>();
             broken.Initialize(_visual, Article.Spec.JumpPower);
 
-            _onDestroyedSubject.OnNext(this);
-            _onDestroyedSubject.OnCompleted();
             Destroy(gameObject);
         }).AddTo(gameObject);
     }
@@ -49,5 +45,4 @@ public class ArticleContainer : MonoBehaviour
     [SerializeField]
     private GameObject _broken;
     private VarialbeVisual _visual;
-    private Subject<ArticleContainer> _onDestroyedSubject = new Subject<ArticleContainer>();
 }

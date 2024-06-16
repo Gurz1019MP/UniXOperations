@@ -52,11 +52,11 @@ public class Characters
 
     #region Method
 
-    public void CreateCharacterContainer(UnityAction<Character, CharacterInformations, Paths, Characters> CreateCharacterContainerAction, CharacterInformations characterInformations, Paths paths)
+    public void ForEach(UnityAction<Character> action)
     {
         foreach (Character character in _characters)
         {
-            CreateCharacterContainerAction(character, characterInformations, paths, this);
+            action(character);
         }
     }
 

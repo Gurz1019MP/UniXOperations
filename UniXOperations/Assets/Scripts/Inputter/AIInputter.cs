@@ -27,9 +27,9 @@ public class AIInputter : InputterBase
         _characterContainer.Character.OnClosed.Subscribe(DangerDetected).AddTo(characterContainer.gameObject);
         _characterContainer.Character.OnGunSound.Subscribe(DangerDetected).AddTo(characterContainer.gameObject);
 
-        Observable.FromCoroutine(JumpChance).Subscribe();
-        Observable.FromCoroutine(DetectEnemy).Subscribe();
-        Observable.FromCoroutine(UpdateTargetPosition).Subscribe();
+        Observable.FromCoroutine(JumpChance).Subscribe().AddTo(characterContainer);
+        Observable.FromCoroutine(DetectEnemy).Subscribe().AddTo(characterContainer);
+        Observable.FromCoroutine(UpdateTargetPosition).Subscribe().AddTo(characterContainer);
 
         EnterState(StateMode);
     }
@@ -338,7 +338,9 @@ public class AIInputter : InputterBase
         {
             // 検出範囲内の敵をすべて抽出
             // 遅延実行のためパフォーマンスへの影響はそれほど高くないことを期待
-            var allEnemies = _characters.Enemies(_characterContainer.Character.State.Team).Select(c => _findCharacterContainerFunction(c));
+            var allEnemies = _characters.Enemies(_characterContainer.Character.State.Team)
+                                        .Where(c => _findCharacterContainerFunction(c) != null)
+                                        .Select(c => _findCharacterContainerFunction(c));
 
             var detectedEnemies = allEnemies
                 .Where(c =>

@@ -29,7 +29,7 @@ public class GameCameraController : MonoBehaviour
     [ReadOnly]
     public bool isShowArm = false;
 
-    public ReactiveProperty<CharacterContainer> Character { get; private set; } = new ReactiveProperty<CharacterContainer>();
+    public ReactiveProperty<CharacterContainer> CharacterContainer { get; private set; } = new ReactiveProperty<CharacterContainer>();
     public InputSystem PlayerInputter { get; set; }
 
     private GameObject _diedCamera;
@@ -67,7 +67,7 @@ public class GameCameraController : MonoBehaviour
         if (newCharacter == null) return;
 
         // 変更前のキャラクターの設定
-        if (Character.Value != null)
+        if (CharacterContainer.Value != null)
         {
             _onChangeZoomSubscriber.Dispose();
             _onChangeZoomSubscriber = null;
@@ -75,7 +75,7 @@ public class GameCameraController : MonoBehaviour
             _onDiedSubscriber = null;
 
             // 胴体と腕と武器のレイヤを変更
-            foreach (var bodyTransform in new Transform[] { Character.Value.UpBase, Character.Value.LegBase, Character.Value.ArmBase })
+            foreach (var bodyTransform in new Transform[] { CharacterContainer.Value.UpBase, CharacterContainer.Value.LegBase, CharacterContainer.Value.ArmBase })
             {
                 foreach (var childTransforms in bodyTransform.GetDescendantsWithParent())
                 {
@@ -85,17 +85,17 @@ public class GameCameraController : MonoBehaviour
         }
 
         // 変更後のキャラクターの設定
-        Character.Value = newCharacter;
+        CharacterContainer.Value = newCharacter;
 
-        _onChangeZoomSubscriber = Character.Value.Character.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom()).AddTo(Character.Value);
-        _onDiedSubscriber = Character.Value.Character.OnDied.Subscribe(OnDiedHandler).AddTo(Character.Value);
+        _onChangeZoomSubscriber = CharacterContainer.Value.Character.OnChangeZoom.Subscribe(sender => CharacterState_OnChangeZoom()).AddTo(CharacterContainer.Value);
+        _onDiedSubscriber = CharacterContainer.Value.Character.OnDied.Subscribe(OnDiedHandler).AddTo(CharacterContainer.Value);
 
         // 注視点とカメラアンカーを変更
-        LookTarget = Character.Value.Target;
+        LookTarget = CharacterContainer.Value.Target;
         ChangeAnchor();
 
         // 胴体のレイヤを変更
-        foreach (var bodyTransform in new Transform[] { Character.Value.UpBase, Character.Value.LegBase })
+        foreach (var bodyTransform in new Transform[] { CharacterContainer.Value.UpBase, CharacterContainer.Value.LegBase })
         {
             foreach (var childTransforms in bodyTransform.GetDescendantsWithParent())
             {
@@ -104,7 +104,7 @@ public class GameCameraController : MonoBehaviour
         }
 
         // 腕と武器のレイヤを変更
-        foreach (var childTransforms in Character.Value.ArmBase.GetDescendantsWithParent())
+        foreach (var childTransforms in CharacterContainer.Value.ArmBase.GetDescendantsWithParent())
         {
             childTransforms.gameObject.layer = ConstantsManager.LayerArm;
         }
@@ -140,9 +140,9 @@ public class GameCameraController : MonoBehaviour
     /// </summary>
     private void ChangeAnchor()
     {
-        if (Character == null) return;
+        if (CharacterContainer == null) return;
 
-        Anchor = isTps ? Character.Value.TpsCameraAnchor : Character.Value.FpsCameraAnchor;
+        Anchor = isTps ? CharacterContainer.Value.TpsCameraAnchor : CharacterContainer.Value.FpsCameraAnchor;
         transform.SetParent(Anchor, false);
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -174,8 +174,8 @@ public class GameCameraController : MonoBehaviour
 
     private void CharacterState_OnChangeZoom()
     {
-        bool isZoom = Character.Value.Character.State.IsZoom;
-        WeaponSpec.ZoomModeEnum zoomMode = Character.Value.Character.State.CurrentWeapon.Spec.Scope;
+        bool isZoom = CharacterContainer.Value.Character.State.IsZoom;
+        WeaponSpec.ZoomModeEnum zoomMode = CharacterContainer.Value.Character.State.CurrentWeapon.Spec.Scope;
 
         if (isZoom)
         {

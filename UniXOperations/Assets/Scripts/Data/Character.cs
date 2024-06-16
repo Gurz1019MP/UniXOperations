@@ -217,7 +217,7 @@ public class Character
 
             if (!State.CurrentWeapon.Spec.FullAuto)
             {
-                State.CurrentWeapon.SetFlags(false, true, false, false);
+                State.CurrentWeapon.SetIsSemiFired(true);
             }
         }
     }
@@ -262,7 +262,7 @@ public class Character
             }
             else
             {
-                State.CurrentWeapon.SetFlags(false, false, InputterState.Inputter.Fire, false);
+                State.CurrentWeapon.SetIsTriggerPulled(InputterState.Inputter.Fire);
             }
 
             if (State.CurrentWeapon.Spec.HasScope && InputterState.Inputter.ZoomEnter)
@@ -273,7 +273,7 @@ public class Character
 
         if (IsZombie)
         {
-            State.CurrentWeapon.SetFlags(false, false, InputterState.Inputter.Fire, false);
+            State.CurrentWeapon.SetIsTriggerPulled(true);
         }
 
         if (InputterState.Inputter.SwitchWeaponEnter && !State.CurrentWeapon.IsReloading && !State.IsSwitching)
@@ -297,7 +297,7 @@ public class Character
 
             if (State.CurrentWeapon.IsSemiFired && !State.CurrentWeapon.IsTriggerPulled)
             {
-                State.CurrentWeapon.SetFlags(false, false, false, false);
+                State.CurrentWeapon.SetIsSemiFired(false);
             }
 
             SetState(State.SetAccuracyRatio(Mathf.Clamp(State.AccuracyRatio - 1f * Time.deltaTime, State.CurrentWeapon.Spec.GetCorrectedMinAccuracyRatio(State.IsZoom), 1)));
@@ -311,10 +311,10 @@ public class Character
 
     private IEnumerator Load()
     {
-        State.CurrentWeapon.SetFlags(false, false, true, false);
-        State.CurrentWeapon.State.Load();
+        State.CurrentWeapon.SetIsLoading(true);
+        State.CurrentWeapon.SetState(State.CurrentWeapon.State.Load());
         yield return State.CurrentWeapon.Spec.WaitForFireInterval;
-        State.CurrentWeapon.SetFlags(false, false, false, false);
+        State.CurrentWeapon.SetIsLoading(false);
 
         _loadingSubscriber.Dispose();
         _loadingSubscriber = null;
@@ -322,10 +322,10 @@ public class Character
 
     private IEnumerator Reload()
     {
-        State.CurrentWeapon.SetFlags(false, false, false, true);
+        State.CurrentWeapon.SetIsReloading(true);
         yield return State.CurrentWeapon.Spec.WaitForReloadTime;
         State.CurrentWeapon.Reload();
-        State.CurrentWeapon.SetFlags(false, false, false, false);
+        State.CurrentWeapon.SetIsReloading(false);
 
         _reloadingSubscriber.Dispose();
         _reloadingSubscriber = null;
@@ -333,9 +333,9 @@ public class Character
 
     private IEnumerator ZombieLoad()
     {
-        State.CurrentWeapon.SetFlags(false, false, true, false);
+        State.CurrentWeapon.SetIsLoading(true);
         yield return new WaitForSeconds(1);
-        State.CurrentWeapon.SetFlags(false, false, false, false);
+        State.CurrentWeapon.SetIsLoading(false);
 
         _zombieLoadingSubscriber.Dispose();
         _zombieLoadingSubscriber = null;
