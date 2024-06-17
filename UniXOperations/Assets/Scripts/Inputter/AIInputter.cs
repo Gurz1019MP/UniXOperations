@@ -265,7 +265,7 @@ public class AIInputter : InputterBase
         {
             if (_aISkill.IsZombie())
             {
-                _characterContainer.Character.SetState(_characterContainer.Character.State.SetArmTargetAngle(0));
+                _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(0));
             }
         }
     }
@@ -295,11 +295,11 @@ public class AIInputter : InputterBase
         {
             if (_aISkill.IsZombie())
             {
-                _characterContainer.Character.SetState(_characterContainer.Character.State.SetArmTargetAngle(90));
+                _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(90));
             }
             else
             {
-                _characterContainer.Character.SetState(_characterContainer.Character.State.SetArmTargetAngle(90));
+                _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(90));
             }
         }
     }
@@ -726,7 +726,7 @@ public class AIInputter : InputterBase
         if (_characterContainer.Character.State.CurrentWeapon.Spec.IsNone &&
             _characterContainer.Character.State.DisableWeapon.Spec.IsNone)
         {
-            _characterContainer.Character.SetState(_characterContainer.Character.State.SetArmTargetAngle(-90));
+            _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(-90));
             if (_characterContainer.Character.State.IsArmLookAtMode)
             {
                 _characterContainer.ArmTargetAngleMode();

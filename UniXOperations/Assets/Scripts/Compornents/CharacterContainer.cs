@@ -172,7 +172,7 @@ public class CharacterContainer : MonoBehaviour
             if (!isSlide && Character.InputterState.Inputter.JumpEnter)
             {
                 moveDelta.y = Character.JUMPPOWER;
-                Character.SetState(Character.State.SetIsGround(false));
+                Character.SetState(Character.State.BuildWithIsGround(false));
             }
             else
             {
@@ -230,7 +230,7 @@ public class CharacterContainer : MonoBehaviour
         }
 
         CharacterController.Move(moveDelta * Time.deltaTime);
-        Character.SetState(Character.State.SetMoveDelta(moveDelta));
+        Character.SetState(Character.State.BuildWithMoveDelta(moveDelta));
     }
 
     private void UpdateLook()
@@ -287,7 +287,7 @@ public class CharacterContainer : MonoBehaviour
     {
         if (Character.State.CurrentWeapon.Spec.IsNone && !Character.IsZombie)
         {
-            Character.SetState(Character.State.SetCurrentWeapon(pickedWeapon));
+            Character.SetState(Character.State.BuildWithCurrentWeapon(pickedWeapon));
             UpdateWeaponVisual();
             return true;
         }
@@ -363,11 +363,11 @@ public class CharacterContainer : MonoBehaviour
         if (Character.State.CurrentWeapon.Spec.IsHoldingBody)
         {
             ArmTargetAngleMode();
-            Character.SetState(Character.State.SetArmTargetAngle(90));
+            Character.SetState(Character.State.BuildWithArmTargetAngle(90));
         }
         else
         {
-            Character.SetState(Character.State.SetIsArmLookAtMode(true));
+            Character.SetState(Character.State.BuildWithIsArmLookAtMode(true));
         }
 
         _onWeaponVisualUpdatedSubject.OnNext(Unit.Default);
@@ -410,7 +410,7 @@ public class CharacterContainer : MonoBehaviour
 
     public void ArmTargetAngleMode()
     {
-        Character.SetState(Character.State.SetIsArmLookAtMode(false));
+        Character.SetState(Character.State.BuildWithIsArmLookAtMode(false));
         _currentArmAngle = ArmBase.localEulerAngles.x;
         if (_currentArmAngle > 180)
         {

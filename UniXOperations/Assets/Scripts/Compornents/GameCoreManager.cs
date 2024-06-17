@@ -65,7 +65,7 @@ public class GameCoreManager : GameCoreContainer
             Character character = _gameCore.Characters.GetCharacterAtIndex(_currentCharacterIndex);
             CharacterContainer characterContainer = FindCharacterContainer(character);
             characterContainer.transform.position = new Vector3(characterContainer.transform.position.x, characterContainer.transform.position.y + 10 * Time.deltaTime, characterContainer.transform.position.z);
-            character.SetState(character.State.SetMoveDelta(Vector3.zero));
+            character.SetState(character.State.BuildWithMoveDelta(Vector3.zero));
         }
     }
 

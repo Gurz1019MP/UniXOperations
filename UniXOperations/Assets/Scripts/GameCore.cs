@@ -145,7 +145,7 @@ public class GameCore
         {
             short kind = Random.Range(0, 2) == 0 ? pointData.Data2 : pointData.Data3;
             WeaponSpec spec = WeaponSpec.GetWeaponSpec(kind);
-            weapon = new Weapon(pointData, spec, WeaponState.EquipWeapon(spec));
+            weapon = new Weapon(pointData, spec, WeaponState.Build(spec));
         }
         else
         {

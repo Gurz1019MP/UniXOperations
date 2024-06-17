@@ -24,22 +24,22 @@ public readonly struct WeaponState
 
     public static WeaponState None { get; } = new WeaponState(0, 0);
 
-    public static WeaponState EquipWeapon(WeaponSpec kind)
+    public static WeaponState Build(WeaponSpec kind)
     {
         return new WeaponState(kind.MagazineSize * 2, kind.MagazineSize);
     }
 
-    public WeaponState AddAmmo(WeaponSpec spec)
+    public WeaponState BuildWithAddAmmo(WeaponSpec spec)
     {
         return new WeaponState(Ammo + spec.MagazineSize, Magazine);
     }
 
-    public WeaponState Load()
+    public WeaponState BuildWithLoad()
     {
         return new WeaponState(Ammo, Magazine - 1);
     }
 
-    public WeaponState Reload(WeaponSpec spec)
+    public WeaponState BuildWithReload(WeaponSpec spec)
     {
         return new WeaponState(Ammo - spec.MagazineSize, Ammo > spec.MagazineSize ? spec.MagazineSize : Ammo);
     }

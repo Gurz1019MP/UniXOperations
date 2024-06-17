@@ -17,7 +17,7 @@ public class ChangeTeamEvent : AbstractMissionEvent
         var characters = _characters.WhereId(Data);
         foreach (var character in characters)
         {
-            character.SetState(character.State.ChangeTeam(new Team(0)));
+            character.SetState(character.State.BuildWithTeam(new Team(0)));
         }
 
         RaiseChangeEventChain();

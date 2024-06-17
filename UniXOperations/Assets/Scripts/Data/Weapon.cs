@@ -55,12 +55,12 @@
 
     public void AddAmmo()
     {
-        SetState(State.AddAmmo(Spec));
+        SetState(State.BuildWithAddAmmo(Spec));
     }
 
     public void Reload()
     {
-        SetState(State.Reload(Spec));
+        SetState(State.BuildWithReload(Spec));
     }
 
     public void SetIsTriggerPulled(bool isTriggerPulled)

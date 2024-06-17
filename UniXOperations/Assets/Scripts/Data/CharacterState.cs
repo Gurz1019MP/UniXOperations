@@ -71,8 +71,8 @@ public readonly struct CharacterState
         WeaponSpec weapon2 = WeaponSpec.GetWeaponSpec(characterSpec.Weapon2);
         return new CharacterState(CharacterSpec.GetCharacterSpec(info.Kind).Hitpoint,
                                   info.Team,
-                                  new Weapon(weapon1, WeaponState.EquipWeapon(weapon1)),
-                                  equipWeapon2 ? new Weapon(weapon2, WeaponState.EquipWeapon(weapon2)) : new Weapon(WeaponSpec.None, new WeaponState(0, 0)),
+                                  new Weapon(weapon1, WeaponState.Build(weapon1)),
+                                  equipWeapon2 ? new Weapon(weapon2, WeaponState.Build(weapon2)) : new Weapon(WeaponSpec.None, new WeaponState(0, 0)),
                                   false,
                                   false,
                                   0,
@@ -83,42 +83,42 @@ public readonly struct CharacterState
                                   true);
     }
 
-    public CharacterState TakeDamage(float damage)
+    public CharacterState BuildWithHitPoint(float damage)
     {
         return new CharacterState(Mathf.Clamp(HitPoint - damage, 0, HitPoint), Team, Weapon1, Weapon2, _isWeapon1, IsSwitching, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
     }
 
-    public CharacterState Kill()
+    public CharacterState BuildWithKill()
     {
         return new CharacterState(0, Team, Weapon1, Weapon2, _isWeapon1, IsSwitching, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
     }
 
-    public CharacterState ChangeTeam(Team team)
+    public CharacterState BuildWithTeam(Team team)
     {
         return new CharacterState(HitPoint, team, Weapon1, Weapon2, _isWeapon1, IsSwitching, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
     }
 
-    public CharacterState ChangeSwitting(bool isSwitching)
+    public CharacterState BuildWithIsSwitting(bool isSwitching)
     {
         return new CharacterState(HitPoint, Team, Weapon1, Weapon2, _isWeapon1, isSwitching, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
     }
 
-    public CharacterState SwitchWeapon()
+    public CharacterState BuildWithSwitchWeapon()
     {
         return new CharacterState(HitPoint, Team, Weapon1, Weapon2, !_isWeapon1, false, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
     }
 
-    public CharacterState SetArmTargetAngle(float angle)
+    public CharacterState BuildWithArmTargetAngle(float angle)
     {
         return new CharacterState(HitPoint, Team, Weapon1, Weapon2, _isWeapon1, IsSwitching, angle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
     }
 
-    public CharacterState SetIsArmLookAtMode(bool mode)
+    public CharacterState BuildWithIsArmLookAtMode(bool mode)
     {
         return new CharacterState(HitPoint, Team, Weapon1, Weapon2, _isWeapon1, IsSwitching, ArmTargetAngle, mode, AccuracyRatio, IsZoom, MoveDelta, IsGround);
     }
 
-    public CharacterState SetCurrentWeapon(Weapon weapon)
+    public CharacterState BuildWithCurrentWeapon(Weapon weapon)
     {
         if (_isWeapon1)
         {
@@ -130,22 +130,22 @@ public readonly struct CharacterState
         }
     }
 
-    public CharacterState SetAccuracyRatio(float accuracyRatio)
+    public CharacterState BuildWithAccuracyRatio(float accuracyRatio)
     {
         return new CharacterState(HitPoint, Team, Weapon1, Weapon2, _isWeapon1, IsSwitching, ArmTargetAngle, IsArmLookAtMode, accuracyRatio, IsZoom, MoveDelta, IsGround);
     }
 
-    public CharacterState SetIsZoom(bool isZoom)
+    public CharacterState BuildWithIsZoom(bool isZoom)
     {
         return new CharacterState(HitPoint, Team, Weapon1, Weapon2, _isWeapon1, IsSwitching, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, isZoom, MoveDelta, IsGround);
     }
 
-    public CharacterState SetMoveDelta(Vector3 moveDelta)
+    public CharacterState BuildWithMoveDelta(Vector3 moveDelta)
     {
         return new CharacterState(HitPoint, Team, Weapon1, Weapon2, _isWeapon1, IsSwitching, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, moveDelta, IsGround);
     }
 
-    public CharacterState SetIsGround(bool isGround)
+    public CharacterState BuildWithIsGround(bool isGround)
     {
         return new CharacterState(HitPoint, Team, Weapon1, Weapon2, _isWeapon1, IsSwitching, ArmTargetAngle, IsArmLookAtMode, AccuracyRatio, IsZoom, MoveDelta, isGround);
     }

@@ -140,7 +140,7 @@ public class Character
         _onDiedSubject.OnNext(this);
         _onDiedSubject.OnCompleted();
 
-        SetState(State.Kill());
+        SetState(State.BuildWithKill());
     }
 
     public BulletHitInfo TakeBaseDamage(float baseDamage, RaycastHit hit, Vector3 direction)
@@ -153,7 +153,7 @@ public class Character
 
     public BulletHitInfo TakeDamage(float damage, Vector3 direction, BulletHitInfo.HitPartEnum hitPart = BulletHitInfo.HitPartEnum.None)
     {
-        SetState(State.TakeDamage(damage));
+        SetState(State.BuildWithHitPoint(damage));
         _onDamagedSubject.OnNext(direction);
 
         return new BulletHitInfo(hitPart, State.IsDied);
@@ -171,7 +171,7 @@ public class Character
 
     public void ChangeZoom()
     {
-        SetState(State.SetIsZoom(!State.IsZoom));
+        SetState(State.BuildWithIsZoom(!State.IsZoom));
         _onChangeZoomSubject.OnNext(Unit.Default);
     }
 
@@ -210,7 +210,7 @@ public class Character
             // 射撃誤差を増加
             if (State.AccuracyRatio < 1)
             {
-                SetState(State.SetAccuracyRatio(Mathf.Clamp(State.AccuracyRatio + 0.2f, 0, 1)));
+                SetState(State.BuildWithAccuracyRatio(Mathf.Clamp(State.AccuracyRatio + 0.2f, 0, 1)));
             }
 
             Loading();
@@ -241,7 +241,7 @@ public class Character
         WeaponUpdate();
 
         // 接地フラグを更新
-        SetState(State.SetIsGround(newIsGround));
+        SetState(State.BuildWithIsGround(newIsGround));
     }
 
     private void WeaponUpdate()
@@ -300,7 +300,7 @@ public class Character
                 State.CurrentWeapon.SetIsSemiFired(false);
             }
 
-            SetState(State.SetAccuracyRatio(Mathf.Clamp(State.AccuracyRatio - 1f * Time.deltaTime, State.CurrentWeapon.Spec.GetCorrectedMinAccuracyRatio(State.IsZoom), 1)));
+            SetState(State.BuildWithAccuracyRatio(Mathf.Clamp(State.AccuracyRatio - 1f * Time.deltaTime, State.CurrentWeapon.Spec.GetCorrectedMinAccuracyRatio(State.IsZoom), 1)));
         }
     }
 
@@ -312,7 +312,7 @@ public class Character
     private IEnumerator Load()
     {
         State.CurrentWeapon.SetIsLoading(true);
-        State.CurrentWeapon.SetState(State.CurrentWeapon.State.Load());
+        State.CurrentWeapon.SetState(State.CurrentWeapon.State.BuildWithLoad());
         yield return State.CurrentWeapon.Spec.WaitForFireInterval;
         State.CurrentWeapon.SetIsLoading(false);
 
@@ -343,12 +343,12 @@ public class Character
 
     private IEnumerator SwitchWeapon()
     {
-        SetState(State.ChangeSwitting(true));
+        SetState(State.BuildWithIsSwitting(true));
 
         if (State.IsZoom) ChangeZoom();
         yield return new WaitForSeconds(0.2f);
 
-        SetState(State.SwitchWeapon());
+        SetState(State.BuildWithSwitchWeapon());
 
         _onWeaponVisualUpdatedSubject.OnNext(Unit.Default);
 

@@ -24,7 +24,7 @@ public class Article
 
     public void TakeDamage(float damage)
     {
-        SetState(State.TakeDamage(damage));
+        SetState(State.BuildWithHitpoint(damage));
     }
 
     public void SetState(ArticleState state)
