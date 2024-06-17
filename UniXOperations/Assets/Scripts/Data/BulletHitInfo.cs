@@ -23,7 +23,7 @@ public readonly struct BulletHitInfo
 
     public static HitPartEnum CheckHitPart(RaycastHit hit)
     {
-        if (hit.collider.CompareTag(ConstantsManager.TagUp))
+        if (hit.collider.CompareTag(ConstantsProvider.TagUp))
         {
             if (hit.point.y - hit.transform.position.y > 1.0f)
             {
@@ -35,11 +35,11 @@ public readonly struct BulletHitInfo
                 return HitPartEnum.Body;
             }
         }
-        else if (hit.collider.CompareTag(ConstantsManager.TagLeg))
+        else if (hit.collider.CompareTag(ConstantsProvider.TagLeg))
         {
             return HitPartEnum.Leg;
         }
-        else if (hit.collider.CompareTag(ConstantsManager.TagArmHolding))
+        else if (hit.collider.CompareTag(ConstantsProvider.TagArmHolding))
         {
             return HitPartEnum.Arm;
         }

@@ -350,7 +350,7 @@ public class AIInputter : InputterBase
                     return _aISkill.IsInRange(enemyDirection.magnitude, 
                                                 Vector3.Angle(_headTransform.forward, Vector3.ProjectOnPlane(enemyDirection, _characterTransform.up)), 
                                                 Vector3.Angle(_headTransform.forward, Vector3.ProjectOnPlane(enemyDirection, _characterTransform.right))) &&
-                            !Physics.Raycast(_headTransform.position, enemyDirection, enemyDirection.magnitude, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
+                            !Physics.Raycast(_headTransform.position, enemyDirection, enemyDirection.magnitude, LayerMask.GetMask(ConstantsProvider.LayerMask_Stage));
                 }).ToArray();
 
             var runningEnemies = allEnemies

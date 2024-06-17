@@ -59,8 +59,8 @@ public class CharacterContainer : MonoBehaviour
         {
             _visual = new VarialbeVisual(Character.Spec);
 
-            GameObject up = UpBase.transform.GetChildrens().First(c => c.CompareTag(ConstantsManager.TagUp)).gameObject;
-            GameObject leg = LegBase.transform.GetChildrens().First(c => c.CompareTag(ConstantsManager.TagLeg)).gameObject;
+            GameObject up = UpBase.transform.GetChildrens().First(c => c.CompareTag(ConstantsProvider.TagUp)).gameObject;
+            GameObject leg = LegBase.transform.GetChildrens().First(c => c.CompareTag(ConstantsProvider.TagLeg)).gameObject;
 
             // メッシュの読み込み
             _visual.ChangeMesh(up);
@@ -94,19 +94,19 @@ public class CharacterContainer : MonoBehaviour
         List<GameObject> arms = new List<GameObject>();
         foreach (var transform in GetComponentsInChildren<Transform>(true))
         {
-            if (transform.CompareTag(ConstantsManager.TagFpsCameraAnchor))
+            if (transform.CompareTag(ConstantsProvider.TagFpsCameraAnchor))
             {
                 FpsCameraAnchor = transform;
             }
-            else if (transform.CompareTag(ConstantsManager.TagTpsCameraAnchor))
+            else if (transform.CompareTag(ConstantsProvider.TagTpsCameraAnchor))
             {
                 TpsCameraAnchor = transform;
             }
-            else if (transform.CompareTag(ConstantsManager.TagTarget))
+            else if (transform.CompareTag(ConstantsProvider.TagTarget))
             {
                 Target = transform;
             }
-            else if (transform.CompareTag(ConstantsManager.TagBody))
+            else if (transform.CompareTag(ConstantsProvider.TagBody))
             {
                 if (transform.name.Equals("Up"))
                 {
@@ -117,11 +117,11 @@ public class CharacterContainer : MonoBehaviour
                     LegBase = transform;
                 }
             }
-            else if (transform.CompareTag(ConstantsManager.TagArm))
+            else if (transform.CompareTag(ConstantsProvider.TagArm))
             {
                 ArmBase = transform;
             }
-            else if (transform.CompareTag(ConstantsManager.TagArmHolding))
+            else if (transform.CompareTag(ConstantsProvider.TagArmHolding))
             {
                 arms.Add(transform.gameObject);
             }
@@ -145,7 +145,7 @@ public class CharacterContainer : MonoBehaviour
 
     private void UpdateMove(Vector3 rayPoint, bool newIsGround)
     {
-        RaycastHit[] slideHits = Physics.RaycastAll(rayPoint, Vector3.down, float.MaxValue, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
+        RaycastHit[] slideHits = Physics.RaycastAll(rayPoint, Vector3.down, float.MaxValue, LayerMask.GetMask(ConstantsProvider.LayerMask_Stage));
         float tilt = slideHits.Length == 1 && newIsGround ? Mathf.Acos(Vector3.Dot(slideHits[0].normal, Vector3.up)) : 0;
         bool isSlide = tilt > CharacterController.slopeLimit / 180F * Mathf.PI;
 
@@ -386,7 +386,7 @@ public class CharacterContainer : MonoBehaviour
         }
         else
         {
-            RaycastHit[] hits = Physics.SphereCastAll(rayPoint, CharacterController.radius, Vector3.down, float.MaxValue, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
+            RaycastHit[] hits = Physics.SphereCastAll(rayPoint, CharacterController.radius, Vector3.down, float.MaxValue, LayerMask.GetMask(ConstantsProvider.LayerMask_Stage));
             if (hits.Length == 1)
             {
                 return Mathf.Abs(hits[0].distance - CharacterController.skinWidth) < Character.GROUNDTHRETHOLD;

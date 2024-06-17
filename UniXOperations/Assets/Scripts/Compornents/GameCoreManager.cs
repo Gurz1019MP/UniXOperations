@@ -21,11 +21,11 @@ public class GameCoreManager : GameCoreContainer
 
         _playerInputter = new InputSystem();
 
-        if (PlayerPrefs.HasKey(ConstantsManager.KeyBindingKey))
+        if (PlayerPrefs.HasKey(ConstantsProvider.KeyBindingKey))
         {
             try
             {
-                _playerInputter.LoadBindingOverridesFromJson(PlayerPrefs.GetString(ConstantsManager.KeyBindingKey));
+                _playerInputter.LoadBindingOverridesFromJson(PlayerPrefs.GetString(ConstantsProvider.KeyBindingKey));
             }
             catch
             {

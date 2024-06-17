@@ -21,11 +21,11 @@ public class SettingsManager : MonoBehaviour
     {
         LoadDefaultSettings();
 
-        if (PlayerPrefs.HasKey(ConstantsManager.KeyBindingKey))
+        if (PlayerPrefs.HasKey(ConstantsProvider.KeyBindingKey))
         {
             try
             {
-                PlayerInputter.LoadBindingOverridesFromJson(PlayerPrefs.GetString(ConstantsManager.KeyBindingKey));
+                PlayerInputter.LoadBindingOverridesFromJson(PlayerPrefs.GetString(ConstantsProvider.KeyBindingKey));
             }
             catch
             {
@@ -33,11 +33,11 @@ public class SettingsManager : MonoBehaviour
             }
         }
 
-        if (PlayerPrefs.HasKey(ConstantsManager.FovKey))
+        if (PlayerPrefs.HasKey(ConstantsProvider.FovKey))
         {
             try
             {
-                _foV = PlayerPrefs.GetFloat(ConstantsManager.FovKey);
+                _foV = PlayerPrefs.GetFloat(ConstantsProvider.FovKey);
             }
             catch
             {
@@ -45,11 +45,11 @@ public class SettingsManager : MonoBehaviour
             }
         }
 
-        if (PlayerPrefs.HasKey(ConstantsManager.MouseSensitivityKey))
+        if (PlayerPrefs.HasKey(ConstantsProvider.MouseSensitivityKey))
         {
             try
             {
-                _mouseSensitivity = PlayerPrefs.GetFloat(ConstantsManager.MouseSensitivityKey);
+                _mouseSensitivity = PlayerPrefs.GetFloat(ConstantsProvider.MouseSensitivityKey);
             }
             catch
             {
@@ -91,9 +91,9 @@ public class SettingsManager : MonoBehaviour
 
     public void SaveSettings()
     {
-        PlayerPrefs.SetString(ConstantsManager.KeyBindingKey, PlayerInputter.SaveBindingOverridesAsJson());
-        PlayerPrefs.SetFloat(ConstantsManager.FovKey, _foV);
-        PlayerPrefs.SetFloat(ConstantsManager.MouseSensitivityKey, _mouseSensitivity);
+        PlayerPrefs.SetString(ConstantsProvider.KeyBindingKey, PlayerInputter.SaveBindingOverridesAsJson());
+        PlayerPrefs.SetFloat(ConstantsProvider.FovKey, _foV);
+        PlayerPrefs.SetFloat(ConstantsProvider.MouseSensitivityKey, _mouseSensitivity);
 
         TransitionToMenu();
     }

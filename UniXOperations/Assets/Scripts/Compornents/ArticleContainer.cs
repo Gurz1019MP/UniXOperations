@@ -16,7 +16,7 @@ public class ArticleContainer : MonoBehaviour
         var fallable = GetComponent<Fallable>();
 
         // パラメータの設定
-        _broken = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabBrokenArticle);
+        _broken = AssetLoader.LoadAsset<GameObject>(ConstantsProvider.PrefabBrokenArticle);
         fallable.IsGround = Article.IsGroundFlag;
         fallable.BottomTransfrom.localPosition = Article.Spec.BottomPosition;
 

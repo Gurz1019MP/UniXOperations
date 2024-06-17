@@ -15,12 +15,12 @@ public class GameCore
         BlockData = bd1loader.LoadBD1(missionInformation.BlockPath);
 
         PointData[] pointDatas = pd1loader.LoadPD1(missionInformation.PointPath);
+        EventMessages = new EventMessages(msgLoader.LoadEventMessage(missionInformation.PointPath));
 
         CharacterInformations = CreateCharacterInfomations(pointDatas);
         Paths = CreatePaths(pointDatas);
         Characters = CreateCharacters(pointDatas, CharacterInformations);
         Articles = CreateArticles(pointDatas);
-        EventMessages = new EventMessages(msgLoader.LoadEventMessage(missionInformation.PointPath));
         MissionEvents = CreateMissionEvents(pointDatas, Articles, Characters, Paths, EventMessages);
         Weapons = CreateWeapons(pointDatas);
     }

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-public static class ConstantsManager
+public static class ConstantsProvider
 {
     #region Prefab
 

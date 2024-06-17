@@ -24,12 +24,12 @@ public class CharacterPrefabProvider
 
     public CharacterPrefabProvider()
     {
-        PrefabDiedCharacter = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabDiedCharacter);
-        PrefabBullet = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabBullet);
-        PrefabGrenade = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabGrenade);
-        PrefabZombieAttack = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabZombieAttack);
-        PrefabCartridge = AssetLoader.LoadAsset<GameObject>(ConstantsManager.CartridgePrefab);
-        PrefabMuzzleFlash = AssetLoader.LoadAsset<GameObject>(ConstantsManager.PrefabMuzzleFlash);
-        FireAudioClips = ConstantsManager.FireAudios.ToDictionary(c => c, c => AssetLoader.LoadAsset<AudioClip>(c));
+        PrefabDiedCharacter = AssetLoader.LoadAsset<GameObject>(ConstantsProvider.PrefabDiedCharacter);
+        PrefabBullet = AssetLoader.LoadAsset<GameObject>(ConstantsProvider.PrefabBullet);
+        PrefabGrenade = AssetLoader.LoadAsset<GameObject>(ConstantsProvider.PrefabGrenade);
+        PrefabZombieAttack = AssetLoader.LoadAsset<GameObject>(ConstantsProvider.PrefabZombieAttack);
+        PrefabCartridge = AssetLoader.LoadAsset<GameObject>(ConstantsProvider.CartridgePrefab);
+        PrefabMuzzleFlash = AssetLoader.LoadAsset<GameObject>(ConstantsProvider.PrefabMuzzleFlash);
+        FireAudioClips = ConstantsProvider.FireAudios.ToDictionary(c => c, c => AssetLoader.LoadAsset<AudioClip>(c));
     }
 }

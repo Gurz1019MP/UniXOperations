@@ -30,7 +30,7 @@ public class Bullet : MonoBehaviour, IBullet
 
         _bulletMoveDelta = Speed * Time.deltaTime * transform.forward;
         
-        RaycastHit[] sounds = Physics.SphereCastAll(transform.position, Sound, Vector3.up, 0f, LayerMask.GetMask(ConstantsManager.LayerMask_Character_Root));
+        RaycastHit[] sounds = Physics.SphereCastAll(transform.position, Sound, Vector3.up, 0f, LayerMask.GetMask(ConstantsProvider.LayerMask_Character_Root));
         if (sounds.Any())
         {
             foreach (CharacterContainer characterContainer in sounds.Select(c => c.collider.gameObject.GetComponent<CharacterContainer>()).Where(cs => cs != null).Where(cs => cs.Character.State.Team == Team))

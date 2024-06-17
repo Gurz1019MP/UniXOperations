@@ -9,11 +9,11 @@ public class PlayerInputter : InputterBase
     {
         _inputSystem = inputSystem;
 
-        if (PlayerPrefs.HasKey(ConstantsManager.MouseSensitivityKey))
+        if (PlayerPrefs.HasKey(ConstantsProvider.MouseSensitivityKey))
         {
             try
             {
-                _mouseSensitivity = PlayerPrefs.GetFloat(ConstantsManager.MouseSensitivityKey);
+                _mouseSensitivity = PlayerPrefs.GetFloat(ConstantsProvider.MouseSensitivityKey);
             }
             catch
             {

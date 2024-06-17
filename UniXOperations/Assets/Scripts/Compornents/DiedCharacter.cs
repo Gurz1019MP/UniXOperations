@@ -33,7 +33,7 @@ public class DiedCharacter : MonoBehaviour
         {
             transform.rotation *= Quaternion.Euler(fallSpeed * fallDirection * Time.deltaTime, 0, 0);
 
-            RaycastHit[] hits = Physics.RaycastAll(_raycastRoot.transform.position, _raycastRoot.transform.forward * fallDirection, 0.1f, LayerMask.GetMask(ConstantsManager.LayerMask_Stage));
+            RaycastHit[] hits = Physics.RaycastAll(_raycastRoot.transform.position, _raycastRoot.transform.forward * fallDirection, 0.1f, LayerMask.GetMask(ConstantsProvider.LayerMask_Stage));
             if (hits.Any())
             {
                 isFalled = true;
@@ -58,9 +58,9 @@ public class DiedCharacter : MonoBehaviour
         try
         {
             // ビジュアル用オブジェクトを取得
-            var arm = gameObject.GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsManager.TagArmHolding)).Select(t => t.gameObject).Single();
-            var up = gameObject.GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsManager.TagUp)).Select(t => t.gameObject).Single();
-            var leg = gameObject.GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsManager.TagLeg)).Select(t => t.gameObject).Single();
+            var arm = gameObject.GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsProvider.TagArmHolding)).Select(t => t.gameObject).Single();
+            var up = gameObject.GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsProvider.TagUp)).Select(t => t.gameObject).Single();
+            var leg = gameObject.GetComponentsInChildren<Transform>(true).Where(t => t.CompareTag(ConstantsProvider.TagLeg)).Select(t => t.gameObject).Single();
 
             // メッシュの読み込み
             visual.ChangeMesh(up);
