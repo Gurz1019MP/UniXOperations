@@ -9,13 +9,12 @@ public class WaitForArrivalEvent : AbstractMissionEvent
         _characters = characters;
     }
 
-    public override void BeginEvent(MissionEvents missionEvents)
+    public override void BeginEvent()
     {
         Debug.Log($"イベントチェーン変更 [{Id}]到着待ち");
-        var missionEvent = missionEvents.GetMissionEvent(Id);
         var character = _characters.GetCharacter(Data);
 
-        Observable.FromCoroutine(() => WaitForPerson(character, missionEvent.Position, false)).Subscribe();
+        Observable.FromCoroutine(() => WaitForPerson(character, this, false)).Subscribe();
     }
 
     private readonly Characters _characters;

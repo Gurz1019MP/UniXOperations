@@ -2,7 +2,7 @@
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class ResultManager : MonoBehaviour
+public class ResultSceneLogic : MonoBehaviour
 {
     public Text MissionName;
     public GameObject MissionSuccessfull;

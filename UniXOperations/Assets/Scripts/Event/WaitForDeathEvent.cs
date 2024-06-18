@@ -10,7 +10,7 @@ public class WaitForDeathEvent : AbstractMissionEvent
         _characters = characters;
     }
 
-    public override void BeginEvent(MissionEvents missionEvents)
+    public override void BeginEvent()
     {
         Debug.Log($"イベントチェーン変更 [{Id}]死亡待ち");
         Observable.FromCoroutine(WaitForDeath).Subscribe();

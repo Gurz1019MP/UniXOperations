@@ -4,7 +4,7 @@ using System.Linq;
 using UniRx;
 using UnityEngine;
 
-[RequireComponent(typeof(GameCoreManager))]
+[RequireComponent(typeof(GameSceneLogic))]
 public class MissionEventManager : MonoBehaviour
 {
     public Animator UIAnimator;
@@ -16,18 +16,15 @@ public class MissionEventManager : MonoBehaviour
         characters.OnAllEnemyEliminated.Subscribe(CharacterManager_OnAllEnemyEliminated).AddTo(gameObject);
         EventMessage.text = string.Empty;
 
-        var chain1Container = missionEvents.GetMissionEvent(-100);
-        _eventChain1 = new MissionEventChain(chain1Container, missionEvents);
+        _eventChain1 = new MissionEventChain(missionEvents.GetMissionEvent(-100), missionEvents);
         _eventChain1.OnEndEventChain.Subscribe(OnEndEventChain).AddTo(gameObject);
         _eventChain1.OnShowMessage.Subscribe(OnShowMessage).AddTo(gameObject);
 
-        var chain2Container = missionEvents.GetMissionEvent(-110);
-        _eventChain2 = new MissionEventChain(chain2Container, missionEvents);
+        _eventChain2 = new MissionEventChain(missionEvents.GetMissionEvent(-110), missionEvents);
         _eventChain2.OnEndEventChain.Subscribe(OnEndEventChain).AddTo(gameObject);
         _eventChain2.OnShowMessage.Subscribe(OnShowMessage).AddTo(gameObject);
 
-        var chain3Container = missionEvents.GetMissionEvent(-120);
-        _eventChain3 = new MissionEventChain(chain3Container, missionEvents);
+        _eventChain3 = new MissionEventChain(missionEvents.GetMissionEvent(-120), missionEvents);
         _eventChain3.OnEndEventChain.Subscribe(OnEndEventChain).AddTo(gameObject);
         _eventChain3.OnShowMessage.Subscribe(OnShowMessage).AddTo(gameObject);
     }

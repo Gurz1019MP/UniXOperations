@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class SettingsManager : MonoBehaviour
+public class SettingsSceneLogic : MonoBehaviour
 {
     public InputSystem PlayerInputter;
     public Slider FoVSlider;

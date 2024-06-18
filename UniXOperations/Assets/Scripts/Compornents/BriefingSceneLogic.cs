@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class BriefingManager : MonoBehaviour
+public class BriefingSceneLogic : MonoBehaviour
 {
     public Text missionName;
     public Text Content;
@@ -73,7 +73,7 @@ public class BriefingManager : MonoBehaviour
     {
         SceneManager.sceneLoaded -= GameLoaded;
 
-        GameCoreManager gameCoreManager = scene.GetRootGameObjects().Single(g => g.name.Equals("GameLogic")).GetComponent<GameCoreManager>();
+        GameSceneLogic gameCoreManager = scene.GetRootGameObjects().Single(g => g.name.Equals("GameLogic")).GetComponent<GameSceneLogic>();
         gameCoreManager.Initialize(_selectedMissionInformation);
     }
 

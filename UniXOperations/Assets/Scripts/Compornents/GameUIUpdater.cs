@@ -4,7 +4,7 @@ using UnityEngine;
 using UniRx;
 using System;
 
-public class UIUpdater : MonoBehaviour
+public class GameUIUpdater : MonoBehaviour
 {
     public GameCameraController GameCameraController;
     public UnityEngine.UI.Text CurrentWeaponName;

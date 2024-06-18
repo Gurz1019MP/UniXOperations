@@ -7,7 +7,7 @@ public class ShowMessageEvent : AbstractMissionEvent
         _eventMessages = eventMessages;
     }
 
-    public override void BeginEvent(MissionEvents missionEvents)
+    public override void BeginEvent()
     {
         Debug.Log($"イベントチェーン変更 [{Id}]メッセージ表示");
         RaiseOnShowMessage(_eventMessages.GetMessage(Data));

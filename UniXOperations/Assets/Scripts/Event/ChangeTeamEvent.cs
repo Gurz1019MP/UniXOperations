@@ -11,7 +11,7 @@ public class ChangeTeamEvent : AbstractMissionEvent
         _characters = characters;
     }
 
-    public override void BeginEvent(MissionEvents missionEvents)
+    public override void BeginEvent()
     {
         Debug.Log($"イベントチェーン変更 [{Id}]チーム変更");
         var characters = _characters.WhereId(Data);

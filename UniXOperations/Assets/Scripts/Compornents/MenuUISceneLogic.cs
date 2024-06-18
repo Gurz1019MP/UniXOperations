@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
 
-public class MenuUIManager : MonoBehaviour
+public class MenuUISceneLogic : MonoBehaviour
 {
     public GameObject DefaultMissionContent;
     public GameObject AddonMissionContent;
@@ -113,7 +113,7 @@ public class MenuUIManager : MonoBehaviour
     {
         SceneManager.sceneLoaded -= BriefingLoaded;
 
-        BriefingManager briefingManager = scene.GetRootGameObjects().Single(g => g.name.Equals("SceneManager")).GetComponent<BriefingManager>();
+        BriefingSceneLogic briefingManager = scene.GetRootGameObjects().Single(g => g.name.Equals("SceneManager")).GetComponent<BriefingSceneLogic>();
         briefingManager.Initialize(_selectedMissionInformation.ReadMif());
     }
 

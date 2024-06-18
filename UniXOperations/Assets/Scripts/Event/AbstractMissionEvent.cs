@@ -24,7 +24,7 @@ public abstract class AbstractMissionEvent
 
     public IObservable<string> OnShowMessage => _onShowMessageSubject;
 
-    public abstract void BeginEvent(MissionEvents missionEvents);
+    public abstract void BeginEvent();
 
     protected void RaiseChangeEventChain()
     {
@@ -47,11 +47,11 @@ public abstract class AbstractMissionEvent
         _onShowMessageSubject.OnCompleted();
     }
 
-    protected IEnumerator WaitForPerson(Character character, Vector3 eventPosition, bool withCase)
+    protected IEnumerator WaitForPerson(Character character, AbstractMissionEvent missionEvent, bool withCase)
     {
         while (true)
         {
-            if ((character.Position - eventPosition).magnitude < 1f)
+            if ((character.Position - missionEvent.Position).magnitude < 1f)
             {
                 if (withCase)
                 {

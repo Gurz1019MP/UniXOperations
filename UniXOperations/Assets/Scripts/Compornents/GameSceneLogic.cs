@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-public class GameCoreManager : MainContainer
+public class GameSceneLogic : MainContainer
 {
     public void Start()
     {
@@ -73,6 +73,16 @@ public class GameCoreManager : MainContainer
     {
         _gameCameraController.ChangeCharacter(FindCharacterContainer(character));
         _gameCameraController.SetPlayerInputter(inputSystem);
+    }
+
+    public void ObjectiveComplate()
+    {
+        TransitionToResult(true);
+    }
+
+    public void MissionFailure()
+    {
+        TransitionToResult(false);
     }
 
     public void TransitionToResult(bool result)
@@ -151,7 +161,7 @@ public class GameCoreManager : MainContainer
     {
         SceneManager.sceneLoaded -= ResultLoaded;
 
-        ResultManager resultManager = scene.GetRootGameObjects().Single(g => g.name.Equals("SceneManager")).GetComponent<ResultManager>();
+        ResultSceneLogic resultManager = scene.GetRootGameObjects().Single(g => g.name.Equals("SceneManager")).GetComponent<ResultSceneLogic>();
         resultManager.Initialize(_missionInformation, _result);
     }
 

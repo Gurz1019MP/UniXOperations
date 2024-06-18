@@ -6,7 +6,7 @@ public class WaitForTimerEvent : AbstractMissionEvent
 {
     public WaitForTimerEvent(PointData pointData) : base(pointData) { }
 
-    public override void BeginEvent(MissionEvents missionEvents)
+    public override void BeginEvent()
     {
         Debug.Log($"イベントチェーン変更 [{Id}]時間待ち");
         Observable.FromCoroutine(WaitEventTimer).Subscribe();

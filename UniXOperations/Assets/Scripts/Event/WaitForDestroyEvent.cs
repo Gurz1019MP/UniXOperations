@@ -10,7 +10,7 @@ public class WaitForDestroyEvent : AbstractMissionEvent
         _articles = articles;
     }
 
-    public override void BeginEvent(MissionEvents missionEvents)
+    public override void BeginEvent()
     {
         Debug.Log($"イベントチェーン変更 [{Id}]小物破壊待ち");
         Observable.FromCoroutine(WaitForDestroy).Subscribe();

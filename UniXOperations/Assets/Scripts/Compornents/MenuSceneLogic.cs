@@ -1,6 +1,6 @@
 ﻿using UnityEngine.SceneManagement;
 
-public class MenuManager : MainContainer
+public class MenuSceneLogic : MainContainer
 {
     public MenuCameraController _menuCamera;
 
