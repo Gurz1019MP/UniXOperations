@@ -6,11 +6,11 @@ using UnityEngine;
 using UnityEngine.Events;
 using XOPS;
 
-public class GameCore
+public class Main
 {
     #region .ctor
 
-    public GameCore(MissionInformation missionInformation)
+    public Main(MissionInformation missionInformation)
     {
         BlockData = bd1loader.LoadBD1(missionInformation.BlockPath);
 

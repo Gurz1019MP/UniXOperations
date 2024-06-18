@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-public class GameCoreManager : GameCoreContainer
+public class GameCoreManager : MainContainer
 {
     public void Start()
     {

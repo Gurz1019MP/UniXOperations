@@ -32,7 +32,7 @@ public class MenuUIManager : MonoBehaviour
 
         if (StageButton != null)
         {
-            if (GameCore.ExistsXOps())
+            if (Main.ExistsXOps())
             {
                 //if (StageButton != null) StageButton.onClick.AddListener(TransitionToGame);
 

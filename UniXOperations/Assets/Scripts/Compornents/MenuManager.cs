@@ -1,12 +1,12 @@
 ﻿using UnityEngine.SceneManagement;
 
-public class MenuManager : GameCoreContainer
+public class MenuManager : MainContainer
 {
     public MenuCameraController _menuCamera;
 
     void Start()
     {
-        if (GameCore.ExistsXOps())
+        if (Main.ExistsXOps())
         {
             base.Initialize(DefaultMissionInformation.GetDemo());
 

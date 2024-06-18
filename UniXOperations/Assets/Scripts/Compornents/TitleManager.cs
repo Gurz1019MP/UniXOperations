@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class TitleManager : GameCoreContainer
+public class TitleManager : MainContainer
 {
     private void Start()
     {
         _playerInputter = new InputSystem();
 
-        if (GameCore.ExistsXOps())
+        if (Main.ExistsXOps())
         {
             base.Initialize(MissionInformation.GetOpening());
         }

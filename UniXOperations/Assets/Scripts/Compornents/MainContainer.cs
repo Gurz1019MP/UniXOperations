@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.TextCore.Text;
 using XOPS;
 
-public class GameCoreContainer : MonoBehaviour
+public class MainContainer : MonoBehaviour
 {
     public GameObject stage;
 
@@ -14,7 +14,7 @@ public class GameCoreContainer : MonoBehaviour
     {
         if (stage == null) throw new InvalidOperationException("Stageが設定されていません");
 
-        _gameCore = new GameCore(missionInformation);
+        _gameCore = new Main(missionInformation);
         LoadBlock(_gameCore.BlockData);
         _gameCore.Paths.ForEach(ScalePaths);
         _gameCore.Characters.ForEach(CreateCharacterContainer);
@@ -83,7 +83,7 @@ public class GameCoreContainer : MonoBehaviour
         return _characterContainers.SingleOrDefault(cc => cc.Character == character);
     }
 
-    protected GameCore _gameCore;
+    protected Main _gameCore;
     private List<CharacterContainer> _characterContainers = new List<CharacterContainer>();
     private List<ArticleContainer> _articleContainers = new List<ArticleContainer>();
 }
