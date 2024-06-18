@@ -19,14 +19,6 @@ public class Paths
         _paths = IdentifiedPath.ToDictionary(ip => ip.Id);
     }
 
-    public void ForEach(UnityAction<AbstractPath> action)
-    {
-        foreach (AbstractPath path in _paths.Values)
-        {
-            action(path);
-        }
-    }
-
     public AbstractPath GetPath(short id)
     {
         if (_paths.ContainsKey(id))
