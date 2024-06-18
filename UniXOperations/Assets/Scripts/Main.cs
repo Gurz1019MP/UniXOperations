@@ -10,11 +10,11 @@ public class Main
 {
     #region .ctor
 
-    public Main(MissionInformation missionInformation)
+    public Main(MissionInformation missionInformation, float fieldScale)
     {
         BlockData = bd1loader.LoadBD1(missionInformation.BlockPath);
 
-        PointData[] pointDatas = pd1loader.LoadPD1(missionInformation.PointPath);
+        PointData[] pointDatas = pd1loader.LoadPD1(missionInformation.PointPath, fieldScale);
         EventMessages = new EventMessages(msgLoader.LoadEventMessage(missionInformation.PointPath));
 
         CharacterInformations = CreateCharacterInfomations(pointDatas);

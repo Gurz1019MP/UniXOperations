@@ -8,18 +8,18 @@ public static class pd1loader
 {
     #region Public Method
 
-    public static PointData[] LoadPD1(string path)
+    public static PointData[] LoadPD1(string path, float fieldScale)
     {
         if (!File.Exists(path)) throw new FileNotFoundException("ファイルが見つかりません。", path);
 
-        return LoadPD1Enum(path).ToArray();
+        return LoadPD1Enum(path, fieldScale).ToArray();
     }
 
     #endregion
 
     #region Private Method
 
-    private static IEnumerable<PointData> LoadPD1Enum(string path)
+    private static IEnumerable<PointData> LoadPD1Enum(string path, float fieldScale)
     {
         if (!File.Exists(path)) throw new FileNotFoundException("ファイルが見つかりません。", path);
 
@@ -45,7 +45,7 @@ public static class pd1loader
                 }
 
                 yield return new PointData(
-                    new Vector3(floatInfo[0], floatInfo[1], floatInfo[2]),
+                    new Vector3(floatInfo[0], floatInfo[1], floatInfo[2]) * fieldScale,
                     Quaternion.Euler(0, floatInfo[3] / Mathf.PI * 180, 0),
                     byteInfo[0],
                     byteInfo[1],

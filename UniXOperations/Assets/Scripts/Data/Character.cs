@@ -16,6 +16,7 @@ public class Character
         PointData = pointData;
         Spec = CharacterSpec.GetCharacterSpec(info.Kind);
         State = CharacterState.Initialize(info, isEquipWeapon2);
+        Position = PointData.Position;
         CombatStatistics = new CombatStatistics();
     }
 

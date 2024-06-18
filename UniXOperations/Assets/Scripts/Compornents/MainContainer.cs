@@ -14,12 +14,10 @@ public class MainContainer : MonoBehaviour
     {
         if (stage == null) throw new InvalidOperationException("Stageが設定されていません");
 
-        _gameCore = new Main(missionInformation);
+        _gameCore = new Main(missionInformation, stage.transform.localScale.x);
         LoadBlock(_gameCore.BlockData);
-        _gameCore.Paths.ForEach(ScalePaths);
         _gameCore.Characters.ForEach(CreateCharacterContainer);
         _gameCore.Articles.ForEach(CreateArticleContainer);
-        _gameCore.MissionEvents.ForEach(ScaleMissionEvent);
         _gameCore.Weapons.ForEach(CreateWeaponPickup);
 
         MissionEventManager missionEventManager = GetComponent<MissionEventManager>();
@@ -36,14 +34,9 @@ public class MainContainer : MonoBehaviour
         stage.GetComponent<MeshRenderer>().materials = blockData.Materials;
     }
 
-    private void ScalePaths(AbstractPath abstractPath)
-    {
-        abstractPath.ScalePosition(stage.transform.localScale.x);
-    }
-
     private void CreateCharacterContainer(Character character)
     {
-        GameObject prefab = Instantiate(MissionPrefabProvider.Instance.PrefabCharacter, character.PointData.Position * stage.transform.localScale.x + Vector3.up * 0.6f, character.PointData.Rotation);
+        GameObject prefab = Instantiate(MissionPrefabProvider.Instance.PrefabCharacter, character.Position + Vector3.up * 0.6f, character.PointData.Rotation);
         CharacterContainer container = prefab.GetComponent<CharacterContainer>();
         CharacterInformation info = _gameCore.CharacterInformations.Find(character.PointData.Data2);
 
@@ -57,7 +50,7 @@ public class MainContainer : MonoBehaviour
 
     private void CreateArticleContainer(Article article)
     {
-        GameObject prefab = Instantiate(MissionPrefabProvider.Instance.PrefabArticle, article.PointData.Position * stage.transform.localScale.x + Vector3.up * 0.6f, article.PointData.Rotation);
+        GameObject prefab = Instantiate(MissionPrefabProvider.Instance.PrefabArticle, article.PointData.Position + Vector3.up * 0.6f, article.PointData.Rotation);
         ArticleContainer container = prefab.GetComponent<ArticleContainer>();
 
         container.InitArticleSpec(article);
@@ -65,14 +58,9 @@ public class MainContainer : MonoBehaviour
         _articleContainers.Add(container);
     }
 
-    private void ScaleMissionEvent(AbstractMissionEvent missionEvent)
-    {
-        missionEvent.ScalePosition(stage.transform.localScale.x);
-    }
-
     private void CreateWeaponPickup(Weapon weapon)
     {
-        GameObject prefab = Instantiate(MissionPrefabProvider.Instance.PrefabWeaponPickup, weapon.PointData.Position * stage.transform.localScale.x + Vector3.up * 0.6f, weapon.PointData.Rotation * Quaternion.Euler(0, 180, -90));
+        GameObject prefab = Instantiate(MissionPrefabProvider.Instance.PrefabWeaponPickup, weapon.PointData.Position + Vector3.up * 0.6f, weapon.PointData.Rotation * Quaternion.Euler(0, 180, -90));
         WeaponPickup container = prefab.GetComponent<WeaponPickup>();
 
         container.Initialize(weapon);

@@ -8,7 +8,6 @@ public abstract class AbstractMissionEvent
     public AbstractMissionEvent(PointData pointData)
     {
         _pointData = pointData;
-        Position = _pointData.Position;
     }
 
     public short Id => _pointData.Data4;
@@ -17,7 +16,7 @@ public abstract class AbstractMissionEvent
 
     public short Next => _pointData.Data3;
 
-    public Vector3 Position { get; private set; }
+    public Vector3 Position => _pointData.Position;
 
     public IObservable<Unit> OnChangeEventChain => _onChangeEventChainSubject;
 
@@ -26,11 +25,6 @@ public abstract class AbstractMissionEvent
     public IObservable<string> OnShowMessage => _onShowMessageSubject;
 
     public abstract void BeginEvent(MissionEvents missionEvents);
-
-    public void ScalePosition(float scale)
-    {
-        Position *= scale;
-    }
 
     protected void RaiseChangeEventChain()
     {
