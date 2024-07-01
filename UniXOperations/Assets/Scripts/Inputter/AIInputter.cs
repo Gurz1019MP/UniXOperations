@@ -31,33 +31,12 @@ public class AIInputter : InputterBase
         Observable.FromCoroutine(DetectEnemy).Subscribe().AddTo(characterContainer);
         Observable.FromCoroutine(UpdateTargetPosition).Subscribe().AddTo(characterContainer);
 
-        EnterState(StateMode);
+        ChangeStateMode(StateKind.Safe);
     }
 
     #endregion
 
     #region プロパティ
-
-    private StateKind _stateMode;
-    private StateKind StateMode
-    {
-        get { return _stateMode; }
-        set
-        {
-            if (_stateMode == value)
-                return;
-
-            LeaveState(_stateMode);
-            EnterState(value);
-
-            if (value == StateKind.Alert)
-            {
-                _wasAlert = true;
-            }
-
-            _stateMode = value;
-        }
-    }
 
     private CharacterContainer _targetEnemy;
     private CharacterContainer TargetEnemy
@@ -111,101 +90,17 @@ public class AIInputter : InputterBase
     private readonly Paths _paths;
     private readonly Characters _characters;
     private System.Func<Character, CharacterContainer> _findCharacterContainerFunction;
+    private StateKind _stateMode;
+    private System.Action _inputUpdateAction;
+    private System.Action _leaveStateAction;
+    private System.Action<CharacterContainer[], CharacterContainer[]> _detectEnemyAction;
+    private System.Action<Vector3> _dangerDetectedAction;
 
     #endregion
 
     protected override void InputUpdate()
     {
-        if (StateMode == StateKind.Safe)
-        {
-            if (_currentPath != null)
-            {
-                if (_currentPath is SinglePath path)
-                {
-                    if (path.Kind == SinglePath.PathKind.Walking)
-                    {
-                        Moving(_currentPath.Position, false, false, ChangeNextPathContainer);
-                    }
-                    else if (path.Kind == SinglePath.PathKind.Running)
-                    {
-                        Moving(_currentPath.Position, true, false, ChangeNextPathContainer);
-                    }
-                    else if (path.Kind == SinglePath.PathKind.Waiting)
-                    {
-                        WalkAndWait(false, false);
-                    }
-                    else if (path.Kind == SinglePath.PathKind.Tracking)
-                    {
-                        Tracking(path.NextId);
-                    }
-                    else if (path.Kind == SinglePath.PathKind.AlertWaiting)
-                    {
-                        WalkAndWait(true, false);
-                    }
-                    else if (path.Kind == SinglePath.PathKind.TimeWaiting)
-                    {
-                        WalkAndWait(false, true);
-                    }
-                    else if (path.Kind == SinglePath.PathKind.ThrowingGrenade)
-                    {
-                        ThrowingGrenade(_currentPath.Position);
-                    }
-                    else if (path.Kind == SinglePath.PathKind.PriorityRunning)
-                    {
-                        if (TargetEnemy == null)
-                        {
-                            Moving(_currentPath.Position, true, false, ChangeNextPathContainer);
-                        }
-                        else
-                        {
-                            CombatAndMoving(_currentPath.Position, ChangeNextPathContainer);
-                        }
-                    }
-                }
-                else if (_currentPath is RandomPath)
-                {
-                    ChangeNextPathContainer();
-                }
-            }
-        }
-        else if (StateMode == StateKind.Alert)
-        {
-            Stop();
-            var angleYZ = Vector3.SignedAngle(_headTransform.forward, _characterTransform.forward, _headTransform.right);
-
-            MouseX = _rollValue * _rollSign;
-            MouseY = _aISkill.GetCorrectionOperatingVolume(angleYZ);
-
-            if (_characterContainer.Character.State.CurrentWeapon.Spec.IsNone &&
-                !_characterContainer.Character.State.DisableWeapon.Spec.IsNone &&
-                !_characterContainer.Character.State.IsSwitching)
-            {
-                Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_characterContainer);
-            }
-        }
-        else if (StateMode == StateKind.Combat)
-        {
-            if (TargetEnemy != null && TargetEnemy.gameObject != null && _targetPosition != Vector3.zero)
-            {
-                if (_aISkill.IsZombie())
-                {
-                    Shooting();
-
-                    Walk = true;
-                }
-                else
-                {
-                    Combat();
-
-                    _evideSubscriver ??= Observable.FromCoroutine(EvideChance).Subscribe().AddTo(_characterContainer);
-                    Walk = false;
-                }
-            }
-            else
-            {
-                MouseY = 0;
-            }
-        }
+        _inputUpdateAction?.Invoke();
 
 #if UNITY_EDITOR
         _characterContainer.DebugText.text = $"State : {_stateMode}\r\nHP : {_characterContainer.Character.State.HitPoint}";
@@ -214,6 +109,263 @@ public class AIInputter : InputterBase
     }
 
     #region PrivateMethod
+
+    private void ChangeStateMode(StateKind kind)
+    {
+        if (_stateMode == kind) return;
+
+        System.Action enterStateAction = null;
+
+        _leaveStateAction?.Invoke();
+
+        if (kind == StateKind.Safe)
+        {
+            _inputUpdateAction = SafeInputUpdate;
+            enterStateAction = SafeEnterState;
+            _leaveStateAction = SafeLeaveState;
+            _detectEnemyAction = SafeAndAlertDetectEnemy;
+            _dangerDetectedAction = SafeDangerDetected;
+        }
+        else if (kind == StateKind.Alert)
+        {
+            _inputUpdateAction = AlertInputUpdate;
+            enterStateAction = AlertEnterState;
+            _leaveStateAction = AlertLeaveState;
+            _detectEnemyAction = SafeAndAlertDetectEnemy;
+            _dangerDetectedAction = null;
+            _wasAlert = true;
+        }
+        else if (kind == StateKind.Combat)
+        {
+            _inputUpdateAction = CombatInputUpdate;
+            enterStateAction = CombatEnterState;
+            _leaveStateAction = CombatLeaveState;
+            _detectEnemyAction = CombatDetectEnemy;
+            _dangerDetectedAction = null;
+        }
+
+        enterStateAction?.Invoke();
+
+        _stateMode = kind;
+    }
+
+    private void SafeInputUpdate()
+    {
+        if (_currentPath != null)
+        {
+            if (_currentPath is SinglePath path)
+            {
+                if (path.Kind == SinglePath.PathKind.Walking)
+                {
+                    Moving(_currentPath.Position, false, false, ChangeNextPathContainer);
+                }
+                else if (path.Kind == SinglePath.PathKind.Running)
+                {
+                    Moving(_currentPath.Position, true, false, ChangeNextPathContainer);
+                }
+                else if (path.Kind == SinglePath.PathKind.Waiting)
+                {
+                    WalkAndWait(false, false);
+                }
+                else if (path.Kind == SinglePath.PathKind.Tracking)
+                {
+                    Tracking(path.NextId);
+                }
+                else if (path.Kind == SinglePath.PathKind.AlertWaiting)
+                {
+                    WalkAndWait(true, false);
+                }
+                else if (path.Kind == SinglePath.PathKind.TimeWaiting)
+                {
+                    WalkAndWait(false, true);
+                }
+                else if (path.Kind == SinglePath.PathKind.ThrowingGrenade)
+                {
+                    ThrowingGrenade(_currentPath.Position);
+                }
+                else if (path.Kind == SinglePath.PathKind.PriorityRunning)
+                {
+                    if (TargetEnemy == null)
+                    {
+                        Moving(_currentPath.Position, true, false, ChangeNextPathContainer);
+                    }
+                    else
+                    {
+                        CombatAndMoving(_currentPath.Position, ChangeNextPathContainer);
+                    }
+                }
+            }
+            else if (_currentPath is RandomPath)
+            {
+                ChangeNextPathContainer();
+            }
+        }
+    }
+
+    private void SafeEnterState()
+    {
+        EndWaitLook();
+    }
+
+    private void SafeLeaveState()
+    {
+        EndWaitLook();
+    }
+
+    private void SafeAndAlertDetectEnemy(CharacterContainer[] detectedEnemies, CharacterContainer[] runningEnemies)
+    {
+        // 安全時、または警戒時
+        // 敵を一人でも発見したら戦闘状態に移行
+        if (detectedEnemies.Any())
+        {
+            TargetEnemy = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
+
+            // 警戒状態に移行するコルーチンを中止
+            if (_stateModeSubscriver != null)
+            {
+                _stateModeSubscriver.Dispose();
+                _stateModeSubscriver = null;
+            }
+
+            if (!IsPriorityRunning)
+            {
+                ChangeStateMode(StateKind.Combat);
+            }
+        }
+        else if (runningEnemies.Any() && !IsPriorityRunning)
+        {
+            BeginAlert(runningEnemies.First().transform.position - _characterTransform.position);
+        }
+        else
+        {
+            TargetEnemy = null;
+        }
+    }
+
+    private void SafeDangerDetected(Vector3 direction)
+    {
+        BeginAlert(direction);
+    }
+
+    private void AlertInputUpdate()
+    {
+        Stop();
+        var angleYZ = Vector3.SignedAngle(_headTransform.forward, _characterTransform.forward, _headTransform.right);
+
+        MouseX = _rollValue * _rollSign;
+        MouseY = _aISkill.GetCorrectionOperatingVolume(angleYZ);
+
+        if (_characterContainer.Character.State.CurrentWeapon.Spec.IsNone &&
+            !_characterContainer.Character.State.DisableWeapon.Spec.IsNone &&
+            !_characterContainer.Character.State.IsSwitching)
+        {
+            Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_characterContainer);
+        }
+    }
+
+    private void AlertEnterState()
+    {
+        if (_attackedDirection == Vector3.zero)
+        {
+            _rollValue = 0.6f;
+            _rollSign = Random.Range(0, 2) * 2 - 1;
+        }
+        else
+        {
+            var angleXZ = Vector3.SignedAngle(_characterTransform.forward, _attackedDirection, -_characterTransform.up);
+            // Debug.Log(angleXZ);
+            _rollValue = 1.0f;
+            _rollSign = (int)Mathf.Sign(angleXZ);
+        }
+    }
+
+    private void AlertLeaveState()
+    {
+        if (_attackedDirection == Vector3.zero)
+        {
+            _rollValue = 0.6f;
+            _rollSign = Random.Range(0, 2) * 2 - 1;
+        }
+        else
+        {
+            var angleXZ = Vector3.SignedAngle(_characterTransform.forward, _attackedDirection, -_characterTransform.up);
+            // Debug.Log(angleXZ);
+            _rollValue = 1.0f;
+            _rollSign = (int)Mathf.Sign(angleXZ);
+        }
+    }
+
+    private void CombatInputUpdate()
+    {
+        if (TargetEnemy != null && TargetEnemy.gameObject != null && _targetPosition != Vector3.zero)
+        {
+            if (_aISkill.IsZombie())
+            {
+                Shooting();
+
+                Walk = true;
+            }
+            else
+            {
+                Combat();
+
+                _evideSubscriver ??= Observable.FromCoroutine(EvideChance).Subscribe().AddTo(_characterContainer);
+                Walk = false;
+            }
+        }
+        else
+        {
+            MouseY = 0;
+        }
+    }
+
+    private void CombatEnterState()
+    {
+        if (_aISkill.IsZombie())
+        {
+            _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(0));
+        }
+    }
+
+    private void CombatLeaveState()
+    {
+        if (_aISkill.IsZombie())
+        {
+            _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(90));
+        }
+        else
+        {
+            _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(90));
+        }
+    }
+
+    private void CombatDetectEnemy(CharacterContainer[] detectedEnemies, CharacterContainer[] runningEnemies)
+    {
+        if (detectedEnemies.Contains(TargetEnemy))
+        {
+            // 検出された敵にターゲットが含まれる
+            // 警戒状態に移行するコルーチンを中止
+            if (_stateModeSubscriver != null)
+            {
+                _stateModeSubscriver.Dispose();
+                _stateModeSubscriver = null;
+            }
+        }
+        else
+        {
+            // 検出された敵にターゲットが含まれない → ターゲットを見失った
+            if (detectedEnemies.Any())
+            {
+                // 他の敵がいる場合はターゲットを直ちに変更
+                TargetEnemy = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
+            }
+            else
+            {
+                // しばらく記憶してから警戒状態に移行
+                _stateModeSubscriver ??= Observable.FromCoroutine(CombatToAlert).Subscribe().AddTo(_characterContainer);
+            }
+        }
+    }
 
     private IEnumerator PushOne(UnityAction<bool> boolSetAction)
     {
@@ -238,70 +390,6 @@ public class AIInputter : InputterBase
         SwitchWeapon = false;
         Weapon1 = false;
         Weapon2 = false;
-    }
-
-    private void EnterState(StateKind kind)
-    {
-        if (kind == StateKind.Safe)
-        {
-            EndWaitLook();
-        }
-        else if (kind == StateKind.Alert)
-        {
-            if (_attackedDirection == Vector3.zero)
-            {
-                _rollValue = 0.6f;
-                _rollSign = Random.Range(0, 2) * 2 - 1;
-            }
-            else
-            {
-                var angleXZ = Vector3.SignedAngle(_characterTransform.forward, _attackedDirection, -_characterTransform.up);
-                // Debug.Log(angleXZ);
-                _rollValue = 1.0f;
-                _rollSign = (int)Mathf.Sign(angleXZ);
-            }
-        }
-        else if (kind == StateKind.Combat)
-        {
-            if (_aISkill.IsZombie())
-            {
-                _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(0));
-            }
-        }
-    }
-
-    private void LeaveState(StateKind kind)
-    {
-        if (kind == StateKind.Safe)
-        {
-            EndWaitLook();
-        }
-        else if (kind == StateKind.Alert)
-        {
-            if (_attackedDirection == Vector3.zero)
-            {
-                _rollValue = 0.6f;
-                _rollSign = Random.Range(0, 2) * 2 - 1;
-            }
-            else
-            {
-                var angleXZ = Vector3.SignedAngle(_characterTransform.forward, _attackedDirection, -_characterTransform.up);
-                // Debug.Log(angleXZ);
-                _rollValue = 1.0f;
-                _rollSign = (int)Mathf.Sign(angleXZ);
-            }
-        }
-        else if (kind == StateKind.Combat)
-        {
-            if (_aISkill.IsZombie())
-            {
-                _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(90));
-            }
-            else
-            {
-                _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(90));
-            }
-        }
     }
 
     private IEnumerator JumpChance()
@@ -360,65 +448,9 @@ public class AIInputter : InputterBase
 
                     return _aISkill.IsInRunningRange(enemyDirection.magnitude) &&
                             (Mathf.Abs(c.Character.InputterState.Inputter.Horizontal) > 0 || Mathf.Abs(c.Character.InputterState.Inputter.Vertical) > 0);
-                });
+                }).ToArray();
 
-            if (StateMode == StateKind.Safe ||
-                StateMode == StateKind.Alert)
-            {
-                // 安全時、または警戒時
-                // 敵を一人でも発見したら戦闘状態に移行
-                if (detectedEnemies.Any())
-                {
-                    TargetEnemy = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
-
-                    // 警戒状態に移行するコルーチンを中止
-                    if (_stateModeSubscriver != null)
-                    {
-                        _stateModeSubscriver.Dispose();
-                        _stateModeSubscriver = null;
-                    }
-
-                    if (!IsPriorityRunning)
-                    {
-                        StateMode = StateKind.Combat;
-                    }
-                }
-                else if (runningEnemies.Any() && !IsPriorityRunning)
-                {
-                    BeginAlert(runningEnemies.First().transform.position - _characterTransform.position);
-                }
-                else
-                {
-                    TargetEnemy = null;
-                }
-            }
-            else if (StateMode == StateKind.Combat)
-            {
-                if (detectedEnemies.Contains(TargetEnemy))
-                {
-                    // 検出された敵にターゲットが含まれる
-                    // 警戒状態に移行するコルーチンを中止
-                    if (_stateModeSubscriver != null)
-                    {
-                        _stateModeSubscriver.Dispose();
-                        _stateModeSubscriver = null;
-                    }
-                }
-                else
-                {
-                    // 検出された敵にターゲットが含まれない → ターゲットを見失った
-                    if (detectedEnemies.Any())
-                    {
-                        // 他の敵がいる場合はターゲットを直ちに変更
-                        TargetEnemy = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
-                    }
-                    else
-                    {
-                        // しばらく記憶してから警戒状態に移行
-                        _stateModeSubscriver ??= Observable.FromCoroutine(CombatToAlert).Subscribe().AddTo(_characterContainer);
-                    }
-                }
-            }
+            _detectEnemyAction?.Invoke(detectedEnemies, runningEnemies);
 
             yield return _aISkill.WaitForDetectionDelay();
         }
@@ -460,7 +492,7 @@ public class AIInputter : InputterBase
         TargetEnemy = null;
         _attackedDirection = direction;
 
-        StateMode = StateKind.Alert;
+        ChangeStateMode(StateKind.Alert);
         _stateModeSubscriver = Observable.FromCoroutine(AlertToSafe).Subscribe().AddTo(_characterContainer);
     }
 
@@ -470,16 +502,16 @@ public class AIInputter : InputterBase
 
         if (_stateModeSubscriver == null) yield break;
 
-        StateMode = StateKind.Safe;
+        ChangeStateMode(StateKind.Safe);
         _stateModeSubscriver.Dispose();
         _stateModeSubscriver = null;
     }
 
     private void DangerDetected(Vector3 direction)
     {
-        if (StateMode == StateKind.Safe && !IsPriorityRunning)
+        if (!IsPriorityRunning)
         {
-            BeginAlert(direction);
+            _dangerDetectedAction?.Invoke(direction);
         }
     }
 
@@ -813,17 +845,6 @@ public class AIInputter : InputterBase
         yield return new WaitForSeconds(0.1f);
         _evideSubscriver.Dispose();
         _evideSubscriver = null;
-    }
-
-    #endregion
-
-    #region Type
-
-    public enum StateKind
-    {
-        Safe,
-        Alert,
-        Combat,
     }
 
     #endregion
