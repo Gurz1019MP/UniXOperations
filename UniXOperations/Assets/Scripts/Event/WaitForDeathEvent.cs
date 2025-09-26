@@ -5,9 +5,9 @@ using UnityEngine;
 
 public class WaitForDeathEvent : AbstractMissionEvent
 {
-    public WaitForDeathEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
+    public WaitForDeathEvent(PointData pointData, Characters characters) : base(pointData)
     {
-
+        _characters = characters;
     }
 
     public override void BeginEvent()
@@ -20,7 +20,7 @@ public class WaitForDeathEvent : AbstractMissionEvent
     {
         while (true)
         {
-            if (GameDataContainer.Characters.All(c => c.ID != Data))
+            if (_characters.NoOneId(Data))
             {
                 break;
             }
@@ -29,4 +29,6 @@ public class WaitForDeathEvent : AbstractMissionEvent
 
         RaiseChangeEventChain();
     }
+
+    private readonly Characters _characters;
 }

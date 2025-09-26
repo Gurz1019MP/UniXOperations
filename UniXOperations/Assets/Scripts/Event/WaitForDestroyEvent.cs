@@ -5,9 +5,9 @@ using UnityEngine;
 
 public class WaitForDestroyEvent : AbstractMissionEvent
 {
-    public WaitForDestroyEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
+    public WaitForDestroyEvent(PointData pointData, Articles articles) : base(pointData)
     {
-
+        _articles = articles;
     }
 
     public override void BeginEvent()
@@ -20,7 +20,7 @@ public class WaitForDestroyEvent : AbstractMissionEvent
     {
         while (true)
         {
-            if (GameDataContainer.Articles.All(c => c.Article.ID != Data))
+            if (_articles.NoOneId(Data))
             {
                 break;
             }
@@ -30,4 +30,6 @@ public class WaitForDestroyEvent : AbstractMissionEvent
 
         RaiseChangeEventChain();
     }
+
+    private readonly Articles _articles;
 }

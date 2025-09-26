@@ -2,78 +2,146 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Purchasing;
 
 [Serializable]
-public class CharacterSpec
+public struct CharacterSpec : IEquatable<CharacterSpec>
 {
-    public short Id;
-    public string Name;
-    public short AISkill;
-    public float Hitpoint;
-    public short Weapon1;
-    public short Weapon2;
-    public string UpperModel;
-    public string Texture;
+    static CharacterSpec()
+    {
+        _empty = new CharacterSpec(string.Empty, 1, 0f, 0, 0, string.Empty, string.Empty, true);
+    }
+ 
+    private CharacterSpec(string name,
+                         short aiSkill,
+                         float hitpoint,
+                         short weapon1,
+                         short weapon2,
+                         string upperModel,
+                         string texture,
+                         bool isEmpty = false)
+    {
+        this.Name = name;
+        this.AISkill = AISpec.GetAISkill(aiSkill);
+        this.Hitpoint = hitpoint;
+        this.Weapon1 = weapon1;
+        this.Weapon2 = weapon2;
+        this._upperModel = upperModel;
+        this._texture = texture;
+        this._isEmpty = isEmpty;
+    }
 
-    public bool IsZombie => AISkill == -1;
+    public string Name { get; }
+    public AISpec AISkill { get; }
+    public float Hitpoint { get; }
+    public short Weapon1 { get; }
+    public short Weapon2 { get; }
 
-    public static CharacterSpec GetCharacterSpec(short kind)
+    public static CharacterSpec GetCharacterSpec(CharacterKind kind)
     {
         try
         {
-            return JsonContainer.Instance.CharacterSpecArray.Single(s => s.Id == kind);
+            return CharacterSpecMapper[kind];
         }
         catch
         {
             Debug.LogError($"CharacterSpecの読み込みで定義されていないIdを読み込みました(Id:{kind})");
-            return null;
+            return _empty;
         }
     }
 
-    private static Dictionary<short, CharacterSpec> CharacterSpecMapper = new Dictionary<short, CharacterSpec>()
+    public Mesh GetMesh()
     {
-        { 0, new CharacterSpec(){ Name = "特殊 黒 A", AISkill = 4, Hitpoint = 150f, Weapon1 = 21, Weapon2 = 8, UpperModel = "up5", Texture = "soldier_black" }},
-        { 1, new CharacterSpec(){ Name = "特殊 黒 B", AISkill = 4, Hitpoint = 150f, Weapon1 = 21, Weapon2 = 2, UpperModel = "up5", Texture = "soldier_black" }},
-        { 2, new CharacterSpec(){ Name = "特殊 緑 A", AISkill = 3, Hitpoint = 150f, Weapon1 = 3, Weapon2 = 6, UpperModel = "up0", Texture = "soldier_green" }},
-        { 3, new CharacterSpec(){ Name = "特殊 緑 B", AISkill = 3, Hitpoint = 150f, Weapon1 = 3, Weapon2 = 10, UpperModel = "up0", Texture = "soldier_green" }},
-        { 4, new CharacterSpec(){ Name = "特殊 緑 C", AISkill = 3, Hitpoint = 150f, Weapon1 = 3, Weapon2 = 2, UpperModel = "up0", Texture = "soldier_green" }},
-        { 5, new CharacterSpec(){ Name = "特殊 白 A", AISkill = 3, Hitpoint = 150f, Weapon1 = 16, Weapon2 = 7, UpperModel = "up0", Texture = "soldier_white" }},
-        { 6, new CharacterSpec(){ Name = "特殊 白 B", AISkill = 3, Hitpoint = 150f, Weapon1 = 16, Weapon2 = 2, UpperModel = "up0", Texture = "soldier_white" }},
-        { 7, new CharacterSpec(){ Name = "ハゲ", AISkill = 4, Hitpoint = 100f, Weapon1 = 16, Weapon2 = 0, UpperModel = "up0", Texture = "hage" }},
-        { 8, new CharacterSpec(){ Name = "特殊 紫", AISkill = 4, Hitpoint = 150f, Weapon1 = 22, Weapon2 = 14, UpperModel = "up0", Texture = "soldier_violet" }},
-        { 9, new CharacterSpec(){ Name = "特殊 青", AISkill = 3, Hitpoint = 150f, Weapon1 = 3, Weapon2 = 1, UpperModel = "up0", Texture = "soldier_blue" }},
-        { 10, new CharacterSpec(){ Name = "戦闘用ロボット", AISkill = 5, Hitpoint = 2000f, Weapon1 = 6, Weapon2 = 12, UpperModel = "up0", Texture = "robot" }},
-        { 11, new CharacterSpec(){ Name = "スーツ 黒 SG", AISkill = 2, Hitpoint = 100f, Weapon1 = 18, Weapon2 = 0, UpperModel = "up1", Texture = "gs" }},
-        { 12, new CharacterSpec(){ Name = "スーツ 黒", AISkill = 2, Hitpoint = 100f, Weapon1 = 5, Weapon2 = 0, UpperModel = "up0", Texture = "gs" }},
-        { 13, new CharacterSpec(){ Name = "スーツ 灰", AISkill = 1, Hitpoint = 100f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up0", Texture = "riiman_g" }},
-        { 14, new CharacterSpec(){ Name = "警察官", AISkill = 2, Hitpoint = 100f, Weapon1 = 3, Weapon2 = 0, UpperModel = "up2", Texture = "police" }},
-        { 15, new CharacterSpec(){ Name = "スーツ 茶", AISkill = 1, Hitpoint = 100f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up0", Texture = "riiman" }},
-        { 16, new CharacterSpec(){ Name = "シャツ男 1", AISkill = 1, Hitpoint = 100f, Weapon1 = 17, Weapon2 = 0, UpperModel = "up0", Texture = "syatu" }},
-        { 17, new CharacterSpec(){ Name = "中東兵", AISkill = 2, Hitpoint = 100f, Weapon1 = 17, Weapon2 = 10, UpperModel = "up0", Texture = "islam" }},
-        { 18, new CharacterSpec(){ Name = "女", AISkill = 1, Hitpoint = 90f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up3", Texture = "woman" }},
-        { 19, new CharacterSpec(){ Name = "金髪男", AISkill = 1, Hitpoint = 100f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up0", Texture = "civ1" }},
-        { 20, new CharacterSpec(){ Name = "市民 1", AISkill = 1, Hitpoint = 100f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up0", Texture = "civ2" }},
-        { 21, new CharacterSpec(){ Name = "市民 2", AISkill = 1, Hitpoint = 100f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up0", Texture = "civ3" }},
-        { 22, new CharacterSpec(){ Name = "シャツ男 1 SG", AISkill = 1, Hitpoint = 100f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up1", Texture = "syatu" }},
-        { 23, new CharacterSpec(){ Name = "金髪男 SG", AISkill = 1, Hitpoint = 100f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up1", Texture = "civ1" }},
-        { 24, new CharacterSpec(){ Name = "市民 1 SG", AISkill = 1, Hitpoint = 100f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up1", Texture = "civ2" }},
-        { 25, new CharacterSpec(){ Name = "市民 2 SG", AISkill = 1, Hitpoint = 100f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up1", Texture = "civ3" }},
-        { 26, new CharacterSpec(){ Name = "兵士 1 A", AISkill = 3, Hitpoint = 150f, Weapon1 = 5, Weapon2 = 9, UpperModel = "up4", Texture = "soldier0" }},
-        { 27, new CharacterSpec(){ Name = "兵士 1 B", AISkill = 3, Hitpoint = 150f, Weapon1 = 5, Weapon2 = 12, UpperModel = "up4", Texture = "soldier1" }},
-        { 28, new CharacterSpec(){ Name = "兵士 2", AISkill = 3, Hitpoint = 150f, Weapon1 = 13, Weapon2 = 10, UpperModel = "up4", Texture = "soldier2" }},
-        { 29, new CharacterSpec(){ Name = "ゾンビ 1", AISkill = -1, Hitpoint = 1000f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up0", Texture = "zombie1" }},
-        { 30, new CharacterSpec(){ Name = "ゾンビ 2", AISkill = -1, Hitpoint = 1000f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up0", Texture = "zombie2" }},
-        { 31, new CharacterSpec(){ Name = "ゾンビ 3", AISkill = -1, Hitpoint = 1000f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up0", Texture = "zombie3" }},
-        { 32, new CharacterSpec(){ Name = "ゾンビ 4", AISkill = -1, Hitpoint = 1000f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up0", Texture = "zombie4" }},
-        { 33, new CharacterSpec(){ Name = "スーツ 紺", AISkill = 1, Hitpoint = 100f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up0", Texture = "riiman_k" }},
-        { 34, new CharacterSpec(){ Name = "スーツ 紺 SG", AISkill = 2, Hitpoint = 100f, Weapon1 = 17, Weapon2 = 0, UpperModel = "up1", Texture = "riiman_k" }},
-        { 35, new CharacterSpec(){ Name = "将軍", AISkill = 2, Hitpoint = 90f, Weapon1 = 17, Weapon2 = 0, UpperModel = "up0", Texture = "islam2" }},
-        { 36, new CharacterSpec(){ Name = "スーツ 青", AISkill = 1, Hitpoint = 100f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up0", Texture = "riiman_b" }},
-        { 37, new CharacterSpec(){ Name = "スーツ 青 SG", AISkill = 2, Hitpoint = 100f, Weapon1 = 18, Weapon2 = 0, UpperModel = "up1", Texture = "riiman_b" }},
-        { 38, new CharacterSpec(){ Name = "シャツ男 2 SG", AISkill = 2, Hitpoint = 100f, Weapon1 = 6, Weapon2 = 0, UpperModel = "up1", Texture = "syatu2" }},
-        { 39, new CharacterSpec(){ Name = "兵士 3", AISkill = 4, Hitpoint = 100f, Weapon1 = 5, Weapon2 = 20, UpperModel = "up0", Texture = "soldier3" }},
-        { 40, new CharacterSpec(){ Name = "兵士 3 SG", AISkill = 4, Hitpoint = 100f, Weapon1 = 21, Weapon2 = 0, UpperModel = "up1", Texture = "soldier3" }},
-        { 41, new CharacterSpec(){ Name = "ゲイツ", AISkill = 1, Hitpoint = 100f, Weapon1 = 0, Weapon2 = 0, UpperModel = "up0", Texture = "gates" }},
-        { 42, new CharacterSpec(){ Name = "ゲイツ SG", AISkill = 5, Hitpoint = 100f, Weapon1 = 22, Weapon2 = 0, UpperModel = "up1", Texture = "gates" }},
+        if (string.IsNullOrEmpty(_upperModel)) throw new ArgumentException("人情報に上半身メッシュ情報が登録されていません");
+
+        return AssetLoader.LoadAsset<Mesh>(string.Format(_characterMeshResourceFormat, _upperModel));
+    }
+
+    public static Material GetMaterial()
+    {
+        Material material = AssetLoader.LoadAsset<Material>(_characterMaterialResource);
+        material.shader = Shader.Find("Unlit/Texture");
+
+        return material;
+    }
+
+    public Texture2D GetTexture()
+    {
+        if (string.IsNullOrEmpty(_texture)) throw new ArgumentException("人情報に上半身テクスチャ情報が登録されていません");
+
+        return AssetLoader.LoadAsset<Texture2D>(string.Format(_characterTextureResourceFormat, _texture));
+    }
+
+    #region IEquatable
+
+    public override bool Equals(object obj) => obj is CharacterSpec other && this.Equals(other);
+
+    public bool Equals(CharacterSpec p) => Name == p.Name && AISkill == p.AISkill && Hitpoint == p.Hitpoint && Weapon1 == p.Weapon1 && Weapon2 == p.Weapon2;
+
+    public override int GetHashCode() => (Name, AISkill, Hitpoint, Weapon1, Weapon2).GetHashCode();
+
+    public static bool operator ==(CharacterSpec lhs, CharacterSpec rhs) => lhs.Equals(rhs);
+
+    public static bool operator !=(CharacterSpec lhs, CharacterSpec rhs) => !(lhs == rhs);
+
+    #endregion
+
+    private static readonly Dictionary<CharacterKind, CharacterSpec> CharacterSpecMapper = new Dictionary<CharacterKind, CharacterSpec>()
+    {
+        { new CharacterKind(0), new("特殊 黒 A", 4, 150f, 21, 8, "up5", "soldier_black")},
+        { new CharacterKind(1), new("特殊 黒 B", 4, 150f, 21, 2, "up5", "soldier_black")},
+        { new CharacterKind(2), new("特殊 緑 A", 3, 150f, 3, 6, "up0", "soldier_green")},
+        { new CharacterKind(3), new("特殊 緑 B", 3, 150f, 3, 10, "up0", "soldier_green")},
+        { new CharacterKind(4), new("特殊 緑 C", 3, 150f, 3, 2, "up0", "soldier_green")},
+        { new CharacterKind(5), new("特殊 白 A", 3, 150f, 16, 7, "up0", "soldier_white")},
+        { new CharacterKind(6), new("特殊 白 B", 3, 150f, 16, 2, "up0", "soldier_white")},
+        { new CharacterKind(7), new("ハゲ", 4, 100f, 16, 0, "up0", "hage")},
+        { new CharacterKind(8), new("特殊 紫", 4, 150f, 22, 14, "up0", "soldier_violet")},
+        { new CharacterKind(9), new("特殊 青", 3, 150f, 3, 1, "up0", "soldier_blue")},
+        { new CharacterKind(10), new("戦闘用ロボット", 5, 2000f, 6, 12, "up0", "robot")},
+        { new CharacterKind(11), new("スーツ 黒 SG", 2, 100f, 18, 0, "up1", "gs")},
+        { new CharacterKind(12), new("スーツ 黒", 2, 100f, 5, 0, "up0", "gs")},
+        { new CharacterKind(13), new("スーツ 灰", 1, 100f, 0, 0, "up0", "riiman_g")},
+        { new CharacterKind(14), new("警察官", 2, 100f, 3, 0, "up2", "police")},
+        { new CharacterKind(15), new("スーツ 茶", 1, 100f, 0, 0, "up0", "riiman")},
+        { new CharacterKind(16), new("シャツ男 1", 1, 100f, 17, 0, "up0", "syatu")},
+        { new CharacterKind(17), new("中東兵", 2, 100f, 17, 10, "up0", "islam")},
+        { new CharacterKind(18), new("女", 1, 90f, 0, 0, "up3", "woman")},
+        { new CharacterKind(19), new("金髪男", 1, 100f, 0, 0, "up0", "civ1")},
+        { new CharacterKind(20), new("市民 1", 1, 100f, 0, 0, "up0", "civ2")},
+        { new CharacterKind(21), new("市民 2", 1, 100f, 0, 0, "up0", "civ3")},
+        { new CharacterKind(22), new("シャツ男 1 SG", 1, 100f, 0, 0, "up1", "syatu")},
+        { new CharacterKind(23), new("金髪男 SG", 1, 100f, 0, 0, "up1", "civ1")},
+        { new CharacterKind(24), new("市民 1 SG", 1, 100f, 0, 0, "up1", "civ2")},
+        { new CharacterKind(25), new("市民 2 SG", 1, 100f, 0, 0, "up1", "civ3")},
+        { new CharacterKind(26), new("兵士 1 A", 3, 150f, 5, 9, "up4", "soldier0")},
+        { new CharacterKind(27), new("兵士 1 B", 3, 150f, 5, 12, "up4", "soldier1")},
+        { new CharacterKind(28), new("兵士 2", 3, 150f, 13, 10, "up4", "soldier2")},
+        { new CharacterKind(29), new("ゾンビ 1", -1, 1000f, 0, 0, "up0", "zombie1")},
+        { new CharacterKind(30), new("ゾンビ 2", -1, 1000f, 0, 0, "up0", "zombie2")},
+        { new CharacterKind(31), new("ゾンビ 3", -1, 1000f, 0, 0, "up0", "zombie3")},
+        { new CharacterKind(32), new("ゾンビ 4", -1, 1000f, 0, 0, "up0", "zombie4")},
+        { new CharacterKind(33), new("スーツ 紺", 1, 100f, 0, 0, "up0", "riiman_k")},
+        { new CharacterKind(34), new("スーツ 紺 SG", 2, 100f, 17, 0, "up1", "riiman_k")},
+        { new CharacterKind(35), new("将軍", 2, 90f, 17, 0, "up0", "islam2")},
+        { new CharacterKind(36), new("スーツ 青", 1, 100f, 0, 0, "up0", "riiman_b")},
+        { new CharacterKind(37), new("スーツ 青 SG", 2, 100f, 18, 0, "up1", "riiman_b")},
+        { new CharacterKind(38), new("シャツ男 2 SG", 2, 100f, 6, 0, "up1", "syatu2")},
+        { new CharacterKind(39), new("兵士 3", 4, 100f, 5, 20, "up0", "soldier3")},
+        { new CharacterKind(40), new("兵士 3 SG", 4, 100f, 21, 0, "up1", "soldier3")},
+        { new CharacterKind(41), new("ゲイツ", 1, 100f, 0, 0, "up0", "gates")},
+        { new CharacterKind(42), new("ゲイツ SG", 5, 100f, 22, 0, "up1", "gates")},
     };
+
+    private static readonly string _characterMeshResourceFormat = "Assets/Models/Character/Built-in/{0}.fbx";
+
+    private static readonly string _characterMaterialResource = "Assets/Models/Character/Built-in/Material.mat";
+
+    private static readonly string _characterTextureResourceFormat = "Assets/Models/Character/{0}.bmp";
+
+    private static readonly CharacterSpec _empty;
+
+    private readonly bool _isEmpty;
+    private readonly string _upperModel;
+    private readonly string _texture;
 }

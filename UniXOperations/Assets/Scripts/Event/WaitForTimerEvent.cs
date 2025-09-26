@@ -4,10 +4,7 @@ using UnityEngine;
 
 public class WaitForTimerEvent : AbstractMissionEvent
 {
-    public WaitForTimerEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
-    {
-
-    }
+    public WaitForTimerEvent(PointData pointData) : base(pointData) { }
 
     public override void BeginEvent()
     {

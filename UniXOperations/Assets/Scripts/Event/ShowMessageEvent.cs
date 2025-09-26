@@ -2,19 +2,18 @@
 
 public class ShowMessageEvent : AbstractMissionEvent
 {
-    public ShowMessageEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
+    public ShowMessageEvent(PointData pointData, EventMessages eventMessages) : base(pointData)
     {
-
+        _eventMessages = eventMessages;
     }
 
     public override void BeginEvent()
     {
         Debug.Log($"イベントチェーン変更 [{Id}]メッセージ表示");
-        if (GameDataContainer.EventMessasge.ContainsKey(Data))
-        {
-            RaiseOnShowMessage(GameDataContainer.EventMessasge[Data]);
-        }
+        RaiseOnShowMessage(_eventMessages.GetMessage(Data));
 
         RaiseChangeEventChain();
     }
+
+    private EventMessages _eventMessages;
 }

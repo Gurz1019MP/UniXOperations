@@ -5,24 +5,24 @@ using UnityEngine;
 
 public abstract class AbstractMissionEvent
 {
-    public short Id { get; set; }
+    public AbstractMissionEvent(PointData pointData)
+    {
+        _pointData = pointData;
+    }
 
-    public short Data { get; set; }
+    public short Id => _pointData.Data4;
 
-    public short Next { get; set; }
+    public short Data => _pointData.Data2;
+
+    public short Next => _pointData.Data3;
+
+    public Vector3 Position => _pointData.Position;
 
     public IObservable<Unit> OnChangeEventChain => _onChangeEventChainSubject;
 
     public IObservable<bool> OnEndEventChain => _onEndEventChainSubject;
 
     public IObservable<string> OnShowMessage => _onShowMessageSubject;
-
-    protected GameDataContainer GameDataContainer { get; private set; }
-
-    public AbstractMissionEvent(GameDataContainer gameDataContainer)
-    {
-        GameDataContainer = gameDataContainer;
-    }
 
     public abstract void BeginEvent();
 
@@ -47,15 +47,15 @@ public abstract class AbstractMissionEvent
         _onShowMessageSubject.OnCompleted();
     }
 
-    protected IEnumerator WaitForPerson(Character character, MissionEventContainer missionEventContainer, bool withCase)
+    protected IEnumerator WaitForPerson(Character character, AbstractMissionEvent missionEvent, bool withCase)
     {
         while (true)
         {
-            if ((character.transform.position - missionEventContainer.transform.position).magnitude < 1f)
+            if ((character.Position - missionEvent.Position).magnitude < 1f)
             {
                 if (withCase)
                 {
-                    if (character.Weapon1.Kind == 15 || character.Weapon2.Kind == 15)
+                    if (character.State.Weapon1.Spec.IsCase || character.State.Weapon2.Spec.IsCase)
                     {
                         break;
                     }
@@ -72,6 +72,7 @@ public abstract class AbstractMissionEvent
         RaiseChangeEventChain();
     }
 
+    private PointData _pointData;
     private Subject<Unit> _onChangeEventChainSubject = new Subject<Unit>();
     private Subject<bool> _onEndEventChainSubject = new Subject<bool>();
     private Subject<string> _onShowMessageSubject = new Subject<string>();

@@ -1,40 +1,46 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
+using UnityEngine;
 
 [Serializable]
-public class WeaponState
+public readonly struct WeaponState
 {
-    public short Kind;
-    public int Ammo;
-    public int Magazine;
-
-    public WeaponSpec Spec
+    public WeaponState(int ammo,
+                       int magazine)
     {
-        get
-        {
-            return WeaponSpec.GetSpec(Kind);
-        }
+        Ammo = ammo;
+        Magazine = magazine;
     }
 
-    public void ChangeWeapon(WeaponState newWeapon)
+    public int Ammo { get; }
+
+    public int Magazine { get; }
+
+    public readonly bool HasAmmo => Ammo > 0;
+
+    public readonly bool OutOfMagazine => Magazine == 0;
+
+    public readonly bool OutOfAmmo => Ammo == 0 && OutOfMagazine;
+
+    public static WeaponState None { get; } = new WeaponState(0, 0);
+
+    public static WeaponState Build(WeaponSpec kind)
     {
-        Kind = newWeapon.Kind;
-        Ammo = newWeapon.Ammo;
-        Magazine = newWeapon.Magazine;
+        return new WeaponState(kind.MagazineSize * 2, kind.MagazineSize);
     }
 
-    public void ChangeFireMode()
+    public WeaponState BuildWithAddAmmo(WeaponSpec spec)
     {
-        if (Spec.ChangeFireModeWeapon == 0) return;
-
-        Kind = Spec.ChangeFireModeWeapon;
+        return new WeaponState(Ammo + spec.MagazineSize, Magazine);
     }
 
-    public void LostWeapon()
+    public WeaponState BuildWithLoad()
     {
-        Kind = 0;
-        Ammo = 0;
-        Magazine = 0;
+        return new WeaponState(Ammo, Magazine - 1);
     }
 
-    public static readonly WeaponState None = new WeaponState();
+    public WeaponState BuildWithReload(WeaponSpec spec)
+    {
+        return new WeaponState(Ammo - spec.MagazineSize, Ammo > spec.MagazineSize ? spec.MagazineSize : Ammo);
+    }
 }

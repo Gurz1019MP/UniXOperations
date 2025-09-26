@@ -2,10 +2,7 @@
 
 public class DummyEvent : AbstractMissionEvent
 {
-    public DummyEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
-    {
-
-    }
+    public DummyEvent(PointData pointData) : base(pointData) { }
 
     public override void BeginEvent()
     {

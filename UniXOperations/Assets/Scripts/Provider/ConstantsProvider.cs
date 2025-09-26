@@ -1,0 +1,94 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+
+public static class ConstantsProvider
+{
+    #region Prefab
+
+    public static string PrefabBullet { get; } = "Assets/Prefabs/BulletPrefab.prefab";
+
+    public static string PrefabGrenade { get; } = "Assets/Prefabs/GrenadePrefab.prefab";
+
+    public static string PrefabZombieAttack { get; } = "Assets/Prefabs/ZombieAttackPrefab.prefab";
+
+    public static IEnumerable<string> BulletPrefabs = new string[]
+    {
+        PrefabBullet,
+        PrefabGrenade,
+        PrefabZombieAttack,
+    };
+
+    public static string CartridgePrefab { get; } = "Assets/Prefabs/CartridgePrefab.prefab";
+
+    public static string PrefabDiedCharacter { get; } = "Assets/Prefabs/DiedCharacter.prefab";
+
+    public static string PrefabDiedCamera { get; } = "Assets/Prefabs/DiedCamera.prefab";
+
+    public static string PrefabBrokenArticle { get; } = "Assets/Prefabs/BrokenArticle.prefab";
+
+    public static string PrefabPointVisual { get; } = "Assets/Prefabs/PointVisual.prefab";
+
+    public static string PrefabMuzzleFlash { get; } = "Assets/Prefabs/MuzzleFlash.prefab";
+
+    #endregion
+
+    #region Tag
+
+
+    public static string TagTarget { get; } = "Target";
+
+    public static string TagBody { get; } = "Body";
+
+    public static string TagUp { get; } = "Up";
+
+    public static string TagArm { get; } = "Arm";
+
+    public static string TagArmHolding { get; } = "Arm_Holding";
+
+    public static string TagLeg { get; } = "Leg";
+
+    public static string TagFpsCameraAnchor { get; } = "FPSCameraAnchor";
+
+    public static string TagTpsCameraAnchor { get; } = "TPSCameraAnchor";
+
+    #endregion
+
+    #region Audio
+
+    public static string Fire1 { get; } = "Assets/Audio/fire1.wav";
+
+    public static string Fire2 { get; } = "Assets/Audio/fire2.wav";
+
+    public static string Fire3 { get; } = "Assets/Audio/fire3.wav";
+
+    public static string Fire4 { get; } = "Assets/Audio/fire4.wav";
+
+    public static IEnumerable<string> FireAudios = new string[]
+    {
+        Fire1, Fire2, Fire3, Fire4
+    };
+
+    #endregion
+
+    #region LayerMask
+
+    public static int LayerCharacter { get; } = 8;
+    public static int LayerBody { get; } = 11;
+    public static int LayerArm { get; } = 12;
+
+    public static string LayerMask_Character_Root { get; } = "Character_Root";
+
+    public static string LayerMask_Stage { get; } = "Stage";
+
+    #endregion
+
+    #region PlayerPerfsKey
+
+    public static string FovKey { get; } = "FoV";
+
+    public static string KeyBindingKey { get; } = "KeyBinding";
+
+    public static string MouseSensitivityKey { get; } = "MouseSensitivity";
+
+    #endregion
+}

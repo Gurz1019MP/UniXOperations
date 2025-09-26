@@ -10,21 +10,28 @@ public class MissionEventChain
 
     public IObservable<string> OnShowMessage => _onShowMessage;
 
-    public MissionEventChain(AbstractMissionEvent firstEvent, GameDataContainer gameDataContainer)
+    public MissionEventChain(AbstractMissionEvent firstEvent, MissionEvents missionEvents)
     {
-        _gameDataContainer = gameDataContainer;
+        _missionEvents = missionEvents;
         ChangeEventChain(firstEvent);
     }
 
     private void ChangeEventChain(AbstractMissionEvent nextEvent)
     {
+        _onChangeEventChainSubscriber?.Dispose();
+        _onChangeEventChainSubscriber = null;
+        _onEndEventChainSubscriber?.Dispose();
+        _onEndEventChainSubscriber = null;
+        _onShowMessageSubscriber?.Dispose();
+        _onShowMessageSubscriber = null;
+
         if (nextEvent != null)
         {
             CurrentEvent = nextEvent;
 
-            CurrentEvent.OnChangeEventChain.Subscribe(OnChangeEventChainHandler);
-            CurrentEvent.OnEndEventChain.Subscribe(OnEndEventChainHandler);
-            CurrentEvent.OnShowMessage.Subscribe(OnShowMessageHandler);
+            _onChangeEventChainSubscriber = CurrentEvent.OnChangeEventChain.Subscribe(OnChangeEventChainHandler);
+            _onEndEventChainSubscriber = CurrentEvent.OnEndEventChain.Subscribe(OnEndEventChainHandler);
+            _onShowMessageSubscriber = CurrentEvent.OnShowMessage.Subscribe(OnShowMessageHandler);
 
             CurrentEvent.BeginEvent();
         }
@@ -32,11 +39,12 @@ public class MissionEventChain
 
     private void OnChangeEventChainHandler(Unit _)
     {
-        ChangeEventChain(_gameDataContainer.MissionEvents.Single(e => e.MissionEvent.Id == CurrentEvent.Next).MissionEvent);
+        ChangeEventChain(_missionEvents.GetMissionEvent(CurrentEvent.Next));
     }
     private void OnEndEventChainHandler(bool result)
     {
         _onEndEventChainSubject.OnNext(result);
+        _onEndEventChainSubject.OnCompleted();
     }
 
     private void OnShowMessageHandler(string message)
@@ -44,7 +52,10 @@ public class MissionEventChain
         _onShowMessage.OnNext(message);
     }
 
-    private GameDataContainer _gameDataContainer;
     private Subject<bool> _onEndEventChainSubject = new Subject<bool>();
     private Subject<string> _onShowMessage = new Subject<string>();
+    private MissionEvents _missionEvents;
+    private IDisposable _onChangeEventChainSubscriber;
+    private IDisposable _onEndEventChainSubscriber;
+    private IDisposable _onShowMessageSubscriber;
 }

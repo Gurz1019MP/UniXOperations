@@ -1,23 +1,27 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class ChangeTeamEvent : AbstractMissionEvent
 {
-    public ChangeTeamEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
+    public ChangeTeamEvent(PointData pointData, Characters characters) : base(pointData)
     {
-
+        _characters = characters;
     }
 
     public override void BeginEvent()
     {
         Debug.Log($"イベントチェーン変更 [{Id}]チーム変更");
-        var characters = GameDataContainer.Characters.Where(c => c.ID == Data);
+        var characters = _characters.WhereId(Data);
         foreach (var character in characters)
         {
-            character.Team = 0;
+            character.SetState(character.State.BuildWithTeam(new Team(0)));
         }
 
         RaiseChangeEventChain();
     }
+
+    private readonly Characters _characters;
 }

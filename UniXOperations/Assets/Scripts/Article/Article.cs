@@ -1,38 +1,41 @@
 ﻿using System;
 using UniRx;
-using UnityEngine;
 
-[Serializable]
 public class Article
 {
-    [SerializeField, ReadOnly]
-    public short ID;
-
-    [SerializeField, ReadOnly]
-    public float HitPoint;
-
-    public IObservable<Unit> OnDestroyed => _onDestroyedSubject;
-
-    public Article(short id, ArticleSpec spec)
+    public Article(PointData pointData)
     {
-        // パラメータの設定
-        _spec = spec;
-        ID = id;
-        HitPoint = _spec.HitPoint;
+        Id = pointData.Data4;
+        PointData = pointData;
+        Spec = ArticleSpec.GetArticleSpec(pointData.Data2);
     }
 
-    public void TakeDamage(float baseDamage)
+    public short Id { get; }
+
+    public PointData PointData { get; }
+
+    public ArticleSpec Spec { get; }
+
+    public ArticleState State { get; private set; }
+
+    public bool IsGroundFlag => PointData.Data3 == 0;
+
+    public IObservable<Article> OnDestroyed => _onDestroyedSubject;
+
+    public void TakeDamage(float damage)
     {
-        HitPoint -= baseDamage;
-        if (HitPoint < 0)
+        SetState(State.BuildWithHitpoint(damage));
+    }
+
+    public void SetState(ArticleState state)
+    {
+        State = state;
+        if (State.IsDestroyed)
         {
-            _onDestroyedSubject.OnNext(Unit.Default);
+            _onDestroyedSubject.OnNext(this);
             _onDestroyedSubject.OnCompleted();
         }
-
-        // Debug.Log($"Article TakeDamage (Id:{ID}, HitPoint:{HitPoint})");
     }
 
-    private ArticleSpec _spec;
-    private readonly Subject<Unit> _onDestroyedSubject = new Subject<Unit>();
+    private readonly Subject<Article> _onDestroyedSubject = new Subject<Article>();
 }

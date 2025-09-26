@@ -2,10 +2,7 @@
 
 public class ObjectiveComplateEvent : AbstractMissionEvent
 {
-    public ObjectiveComplateEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
-    {
-
-    }
+    public ObjectiveComplateEvent(PointData pointData) : base(pointData) { }
 
     public override void BeginEvent()
     {

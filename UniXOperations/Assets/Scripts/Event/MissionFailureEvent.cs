@@ -2,10 +2,7 @@
 
 public class MissionFailureEvent : AbstractMissionEvent
 {
-    public MissionFailureEvent(GameDataContainer gameDataContainer) : base(gameDataContainer)
-    {
-
-    }
+    public MissionFailureEvent(PointData pointData) : base(pointData) { }
 
     public override void BeginEvent()
     {
