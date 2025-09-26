@@ -7,30 +7,7 @@ using UnityEngine.Events;
 
 public class AlertAction : IStateModeDependedAction, IInputter
 {
-    public Action GetInputUpdateAction()
-    {
-        return AlertInputUpdate;
-    }
-
-    public Action GetEnterStateAction()
-    {
-        return AlertEnterState;
-    }
-
-    public Action GetLeaveStateAction()
-    {
-        return AlertLeaveState;
-    }
-
-    public Action<CharacterContainer[], CharacterContainer[]> GetDetectEnemyAction()
-    {
-        return SafeAndAlertDetectEnemy;
-    }
-
-    public Action<Vector3> GetDangerDetectedAction()
-    {
-        return null;
-    }
+    #region IInputter
 
     public float Horizontal { get; private set; }
 
@@ -56,6 +33,8 @@ public class AlertAction : IStateModeDependedAction, IInputter
 
     public bool SwitchWeapon { get; private set; }
 
+    #endregion
+
     private CharacterContainer _targetEnemy;
     private CharacterContainer TargetEnemy
     {
@@ -78,11 +57,11 @@ public class AlertAction : IStateModeDependedAction, IInputter
 
     public IObservable<StateKind> OnChangeStateMode => _onChangeStateModeSubject;
 
-    private bool IsPriorityRunning => _currentPath != null && (_currentPath is SinglePath singlePath) && singlePath.Kind == SinglePath.PathKind.PriorityRunning;
+    private bool IsPriorityRunning => _currentPath != null && _currentPath.Kind == PathKind.PriorityRunning;
 
     private CharacterContainer _characterContainer;
     private AISpec _aISkill;
-    private AbstractPath _currentPath;
+    private Path _currentPath;
     private Transform _characterTransform;
     private Transform _headTransform;
     private float _rollValue;
@@ -91,7 +70,7 @@ public class AlertAction : IStateModeDependedAction, IInputter
     private IDisposable _targetDiedSubscriver;
     private IDisposable _stateModeSubscriver;
 
-    private void AlertInputUpdate()
+    public void InputUpdate()
     {
         var angleYZ = Vector3.SignedAngle(_headTransform.forward, _characterTransform.forward, _headTransform.right);
 
@@ -106,7 +85,7 @@ public class AlertAction : IStateModeDependedAction, IInputter
         }
     }
 
-    private void AlertEnterState()
+    public void EnterState()
     {
         if (_attackedDirection == Vector3.zero)
         {
@@ -122,7 +101,7 @@ public class AlertAction : IStateModeDependedAction, IInputter
         }
     }
 
-    private void AlertLeaveState()
+    public void LeaveState()
     {
         if (_attackedDirection == Vector3.zero)
         {
@@ -138,7 +117,7 @@ public class AlertAction : IStateModeDependedAction, IInputter
         }
     }
 
-    private void SafeAndAlertDetectEnemy(CharacterContainer[] detectedEnemies, CharacterContainer[] runningEnemies)
+    public void DetectEnemy(CharacterContainer[] detectedEnemies, CharacterContainer[] runningEnemies)
     {
         // 安全時、または警戒時
         // 敵を一人でも発見したら戦闘状態に移行
@@ -167,6 +146,8 @@ public class AlertAction : IStateModeDependedAction, IInputter
             TargetEnemy = null;
         }
     }
+
+    public void DangerDetected(Vector3 direction) { }
 
     private IEnumerator PushOne(UnityAction<bool> boolSetAction)
     {

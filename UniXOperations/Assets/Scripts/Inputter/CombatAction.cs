@@ -7,30 +7,7 @@ using UnityEngine.Events;
 
 public class CombatAction : IStateModeDependedAction, IInputter
 {
-    public Action GetInputUpdateAction()
-    {
-        return CombatInputUpdate;
-    }
-
-    public Action GetEnterStateAction()
-    {
-        return CombatEnterState;
-    }
-
-    public Action GetLeaveStateAction()
-    {
-        return CombatLeaveState;
-    }
-
-    public Action<CharacterContainer[], CharacterContainer[]> GetDetectEnemyAction()
-    {
-        return CombatDetectEnemy;
-    }
-
-    public Action<Vector3> GetDangerDetectedAction()
-    {
-        return null;
-    }
+    #region IInputter
 
     public float Horizontal { get; private set; }
 
@@ -55,6 +32,8 @@ public class CombatAction : IStateModeDependedAction, IInputter
     public bool FireMode { get; private set; }
 
     public bool SwitchWeapon { get; private set; }
+
+    #endregion
 
     private CharacterContainer _targetEnemy;
     private CharacterContainer TargetEnemy
@@ -88,7 +67,7 @@ public class CombatAction : IStateModeDependedAction, IInputter
     private Vector3 _attackedDirection;
     private Vector3 _targetPosition;
 
-    private void CombatInputUpdate()
+    public void InputUpdate()
     {
         if (TargetEnemy != null && TargetEnemy.gameObject != null && _targetPosition != Vector3.zero)
         {
@@ -112,7 +91,7 @@ public class CombatAction : IStateModeDependedAction, IInputter
         }
     }
 
-    private void CombatEnterState()
+    public void EnterState()
     {
         if (_aISkill.IsZombie())
         {
@@ -120,7 +99,7 @@ public class CombatAction : IStateModeDependedAction, IInputter
         }
     }
 
-    private void CombatLeaveState()
+    public void LeaveState()
     {
         if (_aISkill.IsZombie())
         {
@@ -132,7 +111,7 @@ public class CombatAction : IStateModeDependedAction, IInputter
         }
     }
 
-    private void CombatDetectEnemy(CharacterContainer[] detectedEnemies, CharacterContainer[] runningEnemies)
+    public void DetectEnemy(CharacterContainer[] detectedEnemies, CharacterContainer[] runningEnemies)
     {
         if (detectedEnemies.Contains(TargetEnemy))
         {
@@ -159,6 +138,8 @@ public class CombatAction : IStateModeDependedAction, IInputter
             }
         }
     }
+
+    public void DangerDetected(Vector3 direction) { }
 
     private IEnumerator PushOne(UnityAction<bool> boolSetAction)
     {

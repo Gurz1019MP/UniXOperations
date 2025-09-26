@@ -62,25 +62,7 @@ public class Main
 
     private Paths CreatePaths(IEnumerable<PointData> pointDatas)
     {
-        List<AbstractPath> paths = new List<AbstractPath>();
-
-        foreach (PointData pointData in pointDatas.Where(p => p.Data1 == 3 || p.Data1 == 8))
-        {
-            if (pointData.Data1 == 3)
-            {
-                paths.Add(new SinglePath(pointData));
-            }
-            else if (pointData.Data1 == 8)
-            {
-                paths.Add(new RandomPath(pointData));
-            }
-            else
-            {
-                paths.Add(NoPath.Instance);
-            }
-        }
-
-        return new Paths(paths.ToArray());
+        return new Paths(pointDatas.Where(p => p.Data1 == 3 || p.Data1 == 8).ToArray());
     }
 
     private Characters CreateCharacters(IEnumerable<PointData> pointDatas, CharacterInformations characterInfomations)

@@ -9,7 +9,7 @@ public static class msgLoader
 {
     public static string[] LoadEventMessage(string pointPath)
     {
-        string messagePath = $"{Path.GetDirectoryName(pointPath)}{Path.DirectorySeparatorChar}{Path.GetFileNameWithoutExtension(pointPath)}.msg";
+        string messagePath = $"{System.IO.Path.GetDirectoryName(pointPath)}{System.IO.Path.DirectorySeparatorChar}{System.IO.Path.GetFileNameWithoutExtension(pointPath)}.msg";
         if (File.Exists(messagePath))
         {
             //UnityEngine.Debug.Log($"メッセージが見つかりました ({messagePath})");

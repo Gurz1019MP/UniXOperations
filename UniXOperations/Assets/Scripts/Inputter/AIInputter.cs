@@ -14,14 +14,18 @@ public class AIInputter : InputterBase
     {
         // フィールドの初期化
         _characterContainer = characterContainer;
-        _firstPath = paths.GetPath(characterContainer.Character.PointData.Data3);
         _aISkill = aISkill;
-        _currentPath = _firstPath;
         _characterTransform = characterContainer.transform;
         _headTransform = _characterContainer.FpsCameraAnchor;
         _paths = paths;
         _characters = characters;
         _findCharacterContainerFunction = findCharacterContainerFunction;
+        _stateModeDependedActionMapper = new Dictionary<StateKind, IStateModeDependedAction>()
+        {
+            { StateKind.Safe, new SafeAction() },
+            { StateKind.Alert, new AlertAction() },
+            { StateKind.Combat, new CombatAction() },
+        };
 
         _characterContainer.Character.OnDamaged.Subscribe(DangerDetected).AddTo(characterContainer.gameObject);
         _characterContainer.Character.OnClosed.Subscribe(DangerDetected).AddTo(characterContainer.gameObject);
@@ -58,49 +62,29 @@ public class AIInputter : InputterBase
         }
     }
 
-    private bool IsPriorityRunning => _currentPath != null && (_currentPath is SinglePath singlePath) && singlePath.Kind == SinglePath.PathKind.PriorityRunning;
-
     #endregion
 
     #region フィールド
 
     private CharacterContainer _characterContainer;
-    private AbstractPath _firstPath;
-    private AISpec _aISkill;
-    private AbstractPath _currentPath;
-    private Vector3 _targetPosition;
-    private float _movingAngle = 10f;
-    private float _movingDistance = 0.3f;
-    private float _trackingDistance = 1f;
-    private float _runningMovingAngleConstant = 2f;
-    private float _waitPathTimer = 5f;
     private Transform _characterTransform;
     private Transform _headTransform;
-    private Vector3 _trackingPosition;
-    private bool _wasAlert;
-    private float _rollValue;
-    private int _rollSign;
+    private AISpec _aISkill;
+    private Vector3 _targetPosition;
     private Vector3 _attackedDirection;
     private System.IDisposable _targetDiedSubscriver;
     private System.IDisposable _stateModeSubscriver;
-    private System.IDisposable _lookSubscriver;
-    private System.IDisposable _waitPathSubscriver;
-    private System.IDisposable _fireSubscriver;
-    private System.IDisposable _evideSubscriver;
     private readonly Paths _paths;
     private readonly Characters _characters;
-    private System.Func<Character, CharacterContainer> _findCharacterContainerFunction;
+    private readonly System.Func<Character, CharacterContainer> _findCharacterContainerFunction;
     private StateKind _stateMode;
-    private System.Action _inputUpdateAction;
-    private System.Action _leaveStateAction;
-    private System.Action<CharacterContainer[], CharacterContainer[]> _detectEnemyAction;
-    private System.Action<Vector3> _dangerDetectedAction;
+    private Dictionary<StateKind, IStateModeDependedAction> _stateModeDependedActionMapper;
 
     #endregion
 
     protected override void InputUpdate()
     {
-        _inputUpdateAction?.Invoke();
+        _stateModeDependedActionMapper[_stateMode].InputUpdate();
 
 #if UNITY_EDITOR
         _characterContainer.DebugText.text = $"State : {_stateMode}\r\nHP : {_characterContainer.Character.State.HitPoint}";
@@ -114,257 +98,10 @@ public class AIInputter : InputterBase
     {
         if (_stateMode == kind) return;
 
-        System.Action enterStateAction = null;
-
-        _leaveStateAction?.Invoke();
-
-        if (kind == StateKind.Safe)
-        {
-            _inputUpdateAction = SafeInputUpdate;
-            enterStateAction = SafeEnterState;
-            _leaveStateAction = SafeLeaveState;
-            _detectEnemyAction = SafeAndAlertDetectEnemy;
-            _dangerDetectedAction = SafeDangerDetected;
-        }
-        else if (kind == StateKind.Alert)
-        {
-            _inputUpdateAction = AlertInputUpdate;
-            enterStateAction = AlertEnterState;
-            _leaveStateAction = AlertLeaveState;
-            _detectEnemyAction = SafeAndAlertDetectEnemy;
-            _dangerDetectedAction = null;
-            _wasAlert = true;
-        }
-        else if (kind == StateKind.Combat)
-        {
-            _inputUpdateAction = CombatInputUpdate;
-            enterStateAction = CombatEnterState;
-            _leaveStateAction = CombatLeaveState;
-            _detectEnemyAction = CombatDetectEnemy;
-            _dangerDetectedAction = null;
-        }
-
-        enterStateAction?.Invoke();
+        _stateModeDependedActionMapper[_stateMode].LeaveState();
+        _stateModeDependedActionMapper[kind].EnterState();
 
         _stateMode = kind;
-    }
-
-    private void SafeInputUpdate()
-    {
-        if (_currentPath != null)
-        {
-            if (_currentPath is SinglePath path)
-            {
-                if (path.Kind == SinglePath.PathKind.Walking)
-                {
-                    Moving(_currentPath.Position, false, false, ChangeNextPathContainer);
-                }
-                else if (path.Kind == SinglePath.PathKind.Running)
-                {
-                    Moving(_currentPath.Position, true, false, ChangeNextPathContainer);
-                }
-                else if (path.Kind == SinglePath.PathKind.Waiting)
-                {
-                    WalkAndWait(false, false);
-                }
-                else if (path.Kind == SinglePath.PathKind.Tracking)
-                {
-                    Tracking(path.NextId);
-                }
-                else if (path.Kind == SinglePath.PathKind.AlertWaiting)
-                {
-                    WalkAndWait(true, false);
-                }
-                else if (path.Kind == SinglePath.PathKind.TimeWaiting)
-                {
-                    WalkAndWait(false, true);
-                }
-                else if (path.Kind == SinglePath.PathKind.ThrowingGrenade)
-                {
-                    ThrowingGrenade(_currentPath.Position);
-                }
-                else if (path.Kind == SinglePath.PathKind.PriorityRunning)
-                {
-                    if (TargetEnemy == null)
-                    {
-                        Moving(_currentPath.Position, true, false, ChangeNextPathContainer);
-                    }
-                    else
-                    {
-                        CombatAndMoving(_currentPath.Position, ChangeNextPathContainer);
-                    }
-                }
-            }
-            else if (_currentPath is RandomPath)
-            {
-                ChangeNextPathContainer();
-            }
-        }
-    }
-
-    private void SafeEnterState()
-    {
-        EndWaitLook();
-    }
-
-    private void SafeLeaveState()
-    {
-        EndWaitLook();
-    }
-
-    private void SafeAndAlertDetectEnemy(CharacterContainer[] detectedEnemies, CharacterContainer[] runningEnemies)
-    {
-        // 安全時、または警戒時
-        // 敵を一人でも発見したら戦闘状態に移行
-        if (detectedEnemies.Any())
-        {
-            TargetEnemy = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
-
-            // 警戒状態に移行するコルーチンを中止
-            if (_stateModeSubscriver != null)
-            {
-                _stateModeSubscriver.Dispose();
-                _stateModeSubscriver = null;
-            }
-
-            if (!IsPriorityRunning)
-            {
-                ChangeStateMode(StateKind.Combat);
-            }
-        }
-        else if (runningEnemies.Any() && !IsPriorityRunning)
-        {
-            BeginAlert(runningEnemies.First().transform.position - _characterTransform.position);
-        }
-        else
-        {
-            TargetEnemy = null;
-        }
-    }
-
-    private void SafeDangerDetected(Vector3 direction)
-    {
-        BeginAlert(direction);
-    }
-
-    private void AlertInputUpdate()
-    {
-        Stop();
-        var angleYZ = Vector3.SignedAngle(_headTransform.forward, _characterTransform.forward, _headTransform.right);
-
-        MouseX = _rollValue * _rollSign;
-        MouseY = _aISkill.GetCorrectionOperatingVolume(angleYZ);
-
-        if (_characterContainer.Character.State.CurrentWeapon.Spec.IsNone &&
-            !_characterContainer.Character.State.DisableWeapon.Spec.IsNone &&
-            !_characterContainer.Character.State.IsSwitching)
-        {
-            Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_characterContainer);
-        }
-    }
-
-    private void AlertEnterState()
-    {
-        if (_attackedDirection == Vector3.zero)
-        {
-            _rollValue = 0.6f;
-            _rollSign = Random.Range(0, 2) * 2 - 1;
-        }
-        else
-        {
-            var angleXZ = Vector3.SignedAngle(_characterTransform.forward, _attackedDirection, -_characterTransform.up);
-            // Debug.Log(angleXZ);
-            _rollValue = 1.0f;
-            _rollSign = (int)Mathf.Sign(angleXZ);
-        }
-    }
-
-    private void AlertLeaveState()
-    {
-        if (_attackedDirection == Vector3.zero)
-        {
-            _rollValue = 0.6f;
-            _rollSign = Random.Range(0, 2) * 2 - 1;
-        }
-        else
-        {
-            var angleXZ = Vector3.SignedAngle(_characterTransform.forward, _attackedDirection, -_characterTransform.up);
-            // Debug.Log(angleXZ);
-            _rollValue = 1.0f;
-            _rollSign = (int)Mathf.Sign(angleXZ);
-        }
-    }
-
-    private void CombatInputUpdate()
-    {
-        if (TargetEnemy != null && TargetEnemy.gameObject != null && _targetPosition != Vector3.zero)
-        {
-            if (_aISkill.IsZombie())
-            {
-                Shooting();
-
-                Walk = true;
-            }
-            else
-            {
-                Combat();
-
-                _evideSubscriver ??= Observable.FromCoroutine(EvideChance).Subscribe().AddTo(_characterContainer);
-                Walk = false;
-            }
-        }
-        else
-        {
-            MouseY = 0;
-        }
-    }
-
-    private void CombatEnterState()
-    {
-        if (_aISkill.IsZombie())
-        {
-            _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(0));
-        }
-    }
-
-    private void CombatLeaveState()
-    {
-        if (_aISkill.IsZombie())
-        {
-            _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(90));
-        }
-        else
-        {
-            _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(90));
-        }
-    }
-
-    private void CombatDetectEnemy(CharacterContainer[] detectedEnemies, CharacterContainer[] runningEnemies)
-    {
-        if (detectedEnemies.Contains(TargetEnemy))
-        {
-            // 検出された敵にターゲットが含まれる
-            // 警戒状態に移行するコルーチンを中止
-            if (_stateModeSubscriver != null)
-            {
-                _stateModeSubscriver.Dispose();
-                _stateModeSubscriver = null;
-            }
-        }
-        else
-        {
-            // 検出された敵にターゲットが含まれない → ターゲットを見失った
-            if (detectedEnemies.Any())
-            {
-                // 他の敵がいる場合はターゲットを直ちに変更
-                TargetEnemy = detectedEnemies[Random.Range(0, detectedEnemies.Length)];
-            }
-            else
-            {
-                // しばらく記憶してから警戒状態に移行
-                _stateModeSubscriver ??= Observable.FromCoroutine(CombatToAlert).Subscribe().AddTo(_characterContainer);
-            }
-        }
     }
 
     private IEnumerator PushOne(UnityAction<bool> boolSetAction)
@@ -372,24 +109,6 @@ public class AIInputter : InputterBase
         boolSetAction(true);
         yield return new WaitForSeconds(0.2f);
         boolSetAction(false);
-    }
-
-    private void Stop()
-    {
-        Horizontal = 0;
-        Vertical = 0;
-        Fire = false;
-        Jump = false;
-        MouseX = 0;
-        MouseY = 0;
-        Walk = false;
-        Reload = false;
-        DropWeapon = false;
-        Zoom = false;
-        FireMode = false;
-        SwitchWeapon = false;
-        Weapon1 = false;
-        Weapon2 = false;
     }
 
     private IEnumerator JumpChance()
@@ -450,7 +169,7 @@ public class AIInputter : InputterBase
                             (Mathf.Abs(c.Character.InputterState.Inputter.Horizontal) > 0 || Mathf.Abs(c.Character.InputterState.Inputter.Vertical) > 0);
                 }).ToArray();
 
-            _detectEnemyAction?.Invoke(detectedEnemies, runningEnemies);
+            _stateModeDependedActionMapper[_stateMode].DetectEnemy(detectedEnemies, runningEnemies);
 
             yield return _aISkill.WaitForDetectionDelay();
         }
@@ -478,15 +197,6 @@ public class AIInputter : InputterBase
         }
     }
 
-    private IEnumerator CombatToAlert()
-    {
-        yield return _aISkill.WaitForMiss();
-
-        if (_stateModeSubscriver == null) yield break;
-
-        BeginAlert(Vector3.zero);
-    }
-
     private void BeginAlert(Vector3 direction)
     {
         TargetEnemy = null;
@@ -509,342 +219,7 @@ public class AIInputter : InputterBase
 
     private void DangerDetected(Vector3 direction)
     {
-        if (!IsPriorityRunning)
-        {
-            _dangerDetectedAction?.Invoke(direction);
-        }
-    }
-
-    private void Moving(Vector3 targetPoint, bool isRunning, bool isTracking, UnityAction actionWhenReaching = null)
-    {
-        var pathDir = targetPoint - _characterTransform.position;              // 現在地からポイントへのベクトル
-        var pathDirPlane = Vector3.ProjectOnPlane(pathDir, Vector3.up);                 // 上記ベクトルをXY平面に射影
-        var angleXZ = Vector3.SignedAngle(_characterTransform.forward, pathDirPlane, _characterTransform.up);   // 今向いている方向との差を計算
-        var angleYZ = Vector3.SignedAngle(_headTransform.forward, _characterTransform.forward, _headTransform.right);
-
-        MouseX = _aISkill.GetCorrectionOperatingVolume(angleXZ);
-        MouseY = _aISkill.GetCorrectionOperatingVolume(angleYZ);
-
-        float movingAngle = _movingAngle * (isRunning ? _runningMovingAngleConstant : 1);
-        float distance = isTracking ? _trackingDistance : _movingDistance;
-        if (Mathf.Abs(angleXZ) < movingAngle && pathDirPlane.magnitude > distance)
-        {
-            if (isRunning)
-            {
-                Vertical = _aISkill.GetCorrectionOperatingVolume(pathDirPlane.magnitude);
-            }
-            else
-            {
-                Walk = true;
-            }
-        }
-        else
-        {
-            Vertical = 0;
-            Walk = false;
-
-            if (pathDirPlane.magnitude <= distance)
-            {
-                actionWhenReaching?.Invoke();
-            }
-        }
-    }
-
-    private void WalkAndWait(bool isAlertWaiting, bool isTimeWaiting)
-    {
-        if (_lookSubscriver == null)
-        {
-            if (isTimeWaiting)
-            {
-                Moving(_currentPath.Position, false, false, () => BeginChangeNextPathContainerWaitTimeAndLookDirection());
-            }
-            else
-            {
-                Moving(_currentPath.Position, false, false, () => BeginWaitLookAround(isAlertWaiting));
-            }
-        }
-        else
-        {
-            var angleYZ = Vector3.SignedAngle(_headTransform.forward, _characterTransform.forward, _headTransform.right);
-            MouseY = _aISkill.GetCorrectionOperatingVolume(angleYZ);
-        }
-    }
-
-    private void Tracking(short targetId)
-    {
-        try
-        {
-            _trackingPosition = _characters.GetCharacter(targetId).Position;
-        }
-        catch
-        {
-            _trackingPosition = _characterContainer.transform.position;
-            Debug.Log("追尾対象の取得に失敗");
-        }
-
-        Moving(_trackingPosition, true, true);
-    }
-
-    private void ThrowingGrenade(Vector3 targetPoint)
-    {
-        Stop();
-
-        if (_characterContainer.Character.State.CurrentWeapon.Spec.IsGrenade)
-        {
-            var enemyDir = targetPoint - _headTransform.position;         // 現在地から敵へのベクトル
-            var enemyDirXZPlane = Vector3.ProjectOnPlane(enemyDir, _headTransform.up);              // 上記ベクトルをXY平面に射影
-            var angleXZ = Vector3.SignedAngle(_headTransform.forward, enemyDirXZPlane, _headTransform.up); // 今向いている方向との差を計算
-            var enemyDirYZPlane = Vector3.ProjectOnPlane(enemyDir, _headTransform.right);
-            var angleYZ = Vector3.SignedAngle(_headTransform.forward, enemyDirYZPlane, _headTransform.right);
-
-            MouseX = _aISkill.GetCorrectionOperatingVolume(angleXZ);
-            MouseY = _aISkill.GetCorrectionOperatingVolume(angleYZ);
-
-            if (angleXZ < 0.1 && angleYZ < 0.1)
-            {
-                Observable.FromCoroutine(FireSemi).Subscribe().AddTo(_characterContainer);
-                ChangeNextPathContainer();
-            }
-        }
-        else if (_characterContainer.Character.State.DisableWeapon.Spec.IsGrenade)
-        {
-            if (!_characterContainer.Character.State.IsSwitching)
-            {
-                Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_characterContainer);
-            }
-        }
-        else
-        {
-            ChangeNextPathContainer();
-        }
-    }
-
-    private void ChangeNextPathContainer()
-    {
-        EndWaitLook();
-        _wasAlert = false;
-
-        var nextPath = _paths.GetPath(_currentPath.GetNextPathId());
-
-        _currentPath = nextPath;
-    }
-
-    private void BeginChangeNextPathContainerWaitTimeAndLookDirection()
-    {
-        BeginChangeNextPathContainerWaitTime();
-        BeginLookDirection();
-    }
-
-    private void BeginChangeNextPathContainerWaitTime()
-    {
-        if (_waitPathSubscriver != null) return;
-
-        _waitPathSubscriver = Observable.FromCoroutine(ChangeNextPathContainerWaitTime).Subscribe().AddTo(_characterContainer);
-    }
-
-    private IEnumerator ChangeNextPathContainerWaitTime()
-    {
-        yield return new WaitForSeconds(_waitPathTimer);
-        ChangeNextPathContainer();
-
-        _waitPathSubscriver?.Dispose();
-        _waitPathSubscriver = null;
-    }
-
-    private void BeginWaitLookAround(bool isAlertWaiting)
-    {
-        if (_lookSubscriver != null) return;
-
-        _lookSubscriver = Observable.FromCoroutine(_ => WaitLookAround(isAlertWaiting)).Subscribe().AddTo(_characterContainer);
-    }
-
-    private void EndWaitLook()
-    {
-        if (_lookSubscriver == null) return;
-
-        _lookSubscriver.Dispose();
-        _lookSubscriver = null;
-    }
-
-    private IEnumerator WaitLookAround(bool isAlertWaiting)
-    {
-        while (true)
-        {
-            if (isAlertWaiting && _wasAlert) break;
-
-            MouseX = Random.Range(-0.5f, 0.5f);
-            yield return new WaitForSeconds(2);
-        }
-
-        ChangeNextPathContainer();
-    }
-
-    private void BeginLookDirection()
-    {
-        if (_lookSubscriver != null) return;
-
-        _lookSubscriver = Observable.FromCoroutine(_ => LookDirection()).Subscribe().AddTo(_characterContainer);
-    }
-
-    private IEnumerator LookDirection()
-    {
-        while (true)
-        {
-            var angleXZ = Vector3.SignedAngle(_characterTransform.forward, _currentPath.Forward, _characterTransform.up);
-            MouseX = _aISkill.GetCorrectionOperatingVolume(angleXZ);
-            yield return null;
-        }
-    }
-
-    private void Shooting()
-    {
-        var enemyDir = _targetPosition - _headTransform.position;                               // 現在地から敵へのベクトル
-        var enemyDirXZPlane = Vector3.ProjectOnPlane(enemyDir, _headTransform.up);              // 上記ベクトルをXY平面に射影
-        var enemyAngleXZ = Vector3.SignedAngle(_headTransform.forward, enemyDirXZPlane, _headTransform.up); // 今向いている方向との差を計算
-        var enemyDirYZPlane = Vector3.ProjectOnPlane(enemyDir, _headTransform.right);
-        var enemyAngleYZ = Vector3.SignedAngle(_headTransform.forward, enemyDirYZPlane, _headTransform.right);
-
-        MouseX = _aISkill.GetCorrectionOperatingVolume(enemyAngleXZ);
-        MouseY = _aISkill.GetCorrectionOperatingVolume(enemyAngleYZ);
-
-        if (_aISkill.BeShoot(enemyAngleXZ, enemyAngleYZ) &&
-            !Physics.Raycast(_headTransform.position, enemyDir, enemyDir.magnitude, LayerMask.GetMask("Stage")))
-        {
-            if (_fireSubscriver == null)
-            {
-                if (_characterContainer.Character.State.CurrentWeapon.Spec.FullAuto)
-                {
-                    _fireSubscriver = Observable.FromCoroutine(FireFull).Subscribe().AddTo(_characterContainer);
-                }
-                else
-                {
-                    _fireSubscriver = Observable.FromCoroutine(FireSemi).Subscribe().AddTo(_characterContainer);
-                }
-            }
-        }
-    }
-
-    private void Combat()
-    {
-        Shooting();
-
-        if (!_characterContainer.Character.State.CurrentWeapon.Spec.IsNone &&
-            _characterContainer.Character.State.CurrentWeapon.State.OutOfMagazine)
-        {
-            if (_characterContainer.Character.State.CurrentWeapon.State.OutOfAmmo)
-            {
-                Observable.FromCoroutine(_ => PushOne(v => DropWeapon = v)).Subscribe().AddTo(_characterContainer);
-            }
-            else if (_characterContainer.Character.State.CurrentWeapon.State.HasAmmo &&
-                     !_characterContainer.Character.State.CurrentWeapon.IsReloading)
-            {
-                Observable.FromCoroutine(_ => PushOne(v => Reload = v)).Subscribe().AddTo(_characterContainer);
-            }
-        }
-
-        if (_characterContainer.Character.State.CurrentWeapon.Spec.IsNone &&
-            !_characterContainer.Character.State.DisableWeapon.Spec.IsNone &&
-            !_characterContainer.Character.State.IsSwitching)
-        {
-            Observable.FromCoroutine(_ => PushOne(v => SwitchWeapon = v)).Subscribe().AddTo(_characterContainer);
-        }
-
-        if (_characterContainer.Character.State.CurrentWeapon.Spec.HasScope &&
-            !_characterContainer.Character.State.IsZoom)
-        {
-            Observable.FromCoroutine(_ => PushOne(v => Zoom = v)).Subscribe().AddTo(_characterContainer);
-        }
-
-        if (_characterContainer.Character.State.CurrentWeapon.Spec.IsNone &&
-            _characterContainer.Character.State.DisableWeapon.Spec.IsNone)
-        {
-            _characterContainer.Character.SetState(_characterContainer.Character.State.BuildWithArmTargetAngle(-90));
-            if (_characterContainer.Character.State.IsArmLookAtMode)
-            {
-                _characterContainer.ArmTargetAngleMode();
-            }
-        }
-    }
-
-    private void CombatAndMoving(Vector3 targetPoint, UnityAction actionWhenReaching)
-    {
-        if (TargetEnemy != null && TargetEnemy.gameObject != null && _targetPosition != Vector3.zero)
-        {
-            Combat();
-
-            var pathDir = targetPoint - _characterTransform.position;              // 現在地からポイントへのベクトル
-            var pathDirPlane = Vector3.ProjectOnPlane(pathDir, Vector3.up);                 // 上記ベクトルをXY平面に射影
-
-            if (pathDirPlane.magnitude > _movingDistance)
-            {
-                Vertical = Vector3.Dot(_characterTransform.forward, pathDirPlane);
-                Horizontal = Vector3.Dot(_characterTransform.right, pathDirPlane);
-            }
-            else
-            {
-                Vertical = 0;
-                Walk = false;
-
-                actionWhenReaching();
-            }
-        }
-        else
-        {
-            MouseY = 0;
-        }
-    }
-
-    private IEnumerator FireFull()
-    {
-        Fire = true;
-        yield return new WaitForSeconds(Random.Range(0.2f, 1.0f));
-        Fire = false;
-        yield return new WaitForSeconds(Random.Range(0.5f, 1.0f));
-        _fireSubscriver = null;
-    }
-
-    private IEnumerator FireSemi()
-    {
-        Fire = true;
-        yield return new WaitForSeconds(Random.Range(0.2f, 1.0f));
-        Fire = false;
-        yield return new WaitForSeconds(Random.Range(0.5f, 1.0f));
-        _fireSubscriver = null;
-    }
-
-    private IEnumerator EvideChance()
-    {
-        var randomH = Random.Range(0, 20);
-        if (randomH == 1)
-        {
-            Horizontal = 1f;
-        }
-        else if (randomH == 2)
-        {
-            Horizontal = -1f;
-        }
-        else
-        {
-            Horizontal = 0;
-        }
-
-        var randomY = Random.Range(0, 50);
-        if (randomY == 1)
-        {
-            Vertical = 1f;
-        }
-        else if (randomY == 2)
-        {
-            Vertical = -1f;
-        }
-        else
-        {
-            Vertical = 0;
-        }
-
-        yield return new WaitForSeconds(0.1f);
-        _evideSubscriver.Dispose();
-        _evideSubscriver = null;
+        _stateModeDependedActionMapper[_stateMode].DangerDetected(direction);
     }
 
     #endregion

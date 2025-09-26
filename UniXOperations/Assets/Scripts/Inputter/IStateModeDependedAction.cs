@@ -3,13 +3,13 @@ using UnityEngine;
 
 public interface IStateModeDependedAction
 {
-    public Action GetInputUpdateAction();
+    public void InputUpdate();
 
-    public Action GetEnterStateAction();
+    public void EnterState();
 
-    public Action GetLeaveStateAction();
+    public void LeaveState();
 
-    public Action<CharacterContainer[], CharacterContainer[]> GetDetectEnemyAction();
+    public void DetectEnemy(CharacterContainer[] detectedEnemies, CharacterContainer[] runningEnemies);
 
-    public Action<Vector3> GetDangerDetectedAction();
+    public void DangerDetected(Vector3 direction);
 }

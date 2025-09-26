@@ -212,12 +212,12 @@ public struct MissionInformation : IEquatable<MissionInformation>
     {
         try
         {
-            if (path != "!" && Path.GetFileNameWithoutExtension(path) != "!")
+            if (path != "!" && System.IO.Path.GetFileNameWithoutExtension(path) != "!")
             {
                 var bmpLoader = new B83.Image.BMP.BMPLoader();
                 if (File.Exists(path))
                 {
-                    if (Path.GetExtension(path).ToLower() == ".bmp")
+                    if (System.IO.Path.GetExtension(path).ToLower() == ".bmp")
                     {
                         return bmpLoader.LoadBMP(path).ToTexture2D();
                     }

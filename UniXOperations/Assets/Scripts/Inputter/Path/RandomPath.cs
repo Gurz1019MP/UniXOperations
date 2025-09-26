@@ -1,17 +1,15 @@
 ﻿using System;
+using UniRx;
 
-[Serializable]
-public class RandomPath : AbstractPath
+public class RandomPath : IPath, INextPath
 {
-    private short NextId1 => _pointData.Data2;
-    private short NextId2 => _pointData.Data3;
+    public IObservable<short> OnChangeNextPath => _onChangeNextPathSubject;
 
-    public RandomPath(PointData pointData) : base(pointData)
+    public void InputUpdate()
     {
+        _onChangeNextPathSubject.OnNext(UnityEngine.Random.Range(0, 1) == 0 ? _pointData.Data3 : _pointData.Data2);
     }
 
-    public override short GetNextPathId()
-    {
-        return UnityEngine.Random.Range(0, 2) == 0 ? NextId1 : NextId2;
-    }
+    private readonly PointData _pointData;
+    private readonly Subject<short> _onChangeNextPathSubject = new Subject<short>();
 }

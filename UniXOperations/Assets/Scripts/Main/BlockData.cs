@@ -105,7 +105,7 @@ namespace XOPS
                 material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.renderQueue = 2450;
 
-                string filepath = Path.Combine(Path.GetDirectoryName(_path), t);
+                string filepath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(_path), t);
                 if (string.IsNullOrEmpty(t))
                 {
                     Debug.Log("テクスチャ名が空白でした");
@@ -113,7 +113,7 @@ namespace XOPS
                 }
                 else if (File.Exists(filepath))
                 {
-                    if (Path.GetExtension(filepath).ToLower() == ".bmp")
+                    if (System.IO.Path.GetExtension(filepath).ToLower() == ".bmp")
                     {
                         try
                         {

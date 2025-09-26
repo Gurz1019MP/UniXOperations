@@ -1,35 +1,45 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using UnityEngine.Events;
-using UnityEngine.TextCore.Text;
+﻿using System.Linq;
+using UnityEngine;
 
 public class Paths
 {
-    public Paths(AbstractPath[] paths)
+    public Paths(PointData[] pointDatas)
     {
-        List<AbstractPath> IdentifiedPath = new List<AbstractPath>();
-
-        foreach (var pathGroup in paths.GroupBy(p => p.Id).OrderBy(i => i.Key))
-        {
-            if (pathGroup.Count() != 1) continue;
-
-            IdentifiedPath.Add(pathGroup.Single());
-        }
-
-        _paths = IdentifiedPath.ToDictionary(ip => ip.Id);
+        _pointDatas = pointDatas;
     }
 
-    public AbstractPath GetPath(short id)
+    public IPath GetPath(short id, Transform characterTransform, Transform headTransform, AISpec aiSkill, Character character)
     {
-        if (_paths.ContainsKey(id))
+        PointData pointData = _pointDatas.FirstOrDefault(p => p.Data4 == id);
+        if (pointData.Data1 == 3)
         {
-            return _paths[id];
+            switch (pointData.Data2)
+            {
+                case 0:
+                    return new Walking(pointData, characterTransform, headTransform, aiSkill);
+                case 1:
+                    return new Running(pointData, characterTransform, headTransform, aiSkill);
+                case 2:
+                    return new Waiting(pointData, characterTransform, headTransform, aiSkill);
+                case 3:
+                    return new Tracking(pointData, characterTransform, headTransform, aiSkill);
+                case 4:
+                    return new AlertWaiting(pointData, characterTransform, headTransform, aiSkill);
+                case 5:
+                    return new TimeWaiting(pointData, characterTransform, headTransform, aiSkill);
+                case 6:
+                    return new ThrowingGrenade(pointData, character, headTransform, aiSkill);
+                case 7:
+                    return new PriorityRunning(pointData, characterTransform, headTransform, aiSkill, character);
+                default:
+                    return null;
+            }
         }
         else
         {
-            return NoPath.Instance;
+            return new RandomPath();
         }
     }
 
-    private Dictionary<short, AbstractPath> _paths;
+    private PointData[] _pointDatas;
 }
